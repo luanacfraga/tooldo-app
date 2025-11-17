@@ -2,7 +2,6 @@
 
 import { RegisterForm } from '@/components/register/register-form'
 import { RegisterLayout } from '@/components/register/register-layout'
-import { Steps } from '@/components/ui/steps'
 import { useState } from 'react'
 
 const STEPS = [
@@ -16,10 +15,7 @@ export default function RegisterPage() {
   const [currentStep, setCurrentStep] = useState(0)
 
   return (
-    <RegisterLayout
-      steps={<Steps steps={STEPS} currentStep={currentStep} />}
-      onStepChange={setCurrentStep}
-    >
+    <RegisterLayout steps={STEPS} currentStep={currentStep}>
       <RegisterForm onStepChange={setCurrentStep} />
     </RegisterLayout>
   )

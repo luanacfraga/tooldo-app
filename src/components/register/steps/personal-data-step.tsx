@@ -1,7 +1,7 @@
 'use client'
 
+import { FormFieldWrapper } from '@/components/ui/form-field-wrapper'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { maskPhone, unmaskPhone } from '@/lib/utils/masks'
 import { type RegisterFormData } from '@/lib/validators/auth'
 import { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form'
@@ -24,10 +24,12 @@ export function PersonalDataStep({
   return (
     <div className="space-y-5 sm:space-y-6">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div className="space-y-2.5">
-          <Label htmlFor="firstName" className="text-sm font-semibold text-foreground">
-            Nome *
-          </Label>
+        <FormFieldWrapper
+          label="Nome"
+          htmlFor="firstName"
+          error={errors.firstName?.message}
+          required
+        >
           <Input
             id="firstName"
             type="text"
@@ -39,15 +41,14 @@ export function PersonalDataStep({
                 : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
             }`}
           />
-          {errors.firstName && (
-            <p className="text-sm font-medium text-destructive">{errors.firstName.message}</p>
-          )}
-        </div>
+        </FormFieldWrapper>
 
-        <div className="space-y-2.5">
-          <Label htmlFor="lastName" className="text-sm font-semibold text-foreground">
-            Sobrenome *
-          </Label>
+        <FormFieldWrapper
+          label="Sobrenome"
+          htmlFor="lastName"
+          error={errors.lastName?.message}
+          required
+        >
           <Input
             id="lastName"
             type="text"
@@ -59,16 +60,10 @@ export function PersonalDataStep({
                 : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
             }`}
           />
-          {errors.lastName && (
-            <p className="text-sm font-medium text-destructive">{errors.lastName.message}</p>
-          )}
-        </div>
+        </FormFieldWrapper>
       </div>
 
-      <div className="space-y-2.5">
-        <Label htmlFor="email" className="text-sm font-semibold text-foreground">
-          Email *
-        </Label>
+      <FormFieldWrapper label="Email" htmlFor="email" error={errors.email?.message} required>
         <Input
           id="email"
           type="email"
@@ -80,15 +75,9 @@ export function PersonalDataStep({
               : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
           }`}
         />
-        {errors.email && (
-          <p className="text-sm font-medium text-destructive">{errors.email.message}</p>
-        )}
-      </div>
+      </FormFieldWrapper>
 
-      <div className="space-y-2.5">
-        <Label htmlFor="phone" className="text-sm font-semibold text-foreground">
-          Telefone *
-        </Label>
+      <FormFieldWrapper label="Telefone" htmlFor="phone" error={errors.phone?.message} required>
         <Input
           id="phone"
           type="tel"
@@ -107,10 +96,7 @@ export function PersonalDataStep({
               : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
           }`}
         />
-        {errors.phone && (
-          <p className="text-sm font-medium text-destructive">{errors.phone.message}</p>
-        )}
-      </div>
+      </FormFieldWrapper>
     </div>
   )
 }

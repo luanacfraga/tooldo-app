@@ -1,7 +1,7 @@
 'use client'
 
+import { FormFieldWrapper } from '@/components/ui/form-field-wrapper'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { maskCNPJ, unmaskCNPJ } from '@/lib/utils/masks'
 import { type RegisterFormData } from '@/lib/validators/auth'
 import { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form'
@@ -23,10 +23,12 @@ export function DocumentStep({
 }: DocumentStepProps) {
   return (
     <div className="space-y-6">
-      <div className="space-y-2.5">
-        <Label htmlFor="document" className="text-sm font-semibold text-foreground">
-          CNPJ da Empresa *
-        </Label>
+      <FormFieldWrapper
+        label="CNPJ da Empresa"
+        htmlFor="document"
+        error={errors.document?.message}
+        required
+      >
         <Input
           id="document"
           type="text"
@@ -46,13 +48,10 @@ export function DocumentStep({
               : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
           }`}
         />
-        {errors.document && (
-          <p className="text-sm font-medium text-destructive">{errors.document.message}</p>
-        )}
-        <p className="text-xs text-muted-foreground">
+        <p className="mt-1 text-xs text-muted-foreground">
           Digite o CNPJ completo da sua empresa (14 dígitos)
         </p>
-      </div>
+      </FormFieldWrapper>
     </div>
   )
 }

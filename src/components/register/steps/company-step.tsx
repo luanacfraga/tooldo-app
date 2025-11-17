@@ -1,7 +1,7 @@
 'use client'
 
+import { FormFieldWrapper } from '@/components/ui/form-field-wrapper'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { type RegisterFormData } from '@/lib/validators/auth'
 import { FieldErrors, UseFormRegister } from 'react-hook-form'
 
@@ -13,10 +13,12 @@ interface CompanyStepProps {
 export function CompanyStep({ register, errors }: CompanyStepProps) {
   return (
     <div className="space-y-6">
-      <div className="space-y-2.5">
-        <Label htmlFor="companyName" className="text-sm font-semibold text-foreground">
-          Nome da Empresa *
-        </Label>
+      <FormFieldWrapper
+        label="Nome da Empresa"
+        htmlFor="companyName"
+        error={errors.companyName?.message}
+        required
+      >
         <Input
           id="companyName"
           type="text"
@@ -28,15 +30,14 @@ export function CompanyStep({ register, errors }: CompanyStepProps) {
               : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
           }`}
         />
-        {errors.companyName && (
-          <p className="text-sm font-medium text-destructive">{errors.companyName.message}</p>
-        )}
-      </div>
+      </FormFieldWrapper>
 
-      <div className="space-y-2.5">
-        <Label htmlFor="companyDescription" className="text-sm font-semibold text-foreground">
-          Descrição da Empresa *
-        </Label>
+      <FormFieldWrapper
+        label="Descrição da Empresa"
+        htmlFor="companyDescription"
+        error={errors.companyDescription?.message}
+        required
+      >
         <textarea
           id="companyDescription"
           rows={4}
@@ -48,13 +49,8 @@ export function CompanyStep({ register, errors }: CompanyStepProps) {
               : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
           }`}
         />
-        {errors.companyDescription && (
-          <p className="text-sm font-medium text-destructive">
-            {errors.companyDescription.message}
-          </p>
-        )}
-        <p className="text-xs text-muted-foreground">Mínimo de 10 caracteres</p>
-      </div>
+        <p className="mt-1 text-xs text-muted-foreground">Mínimo de 10 caracteres</p>
+      </FormFieldWrapper>
     </div>
   )
 }

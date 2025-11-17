@@ -1,22 +1,22 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { ErrorAlert } from '@/components/auth/login/error-alert'
+import { AuthLink } from '@/components/auth/register/auth-link'
+import { RegisterHeader } from '@/components/auth/register/register-header'
+import { StepHeader } from '@/components/auth/register/step-header'
+import { StepNavigationButtons } from '@/components/auth/register/step-navigation-buttons'
 import { Steps } from '@/components/ui/steps'
 import { ApiError } from '@/lib/api/api-client'
 import { maskCNPJ, maskPhone, unmaskCNPJ, unmaskPhone } from '@/lib/utils/masks'
 import { registerSchema, type RegisterFormData } from '@/lib/validators/auth'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertCircle, ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react'
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { PersonalDataStep } from './steps/personal-data-step'
-import { DocumentStep } from './steps/document-step'
-import { SecurityStep } from './steps/security-step'
-import { CompanyStep } from './steps/company-step'
 import { useRegisterForm } from './hooks/use-register-form'
+import { CompanyStep } from './steps/company-step'
+import { DocumentStep } from './steps/document-step'
+import { PersonalDataStep } from './steps/personal-data-step'
+import { SecurityStep } from './steps/security-step'
 
 const STEPS = [
   { id: 1, title: 'Dados Pessoais', description: 'Informações básicas' },
@@ -180,27 +180,14 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
 
   return (
     <div className="w-full max-w-md">
-      <div className="mb-6 text-center lg:hidden">
-        <div className="mb-4">
-          <span className="cursor-pointer bg-gradient-to-r from-primary to-secondary bg-clip-text text-2xl font-extrabold tracking-tight text-transparent transition-all duration-300 hover:from-secondary hover:to-primary">
-            Weedu
-          </span>
-        </div>
-        <h2 className="text-2xl font-semibold text-foreground">Cadastre sua empresa</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Etapa {currentStep + 1} de {STEPS.length}
-        </p>
-      </div>
+      <RegisterHeader currentStep={currentStep} totalSteps={STEPS.length} />
 
       <div className="mb-6 lg:hidden">
         <Steps steps={STEPS} currentStep={currentStep} />
       </div>
 
       <div className="animate-fade-in relative rounded-3xl border border-border/60 bg-card/95 p-6 shadow-2xl backdrop-blur-xl transition-all sm:p-8 lg:rounded-2xl lg:bg-card lg:shadow-lg">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-foreground">{STEPS[currentStep].title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{STEPS[currentStep].description}</p>
-        </div>
+        <StepHeader title={STEPS[currentStep].title} description={STEPS[currentStep].description} />
 
         <form
           method="POST"
@@ -214,70 +201,20 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
           }}
           className="space-y-6"
         >
-          {error && (
-            <div className="flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          {error && <ErrorAlert message={error} />}
 
-          <div className="min-h-[300px] sm:min-h-[350px]">
-            {renderStepContent()}
-          </div>
+          <div className="min-h-[300px] sm:min-h-[350px]">{renderStepContent()}</div>
 
-          <div className="sticky bottom-0 mt-6 flex gap-3 border-t border-border/50 pt-6 sm:relative sm:border-t-0 sm:pt-0">
-            {currentStep > 0 && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePrevious}
-                className="flex-1 sm:min-w-[120px] sm:flex-initial"
-                disabled={isLoading}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Voltar</span>
-                <span className="sm:hidden">Anterior</span>
-              </Button>
-            )}
-            <Button
-              type="submit"
-              className="flex-1 h-12 text-base font-semibold shadow-lg transition-all hover:shadow-xl hover:brightness-105 active:scale-[0.98] sm:min-w-[140px] sm:flex-initial"
-              size="lg"
-              disabled={isLoading}
-            >
-              {currentStep === STEPS.length - 1 ? (
-                isLoading ? (
-                  <span className="flex items-center gap-2.5">
-                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-                    Criando...
-                  </span>
-                ) : (
-                  'Criar conta'
-                )
-              ) : (
-                <>
-                  <span className="hidden sm:inline">Próximo</span>
-                  <span className="sm:hidden">Continuar</span>
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </div>
+          <StepNavigationButtons
+            currentStep={currentStep}
+            totalSteps={STEPS.length}
+            isLoading={isLoading}
+            onPrevious={handlePrevious}
+          />
 
-          <div className="mt-8 border-t border-border/50 pt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Já tem uma conta?{' '}
-              <Link
-                href="/login"
-                className="font-semibold text-primary transition-all hover:text-primary/80 hover:underline active:scale-95"
-              >
-                Faça login
-              </Link>
-            </p>
-          </div>
+          <AuthLink question="Já tem uma conta?" linkText="Faça login" href="/login" />
         </form>
       </div>
     </div>
   )
 }
-
