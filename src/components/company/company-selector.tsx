@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { companiesApi } from '@/lib/api/endpoints/companies'
-import { useAuthStore } from '@/lib/stores/auth-store'
+import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useCompanyStore } from '@/lib/stores/company-store'
 import { Building2, Plus, Settings, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -28,7 +28,7 @@ export function CompanySelector({
   variant = 'default',
 }: CompanySelectorProps) {
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
+  const { isAdmin } = usePermissions()
   const {
     companies,
     selectedCompany,
@@ -42,7 +42,7 @@ export function CompanySelector({
   useEffect(() => {
     const loadCompanies = async () => {
       // Only load for admin users
-      if (user?.role !== 'admin') return
+      if (!isAdmin) return
 
       try {
         setLoading(true)
@@ -58,13 +58,13 @@ export function CompanySelector({
     }
 
     // Only load if we don't have companies yet and user is admin
-    if (companies.length === 0 && user?.role === 'admin') {
+    if (companies.length === 0 && isAdmin) {
       loadCompanies()
     }
-  }, [user?.role, companies.length, setCompanies, setLoading])
+  }, [isAdmin, companies.length, setCompanies, setLoading])
 
   // Don't render anything if user is not admin
-  if (!user || user.role !== 'admin') {
+  if (!isAdmin) {
     return null
   }
 

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { companiesApi } from '@/lib/api/endpoints/companies'
 import { employeesApi } from '@/lib/api/endpoints/employees'
+import { usePermissions } from '@/lib/hooks/use-permissions'
+import { Permission } from '@/lib/permissions'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { UserPlus } from 'lucide-react'
 import Link from 'next/link'
@@ -32,6 +34,7 @@ interface Company {
 
 export default function EmployeesPage() {
   const { user } = useAuthStore()
+  const { can } = usePermissions()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [selectedCompany, setSelectedCompany] = useState<string>('')
@@ -40,7 +43,7 @@ export default function EmployeesPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        if (user?.role === 'admin') {
+        if (can(Permission.VIEW_EMPLOYEES)) {
           // Load companies for admin
           const companiesResponse = await companiesApi.getMyCompanies()
           setCompanies(companiesResponse || [])

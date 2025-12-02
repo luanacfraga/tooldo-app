@@ -1,6 +1,6 @@
 'use client'
 
-import { AdminOnly } from '@/components/auth/admin-only'
+import { AdminOnly } from '@/components/features/auth/guards'
 import { BaseLayout } from '@/components/layout/base-layout'
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar'
 import { Button } from '@/components/ui/button'

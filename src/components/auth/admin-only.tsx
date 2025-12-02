@@ -1,6 +1,7 @@
 'use client'
 
 import { config } from '@/config/index'
+import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import Cookies from 'js-cookie'
 import { Loader2 } from 'lucide-react'
@@ -20,6 +21,7 @@ export function AdminOnly({ children, fallbackPath = '/dashboard' }: AdminOnlyPr
   const router = useRouter()
   const user = useAuthStore((state) => state.user)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isAdmin } = usePermissions()
   const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
@@ -43,13 +45,13 @@ export function AdminOnly({ children, fallbackPath = '/dashboard' }: AdminOnlyPr
       setIsChecking(false)
 
       // If authenticated but not admin, redirect to fallback
-      if (user && user.role !== 'admin') {
+      if (user && !isAdmin) {
         router.push(fallbackPath)
       }
     }, 100)
 
     return () => clearTimeout(checkAuth)
-  }, [user, isAuthenticated, router, fallbackPath])
+  }, [user, isAuthenticated, router, fallbackPath, isAdmin])
 
   // Show loading while checking or if Zustand hasn't hydrated yet
   if (isChecking || !user) {
@@ -64,7 +66,7 @@ export function AdminOnly({ children, fallbackPath = '/dashboard' }: AdminOnlyPr
   }
 
   // Don't render if not admin
-  if (user.role !== 'admin') {
+  if (!isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">

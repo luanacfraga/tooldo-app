@@ -1,17 +1,14 @@
 'use client'
 
-import { RequireCompany } from '@/components/auth/require-company'
+import { RequireCompany } from '@/components/features/auth/guards'
 import { BaseLayout } from '@/components/layout/base-layout'
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar'
+import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { useCompanyStore } from '@/lib/stores/company-store'
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
-  const { selectedCompany } = useCompanyStore()
-
-  const isAdmin = user?.role === 'admin'
-  const isManager = user?.role === 'manager'
+  const { isAdmin, isManager, isAdminOrManager } = usePermissions()
 
   return (
     <RequireCompany>

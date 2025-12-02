@@ -37,7 +37,8 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { BaseLayout } from '@/components/layout/base-layout'
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar'
-import { RequireCompany } from '@/components/auth/require-company'
+import { RequireCompany } from '@/components/features/auth/guards'
+import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { useCompanyStore } from '@/lib/stores/company-store'
 import {
@@ -68,6 +69,7 @@ export default function InviteEmployeePage() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [loadingCompanies, setLoadingCompanies] = useState(true)
   const user = useAuthStore((state) => state.user)
+  const { canInviteEmployee } = usePermissions()
   const selectedCompany = useCompanyStore((state) => state.selectedCompany)
 
   const form = useForm<InviteEmployeeFormData>({
@@ -97,8 +99,8 @@ export default function InviteEmployeePage() {
       try {
         if (!user?.id) return
 
-        // If user is admin, load their companies
-        if (user.role === 'admin') {
+        // If user can invite employees, load their companies
+        if (canInviteEmployee) {
           const response = await companiesApi.getMyCompanies()
           setCompanies(response || [])
         } else {
@@ -114,7 +116,7 @@ export default function InviteEmployeePage() {
     }
 
     loadCompanies()
-  }, [user?.id, user?.role])
+  }, [user?.id, canInviteEmployee])
 
   const onSubmit = async (data: InviteEmployeeFormData) => {
     try {
