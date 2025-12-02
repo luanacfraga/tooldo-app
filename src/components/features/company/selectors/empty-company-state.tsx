@@ -9,12 +9,6 @@ interface EmptyCompanyStateProps {
   className?: string
 }
 
-/**
- * Componente de estado vazio (sem empresas)
- * Responsabilidade única: Renderizar UI quando não há empresas
- *
- * Aplica SRP: Componente focado em um único estado
- */
 export function EmptyCompanyState({
   onCreateCompany,
   showLabel,
@@ -22,18 +16,20 @@ export function EmptyCompanyState({
   className,
 }: EmptyCompanyStateProps) {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-2 min-w-0', className)}>
       {showLabel && variant === 'default' && (
-        <label className="text-xs font-medium text-muted-foreground">Empresa</label>
+        <label className="text-xs font-medium text-muted-foreground truncate block">
+          Empresa
+        </label>
       )}
       <Button
         variant="outline"
         size={variant === 'compact' ? 'sm' : 'default'}
         onClick={onCreateCompany}
-        className="w-full justify-start"
+        className="w-full justify-start min-w-0"
       >
-        <Plus className="mr-2 h-4 w-4" />
-        Criar Primeira Empresa
+        <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
+        <span className="truncate">Criar Primeira Empresa</span>
       </Button>
     </div>
   )

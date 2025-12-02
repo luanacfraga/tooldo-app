@@ -1,12 +1,6 @@
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Settings } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Building2, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface CompanySelectorViewProps {
@@ -19,13 +13,6 @@ interface CompanySelectorViewProps {
   className?: string
 }
 
-/**
- * Componente de apresentação do Company Selector
- * Responsabilidade única: Renderizar UI do selector
- *
- * Aplica SRP: Componente puro de apresentação
- * Aplica ISP: Interface específica com apenas props necessárias
- */
 export function CompanySelectorView({
   companies,
   selectedCompany,
@@ -40,38 +27,62 @@ export function CompanySelectorView({
   return (
     <div className={cn('space-y-2', className)}>
       {showLabel && variant === 'default' && (
-        <label className="text-xs font-medium text-muted-foreground">
+        <label className="text-xs font-medium text-muted-foreground truncate block">
           Empresa Atual
         </label>
       )}
-      <div className="flex gap-2">
+      <div className="flex gap-2 min-w-0">
         <Select value={selectedCompany?.id || ''} onValueChange={onCompanyChange}>
           <SelectTrigger
             className={cn(
-              'h-11 w-full',
-              isCompact && 'h-9 text-sm min-w-[180px]'
+              'h-11 flex-1 min-w-0 border-border/50',
+              isCompact && 'h-9 text-sm min-w-[160px] max-w-[220px] border-border/50 bg-muted/30 hover:bg-muted/50'
             )}
           >
-            <SelectValue placeholder="Selecione uma empresa" />
+            <SelectValue placeholder={isCompact ? "Empresa" : "Selecione uma empresa"} />
           </SelectTrigger>
           <SelectContent
-            className="min-w-[220px]"
+            className="min-w-[220px] max-w-[90vw] z-[100]"
             align={isCompact ? 'end' : 'start'}
             sideOffset={4}
-            style={{ zIndex: 100 }}
           >
             {companies.length > 0 && (
               <>
-                {companies.map((company) => (
-                  <SelectItem key={company.id} value={company.id}>
-                    {company.name}
-                  </SelectItem>
-                ))}
+                {companies.map((company) => {
+                  const isSelected = selectedCompany?.id === company.id
+                  return (
+                    <SelectItem key={company.id} value={company.id}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Building2 className={cn(
+                          "h-4 w-4 flex-shrink-0",
+                          isSelected ? "text-primary" : "text-muted-foreground"
+                        )} />
+                        <span className={cn(
+                          "truncate",
+                          isSelected && "font-medium"
+                        )}>{company.name}</span>
+                        {isSelected && (
+                          <span className="ml-auto h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                        )}
+                      </div>
+                    </SelectItem>
+                  )
+                })}
                 <div className="my-1 border-t border-border" />
               </>
             )}
-            <SelectItem value="new">Nova Empresa</SelectItem>
-            <SelectItem value="manage">Gerenciar Empresas</SelectItem>
+            <SelectItem value="new">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                <span>Nova Empresa</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="manage">
+              <div className="flex items-center gap-2">
+                <Settings className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                <span>Gerenciar Empresas</span>
+              </div>
+            </SelectItem>
           </SelectContent>
         </Select>
         {variant === 'default' && (
@@ -80,6 +91,7 @@ export function CompanySelectorView({
             size="icon"
             onClick={onManage}
             title="Gerenciar empresas"
+            className="flex-shrink-0"
           >
             <Settings className="h-4 w-4" />
           </Button>

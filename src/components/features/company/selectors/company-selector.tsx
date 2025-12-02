@@ -15,14 +15,6 @@ interface CompanySelectorProps {
   variant?: 'default' | 'compact'
 }
 
-/**
- * Container do Company Selector
- * Responsabilidade única: Orquestrar lógica e renderizar estado apropriado
- *
- * Aplica SRP: Separa lógica de negócio (hook) de apresentação (componentes)
- * Aplica OCP: Extensível através de variantes sem modificar código
- * Aplica DIP: Depende de abstrações (hooks e componentes de apresentação)
- */
 export function CompanySelector({
   className,
   showLabel = true,
@@ -32,7 +24,6 @@ export function CompanySelector({
   const { isAdmin } = usePermissions()
   const { companies, selectedCompany, isLoading, error, selectCompany } = useCompanyData()
 
-  // Não renderizar se não for admin
   if (!isAdmin) {
     return null
   }
@@ -54,31 +45,30 @@ export function CompanySelector({
     }
   }
 
-  // Estado de loading
   if (isLoading) {
     return (
-      <div className={cn('flex items-center gap-2', className)}>
+      <div className={cn('flex items-center gap-2 px-1', className)}>
         <LoadingSpinner size="sm" />
         {showLabel && variant === 'default' && (
-          <span className="text-sm text-muted-foreground">Carregando...</span>
+          <span className="text-xs text-muted-foreground truncate">Carregando...</span>
         )}
       </div>
     )
   }
 
-  // Estado de erro
   if (error) {
     return (
-      <ErrorState
-        message="Erro ao carregar empresas"
-        onRetry={() => router.push('/companies')}
-        retryLabel="Gerenciar"
-        className={className}
-      />
+      <div className={cn('px-1', className)}>
+        <ErrorState
+          message="Erro"
+          onRetry={() => router.push('/companies')}
+          retryLabel="Tentar"
+          className="flex-col items-start gap-1"
+        />
+      </div>
     )
   }
 
-  // Sem empresas
   if (companies.length === 0) {
     return (
       <EmptyCompanyState
@@ -90,7 +80,6 @@ export function CompanySelector({
     )
   }
 
-  // Renderizar selector com empresas
   return (
     <CompanySelectorView
       companies={companies}

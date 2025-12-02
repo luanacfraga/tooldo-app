@@ -1,5 +1,6 @@
 'use client'
 
+import { CompanySelector } from '@/components/features/company/selectors/company-selector'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import {
@@ -139,6 +140,11 @@ export function DashboardSidebar() {
       items={menuItems}
       onLogout={logout}
       showLogout={true}
+      topComponent={
+        isAdmin ? (
+          <CompanySelector variant="default" showLabel={true} />
+        ) : undefined
+      }
     />
   )
 }
