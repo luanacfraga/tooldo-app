@@ -3,41 +3,19 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { ApiError } from '@/lib/api/api-client'
-import { companiesApi } from '@/lib/api/endpoints/companies'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createCompanySchema, type CreateCompanyFormData } from '@/lib/validators/company'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { HeaderMenu } from '@/components/layout/header-menu'
-import {
-  Building2,
-  ArrowLeft,
-  Save,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
-} from 'lucide-react'
+import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { useCompanyStore } from '@/lib/stores/company-store'
 import { AdminOnly } from '@/components/features/auth/guards/admin-only'
+import { useCreateCompany } from '@/lib/services/queries'
+import { ApiError } from '@/lib/api/api-client'
 
 export default function NewCompanyPage() {
   const router = useRouter()
@@ -45,9 +23,8 @@ export default function NewCompanyPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const user = useAuthStore((state) => state.user)
-  const addCompany = useCompanyStore((state) => state.addCompany)
-  const selectCompany = useCompanyStore((state) => state.selectCompany)
-  
+  const { mutateAsync: createCompany, isPending } = useCreateCompany()
+
   const redirectPath = searchParams.get('redirect') || '/select-company'
 
   const form = useForm<CreateCompanyFormData>({
@@ -67,24 +44,15 @@ export default function NewCompanyPage() {
         return
       }
 
-      const newCompany = await companiesApi.create({
+      await createCompany({
         name: data.name,
         description: data.description && data.description.trim() !== '' ? data.description.trim() : undefined,
         adminId: user.id,
       })
 
-      // Add to store and select it
-      addCompany(newCompany)
-      selectCompany(newCompany)
-
       setSuccess(true)
       setTimeout(() => {
-        // If coming from select-company, go back there. Otherwise go to dashboard
-        if (redirectPath === '/select-company') {
-          router.push('/select-company')
-        } else {
-          router.push('/dashboard')
-        }
+        router.push(redirectPath === '/select-company' ? '/select-company' : '/dashboard')
       }, 2000)
     } catch (err) {
       if (err instanceof ApiError) {
@@ -118,13 +86,7 @@ export default function NewCompanyPage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    onClick={() => {
-                      if (redirectPath === '/select-company') {
-                        router.push('/select-company')
-                      } else {
-                        router.push('/dashboard')
-                      }
-                    }}
+                    onClick={() => router.push(redirectPath === '/select-company' ? '/select-company' : '/dashboard')}
                     className="w-full"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -145,7 +107,6 @@ export default function NewCompanyPage() {
         <HeaderMenu />
         <div className="flex flex-1 pt-16 sm:pt-20">
           <div className="mx-auto w-full max-w-3xl px-6 py-8">
-            {/* Header */}
             <div className="mb-8">
               <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
                 Nova Empresa
@@ -155,7 +116,6 @@ export default function NewCompanyPage() {
               </p>
             </div>
 
-            {/* Error Alert */}
             {error && (
               <div className="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
                 <div className="flex items-center gap-2">
@@ -165,7 +125,6 @@ export default function NewCompanyPage() {
               </div>
             )}
 
-            {/* Form */}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <Card className="border border-border">
@@ -218,14 +177,13 @@ export default function NewCompanyPage() {
                   </CardContent>
                 </Card>
 
-                {/* Submit Actions */}
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     size="lg"
                     onClick={() => router.push(redirectPath)}
-                    disabled={form.formState.isSubmitting}
+                    disabled={isPending}
                     className="w-full sm:w-auto"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -234,10 +192,10 @@ export default function NewCompanyPage() {
                   <Button
                     type="submit"
                     size="lg"
-                    disabled={form.formState.isSubmitting}
+                    disabled={isPending}
                     className="w-full sm:w-auto sm:min-w-[200px]"
                   >
-                    {form.formState.isSubmitting ? (
+                    {isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Criando empresa...

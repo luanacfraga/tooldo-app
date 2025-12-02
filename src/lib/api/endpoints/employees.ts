@@ -1,39 +1,8 @@
 import { apiClient } from '../api-client'
 import { PaginatedResponse, PaginationParams } from '../types'
+import type { Employee, InviteEmployeeRequest } from '@/lib/types/api'
 
-export interface Employee {
-  id: string
-  userId: string
-  companyId: string
-  role: 'manager' | 'executor' | 'consultant'
-  status: 'INVITED' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED' | 'REMOVED'
-  position?: string
-  notes?: string
-  invitedAt?: string
-  acceptedAt?: string
-  user: {
-    id: string
-    firstName: string
-    lastName: string
-    email: string
-    phone: string
-    role: string
-  }
-}
-
-export interface InviteEmployeeRequest {
-  companyId: string
-  email: string
-  firstName: string
-  lastName: string
-  phone?: string
-  document?: string
-  role: 'manager' | 'executor' | 'consultant'
-  position?: string
-  notes?: string
-}
-
-export interface AcceptInviteRequest {
+interface AcceptInviteRequest {
   token: string
   password: string
   phone?: string
@@ -62,3 +31,4 @@ export const employeesApi = {
     apiClient.delete<Employee>(`/api/v1/employees/${id}`),
 }
 
+export type { Employee, InviteEmployeeRequest }

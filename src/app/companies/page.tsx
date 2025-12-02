@@ -3,46 +3,34 @@
 import { AdminOnly } from '@/components/features/auth/guards/admin-only'
 import { BaseLayout } from '@/components/layout/base-layout'
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar'
+import { ErrorState } from '@/components/shared/feedback/error-state'
+import { LoadingScreen } from '@/components/shared/feedback/loading-screen'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { companiesApi } from '@/lib/api/endpoints/companies'
-import { useAuthStore } from '@/lib/stores/auth-store'
+import { useCompanies } from '@/lib/services/queries'
 import { useCompanyStore } from '@/lib/stores/company-store'
-import { AlertCircle, Building2, CheckCircle, Loader2, Plus, Settings } from 'lucide-react'
+import { Building2, CheckCircle, Plus, Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
 
 export default function CompaniesPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const user = useAuthStore((state) => state.user)
-  const { companies, selectedCompany, setCompanies } = useCompanyStore()
+  const { data: companies = [], isLoading, error, refetch } = useCompanies()
+  const { selectedCompany } = useCompanyStore()
 
-  useEffect(() => {
-    const loadCompanies = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const data = await companiesApi.getMyCompanies()
-        setCompanies(data || [])
-      } catch (err) {
-        console.error('Error loading companies:', err)
-        setError('Erro ao carregar empresas. Tente novamente.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadCompanies()
-  }, [user?.id, setCompanies])
+  if (isLoading) {
+    return (
+      <AdminOnly>
+        <BaseLayout sidebar={<DashboardSidebar />}>
+          <LoadingScreen message="Carregando empresas..." />
+        </BaseLayout>
+      </AdminOnly>
+    )
+  }
 
   return (
     <AdminOnly>
       <BaseLayout sidebar={<DashboardSidebar />}>
         <div className="container mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
-          {/* Header */}
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -62,31 +50,13 @@ export default function CompaniesPage() {
             </div>
           </div>
 
-          {/* Error Alert */}
           {error && (
-            <div className="mb-6 animate-fade-in rounded-lg border border-danger-light bg-danger-lightest p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 flex-shrink-0 text-danger-base" />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-danger-dark">Erro</h3>
-                  <p className="mt-1 text-sm text-danger-base">{error}</p>
-                </div>
-              </div>
+            <div className="mb-6">
+              <ErrorState message="Erro ao carregar empresas" onRetry={() => refetch()} />
             </div>
           )}
 
-          {/* Loading State */}
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary-base" />
-                <p className="mt-4 text-sm text-muted-foreground">Carregando empresas...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!loading && !error && companies.length === 0 && (
+          {!error && companies.length === 0 && (
             <Card className="animate-fade-in">
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <div className="rounded-full bg-muted p-6">
@@ -106,8 +76,7 @@ export default function CompaniesPage() {
             </Card>
           )}
 
-          {/* Companies Grid */}
-          {!loading && !error && companies.length > 0 && (
+          {!error && companies.length > 0 && (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {companies.map((company) => {
                 const isSelected = selectedCompany?.id === company.id

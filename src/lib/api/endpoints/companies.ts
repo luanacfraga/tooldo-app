@@ -1,24 +1,6 @@
 import { apiClient } from '../api-client'
 import { PaginatedResponse, PaginationParams } from '../types'
-
-export interface Company {
-  id: string
-  name: string
-  description?: string
-  adminId: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateCompanyRequest {
-  name: string
-  description?: string
-  adminId: string
-}
-
-export interface UpdateCompanyRequest {
-  name?: string
-}
+import type { Company, CreateCompanyRequest, UpdateCompanyRequest } from '@/lib/types/api'
 
 export const companiesApi = {
   getAll: (params?: PaginationParams) =>
@@ -26,10 +8,6 @@ export const companiesApi = {
       params: params as Record<string, string | number | boolean | undefined>
     }),
 
-  /**
-   * Get all companies for the authenticated admin
-   * Uses the token to identify the admin automatically
-   */
   getMyCompanies: () =>
     apiClient.get<Company[]>('/api/v1/companies/me'),
 
@@ -48,3 +26,5 @@ export const companiesApi = {
   delete: (id: string) =>
     apiClient.delete<void>(`/api/v1/companies/${id}`),
 }
+
+export type { Company, CreateCompanyRequest, UpdateCompanyRequest }
