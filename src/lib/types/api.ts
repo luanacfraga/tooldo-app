@@ -1,0 +1,53 @@
+export interface Company {
+  id: string
+  name: string
+  description?: string
+  adminId: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateCompanyRequest {
+  name: string
+  description?: string
+  adminId: string
+}
+
+export interface UpdateCompanyRequest {
+  name?: string
+}
+
+export type EmployeeRole = 'manager' | 'executor' | 'consultant'
+export type EmployeeStatus = 'INVITED' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED' | 'REMOVED'
+
+export interface Employee {
+  id: string
+  userId: string
+  companyId: string
+  role: EmployeeRole
+  status: EmployeeStatus
+  position?: string
+  notes?: string
+  invitedAt?: string
+  acceptedAt?: string
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+    role: string
+  }
+}
+
+export interface InviteEmployeeRequest {
+  companyId: string
+  email: string
+  firstName: string
+  lastName: string
+  phone?: string
+  document?: string
+  role: EmployeeRole
+  position?: string
+  notes?: string
+}
