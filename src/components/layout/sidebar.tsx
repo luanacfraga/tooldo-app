@@ -73,7 +73,8 @@ export function Sidebar({
           )}
         </button>
 
-        {shouldShowText && topComponent && <div className="mt-4">{topComponent}</div>}
+        {shouldShowText && topComponent && <div className="mt-4 mb-4">{topComponent}</div>}
+        {!shouldShowText && topComponent && <div className="mt-4 mb-4 px-2">{topComponent}</div>}
 
         <nav className={`mt-8 ${isWebMenuCollapsed ? 'lg:px-2' : 'px-4'}`}>
           <ul className="space-y-2">
