@@ -3,8 +3,11 @@
 import { AdminOnly } from '@/components/features/auth/guards/admin-only'
 import { BaseLayout } from '@/components/layout/base-layout'
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar'
+import { EmptyState } from '@/components/shared/feedback/empty-state'
 import { ErrorState } from '@/components/shared/feedback/error-state'
 import { LoadingScreen } from '@/components/shared/feedback/loading-screen'
+import { PageContainer } from '@/components/shared/layout/page-container'
+import { PageHeader } from '@/components/shared/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCompanies } from '@/lib/services/queries'
@@ -30,15 +33,11 @@ export default function CompaniesPage() {
   return (
     <AdminOnly>
       <BaseLayout sidebar={<DashboardSidebar />}>
-        <div className="container mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
-          <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Minhas Empresas</h1>
-                <p className="mt-1.5 text-sm text-muted-foreground sm:mt-2">
-                  Gerencie suas empresas
-                </p>
-              </div>
+        <PageContainer maxWidth="5xl">
+          <PageHeader
+            title="Minhas Empresas"
+            description="Gerencie suas empresas"
+            action={
               <Button
                 onClick={() => router.push('/companies/new')}
                 className="w-full sm:w-auto"
@@ -47,8 +46,8 @@ export default function CompaniesPage() {
                 <Plus className="mr-2 h-4 w-4" />
                 Nova Empresa
               </Button>
-            </div>
-          </div>
+            }
+          />
 
           {error && (
             <div className="mb-6">
@@ -57,23 +56,15 @@ export default function CompaniesPage() {
           )}
 
           {!error && companies.length === 0 && (
-            <Card className="animate-fade-in">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="rounded-full bg-muted p-6">
-                  <Building2 className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <h3 className="mt-6 text-lg font-semibold">Nenhuma empresa cadastrada</h3>
-                <p className="mt-2 text-center text-sm text-muted-foreground">
-                  Você ainda não possui empresas cadastradas.
-                  <br />
-                  Crie sua primeira empresa para gerenciar.
-                </p>
-                <Button onClick={() => router.push('/companies/new')} className="mt-6" size="lg">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Criar Primeira Empresa
-                </Button>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Building2}
+              title="Nenhuma empresa cadastrada"
+              description="Você ainda não possui empresas cadastradas. Crie sua primeira empresa para gerenciar."
+              action={{
+                label: 'Criar Primeira Empresa',
+                onClick: () => router.push('/companies/new'),
+              }}
+            />
           )}
 
           {!error && companies.length > 0 && (
@@ -85,15 +76,15 @@ export default function CompaniesPage() {
                   <Card key={company.id} className="group relative transition-all hover:shadow-lg">
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-primary-lightest p-2.5">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex-shrink-0 rounded-lg bg-primary-lightest p-2.5">
                             <Building2 className="h-5 w-5 text-primary-base" />
                           </div>
-                          <div>
-                            <CardTitle className="text-base">{company.name}</CardTitle>
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="truncate text-base">{company.name}</CardTitle>
                             {isSelected && (
                               <div className="mt-1 flex items-center gap-1 text-xs text-primary-base">
-                                <CheckCircle className="h-3 w-3" />
+                                <CheckCircle className="h-3 w-3 flex-shrink-0" />
                                 <span className="font-medium">Ativa</span>
                               </div>
                             )}
@@ -102,7 +93,7 @@ export default function CompaniesPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
+                          className="h-8 w-8 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
                           onClick={() => router.push(`/companies/${company.id}/edit`)}
                         >
                           <Settings className="h-4 w-4" />
@@ -124,7 +115,7 @@ export default function CompaniesPage() {
               })}
             </div>
           )}
-        </div>
+        </PageContainer>
       </BaseLayout>
     </AdminOnly>
   )

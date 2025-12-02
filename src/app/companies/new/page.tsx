@@ -1,5 +1,7 @@
 'use client'
 
+import { PageHeader } from '@/components/shared/layout/page-header'
+import { PageContainer } from '@/components/shared/layout/page-container'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -106,15 +108,11 @@ export default function NewCompanyPage() {
       <div className="flex min-h-screen flex-col bg-background">
         <HeaderMenu />
         <div className="flex flex-1 pt-16 sm:pt-20">
-          <div className="mx-auto w-full max-w-3xl px-6 py-8">
-            <div className="mb-8">
-              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                Nova Empresa
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Cadastre uma nova empresa para gerenciar
-              </p>
-            </div>
+          <PageContainer maxWidth="3xl" className="pt-0">
+            <PageHeader
+              title="Nova Empresa"
+              description="Cadastre uma nova empresa para gerenciar"
+            />
 
             {error && (
               <div className="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
@@ -210,7 +208,7 @@ export default function NewCompanyPage() {
                 </div>
               </form>
             </Form>
-          </div>
+          </PageContainer>
         </div>
       </div>
     </AdminOnly>

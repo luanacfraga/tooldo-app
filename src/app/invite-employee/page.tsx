@@ -3,6 +3,8 @@
 import { RequireCompany } from '@/components/features/auth/guards/require-company'
 import { BaseLayout } from '@/components/layout/base-layout'
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar'
+import { PageContainer } from '@/components/shared/layout/page-container'
+import { PageHeader } from '@/components/shared/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -145,18 +147,11 @@ export default function InviteEmployeePage() {
   return (
     <RequireCompany>
       <BaseLayout sidebar={<DashboardSidebar />}>
-        <div className="container mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-          {/* Header */}
-          <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                  Convidar Funcionário
-                </h1>
-                <p className="mt-1.5 text-sm text-muted-foreground sm:mt-2">
-                  Preencha os dados do funcionário para enviar o convite
-                </p>
-              </div>
+        <PageContainer maxWidth="4xl">
+          <PageHeader
+            title="Convidar Funcionário"
+            description="Preencha os dados do funcionário para enviar o convite"
+            action={
               <Button
                 type="button"
                 variant="outline"
@@ -166,8 +161,8 @@ export default function InviteEmployeePage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Cancelar
               </Button>
-            </div>
-          </div>
+            }
+          />
 
           {/* Error Alert */}
           {error && (
@@ -456,7 +451,7 @@ export default function InviteEmployeePage() {
               </div>
             </form>
           </Form>
-        </div>
+        </PageContainer>
       </BaseLayout>
     </RequireCompany>
   )
