@@ -10,21 +10,41 @@ export interface LoginResponse {
   user: {
     id: string
     email: string
-    name: string
+    firstName: string
+    lastName: string
     role: 'master' | 'admin' | 'manager' | 'executor' | 'consultant'
   }
 }
 
 export interface RegisterRequest {
-  name: string
+  firstName: string
+  lastName: string
   email: string
   password: string
+  phone: string
+  document: string
+  documentType: 'CPF' | 'CNPJ'
+  company?: {
+    name: string
+    description: string
+  }
+}
+
+export interface RegisterMasterRequest {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  phone: string
+  document: string
+  documentType: 'CPF' | 'CNPJ'
 }
 
 export interface RegisterResponse {
   id: string
   email: string
-  name: string
+  firstName: string
+  lastName: string
   role: string
 }
 
@@ -34,6 +54,9 @@ export const authApi = {
 
   register: (data: RegisterRequest) =>
     apiClient.post<RegisterResponse>('/api/v1/auth/register', data),
+
+  registerMaster: (data: RegisterMasterRequest) =>
+    apiClient.post<RegisterResponse>('/api/v1/auth/register-master', data),
 
   me: () =>
     apiClient.get<LoginResponse['user']>('/api/v1/auth/me'),

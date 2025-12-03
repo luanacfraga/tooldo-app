@@ -1,4 +1,4 @@
-import { AuthService, type RegisterRequest } from '@/lib/api/services/auth.service'
+import { authApi, type RegisterRequest } from '@/lib/api/endpoints/auth'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -9,7 +9,7 @@ export function useRegisterForm() {
   const register = async (data: RegisterRequest) => {
     try {
       setIsLoading(true)
-      await AuthService.register(data)
+      await authApi.register(data)
 
       setTimeout(() => {
         if (typeof window !== 'undefined') {

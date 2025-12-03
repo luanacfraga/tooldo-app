@@ -5,7 +5,7 @@ import { FormFieldWrapper } from '@/components/ui/form-field-wrapper'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { ApiError } from '@/lib/api/api-client'
-import { AuthService } from '@/lib/api/services/auth.service'
+import { authApi } from '@/lib/api/endpoints/auth'
 import { maskCPF, maskPhone, unmaskCPF, unmaskPhone } from '@/lib/utils/masks'
 import { registerMasterSchema, type RegisterMasterFormData } from '@/lib/validators/master'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -49,7 +49,7 @@ export default function RegisterMasterPage() {
       setError(null)
       setIsLoading(true)
 
-      await AuthService.registerMaster({
+      await authApi.registerMaster({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
