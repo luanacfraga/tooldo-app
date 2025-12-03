@@ -19,16 +19,21 @@ export function CompanyLayout({ children }: CompanyLayoutProps) {
   const companyId = params.companyId as string
 
   useEffect(() => {
+    if (!user) return
+
     if (companyId && companyId !== currentCompanyId) {
-      const company = user?.companies.find((c) => c.id === companyId)
+      const company = user.companies.find((c) => c.id === companyId)
       if (company) {
         setCurrentCompanyId(companyId)
-      } else if (user?.companies.length === 0) {
-        if (user?.globalRole === 'admin') {
+      } else if (user.companies.length === 0) {
+        if (user.globalRole === 'admin') {
           router.push('/select-company')
         }
-      } else if (user?.companies.length > 0) {
-        router.push(`/companies/${user.companies[0].id}/dashboard`)
+      } else if (user.companies.length > 0) {
+        const currentCompanyExists = user.companies.some((c) => c.id === companyId)
+        if (!currentCompanyExists) {
+          router.push(`/companies/${user.companies[0].id}/dashboard`)
+        }
       }
     }
   }, [companyId, currentCompanyId, user, setCurrentCompanyId, router])
