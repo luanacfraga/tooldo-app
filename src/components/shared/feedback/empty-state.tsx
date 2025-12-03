@@ -1,8 +1,10 @@
 import { ReactNode } from 'react'
+import { LucideIcon } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+
 import { cn } from '@/lib/utils'
-import { LucideIcon } from 'lucide-react'
 
 interface EmptyStateProps {
   icon?: LucideIcon
@@ -15,10 +17,6 @@ interface EmptyStateProps {
   className?: string
 }
 
-/**
- * Componente padronizado para estados vazios
- * Usado quando não há dados para exibir
- */
 export function EmptyState({
   icon: Icon,
   title,
@@ -27,21 +25,23 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <Card className={cn('animate-fade-in', className)}>
-      <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16">
+    <Card className={cn('animate-fade-in border-dashed', className)}>
+      <CardContent className="flex flex-col items-center justify-center py-16 sm:py-20">
         {Icon && (
-          <div className="rounded-full bg-muted p-4 sm:p-6">
-            <Icon className="h-8 w-8 text-muted-foreground sm:h-12 sm:w-12" />
+          <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 p-5 shadow-sm backdrop-blur-sm sm:p-6">
+            <Icon className="h-8 w-8 text-primary/70 sm:h-12 sm:w-12" />
           </div>
         )}
-        <h3 className="mt-6 text-lg font-semibold sm:text-xl">{title}</h3>
+        <h3 className="mt-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-lg font-semibold text-transparent sm:text-xl">
+          {title}
+        </h3>
         {description && (
-          <p className="mt-2 text-center text-sm text-muted-foreground sm:max-w-md">
+          <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground/80 sm:max-w-md sm:text-base">
             {description}
           </p>
         )}
         {action && (
-          <Button onClick={action.onClick} className="mt-6" size="lg">
+          <Button onClick={action.onClick} className="mt-8 shadow-sm" size="lg">
             {action.label}
           </Button>
         )}
