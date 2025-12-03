@@ -27,9 +27,11 @@ export function useAuth() {
 
       await new Promise((resolve) => setTimeout(resolve, 100))
 
-      const redirectPath = userForStore.role === 'admin' ? '/select-company' : '/dashboard'
-
-      router.replace(redirectPath)
+      if (userForStore.role === 'admin') {
+        router.replace('/select-company')
+      } else {
+        router.replace('/select-company')
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao fazer login'
       setError(message)
