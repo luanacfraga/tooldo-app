@@ -1,5 +1,3 @@
-export { env, validateEnv } from './env'
-
 export const config = {
   pagination: {
     defaultPageSize: 10,
@@ -27,3 +25,4 @@ export const config = {
     pageSizeOptions: [10, 25, 50, 100],
   },
 } as const
+

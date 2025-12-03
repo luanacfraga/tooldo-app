@@ -1,4 +1,4 @@
-import { config } from '@/config'
+import { config } from '@/config/config'
 import Cookies from 'js-cookie'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
