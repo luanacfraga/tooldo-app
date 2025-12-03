@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Building2, Settings } from 'lucide-react'
 
 import { LoadingSpinner } from '@/components/shared/feedback/loading-spinner'
@@ -26,6 +26,7 @@ export function CompanySelector({
   isCollapsed = false,
 }: CompanySelectorProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const { isAdmin } = usePermissions()
   const { companies, selectedCompany, isLoading, error, selectCompany } = useCompanyData()
 
@@ -47,7 +48,16 @@ export function CompanySelector({
     const company = companies.find((c) => c.id === companyId)
     if (company) {
       selectCompany(company)
-      router.push(`/companies/${companyId}/dashboard`)
+      
+      const companyRoutePattern = /^\/companies\/([^/]+)(\/.*)?$/
+      const match = pathname.match(companyRoutePattern)
+      
+      if (match) {
+        const currentPath = match[2] || '/dashboard'
+        router.push(`/companies/${companyId}${currentPath}`)
+      } else {
+        router.push(`/companies/${companyId}/dashboard`)
+      }
     }
   }
 
