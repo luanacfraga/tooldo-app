@@ -368,24 +368,24 @@ export default function EmployeesPage() {
                     <span className="text-muted-foreground">Total: </span>
                     <span className="font-semibold">{stats.total}</span>
                   </div>
-                  {stats.active > 0 && (
-                    <div>
-                      <span className="text-muted-foreground">Ativos: </span>
-                      <span className="font-semibold text-green-600">{stats.active}</span>
-                    </div>
-                  )}
-                  {stats.invited > 0 && (
-                    <div>
-                      <span className="text-muted-foreground">Convidados: </span>
-                      <span className="font-semibold text-yellow-600">{stats.invited}</span>
-                    </div>
-                  )}
-                  {stats.suspended > 0 && (
-                    <div>
-                      <span className="text-muted-foreground">Suspensos: </span>
-                      <span className="font-semibold text-orange-600">{stats.suspended}</span>
-                    </div>
-                  )}
+                      {stats.active > 0 && (
+                        <div>
+                          <span className="text-muted-foreground">Ativos: </span>
+                          <span className="font-semibold text-success">{stats.active}</span>
+                        </div>
+                      )}
+                      {stats.invited > 0 && (
+                        <div>
+                          <span className="text-muted-foreground">Convidados: </span>
+                          <span className="font-semibold text-warning">{stats.invited}</span>
+                        </div>
+                      )}
+                      {stats.suspended > 0 && (
+                        <div>
+                          <span className="text-muted-foreground">Suspensos: </span>
+                          <span className="font-semibold text-warning">{stats.suspended}</span>
+                        </div>
+                      )}
                 </div>
                 <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                   <SelectTrigger className="h-9 w-full">
@@ -414,20 +414,20 @@ export default function EmployeesPage() {
                     <span>{stats.total === 1 ? 'funcionário' : 'funcionários'}</span>
                   </div>
                   {stats.active > 0 && (
-                    <div className="flex items-center gap-1.5 rounded-md bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:bg-green-950/30 dark:text-green-400">
-                      <div className="h-2 w-2 rounded-full bg-green-500" />
+                    <div className="flex items-center gap-1.5 rounded-md bg-success/10 px-2.5 py-1 text-xs font-medium text-success dark:bg-success/20">
+                      <div className="h-2 w-2 rounded-full bg-success" />
                       {stats.active} ativos
                     </div>
                   )}
                   {stats.invited > 0 && (
-                    <div className="flex items-center gap-1.5 rounded-md bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400">
-                      <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                    <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning dark:bg-warning/20">
+                      <div className="h-2 w-2 rounded-full bg-warning" />
                       {stats.invited} convidados
                     </div>
                   )}
                   {stats.suspended > 0 && (
-                    <div className="flex items-center gap-1.5 rounded-md bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700 dark:bg-orange-950/30 dark:text-orange-400">
-                      <div className="h-2 w-2 rounded-full bg-orange-500" />
+                    <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning dark:bg-warning/20">
+                      <div className="h-2 w-2 rounded-full bg-warning" />
                       {stats.suspended} suspensos
                     </div>
                   )}
@@ -453,8 +453,8 @@ export default function EmployeesPage() {
           )}
 
           {!selectedCompany && (
-            <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-900/20">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <div className="mb-6 rounded-lg border border-warning/20 bg-warning/10 p-4 dark:border-warning/30 dark:bg-warning/20">
+                  <p className="text-sm text-warning dark:text-warning">
                 Selecione uma empresa para visualizar os funcionários.
               </p>
             </div>
