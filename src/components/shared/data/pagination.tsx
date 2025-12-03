@@ -78,7 +78,7 @@ export function Pagination({
             size="sm"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
-            className="h-9 w-9 rounded-lg p-0 transition-all duration-200 hover:scale-105 disabled:opacity-40"
+            className="h-9 w-9 rounded-lg p-0 transition-all duration-150 hover:scale-105 hover:bg-primary/5 hover:border-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="h-4 w-4" />
             <span className="sr-only">Página anterior</span>
@@ -103,7 +103,7 @@ export function Pagination({
                   variant={page === pageNum ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => onPageChange(pageNum)}
-                  className="h-9 w-9 rounded-lg p-0 text-xs transition-all duration-200 hover:scale-105 sm:text-sm"
+                  className="h-9 w-9 rounded-lg p-0 text-xs transition-all duration-150 hover:scale-105 hover:bg-primary/5 hover:border-primary/20 sm:text-sm"
                 >
                   {pageNum}
                 </Button>
@@ -116,7 +116,7 @@ export function Pagination({
             size="sm"
             onClick={() => onPageChange(page + 1)}
             disabled={page === totalPages}
-            className="h-9 w-9 rounded-lg p-0 transition-all duration-200 hover:scale-105 disabled:opacity-40"
+            className="h-9 w-9 rounded-lg p-0 transition-all duration-150 hover:scale-105 hover:bg-primary/5 hover:border-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronRight className="h-4 w-4" />
             <span className="sr-only">Próxima página</span>

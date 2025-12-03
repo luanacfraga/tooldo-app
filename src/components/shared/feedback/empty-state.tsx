@@ -25,11 +25,11 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <Card className={cn('animate-fade-in border-dashed', className)}>
+    <Card className={cn('animate-fade-in border-dashed border-border/30', className)}>
       <CardContent className="flex flex-col items-center justify-center py-16 sm:py-20">
         {Icon && (
-          <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 p-5 shadow-sm backdrop-blur-sm sm:p-6">
-            <Icon className="h-8 w-8 text-primary/70 sm:h-12 sm:w-12" />
+          <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 p-5 shadow-sm backdrop-blur-sm transition-all duration-200 hover:shadow-md sm:p-6">
+            <Icon className="h-8 w-8 text-primary/70 transition-transform duration-200 hover:scale-110 sm:h-12 sm:w-12" />
           </div>
         )}
         <h3 className="mt-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-lg font-semibold text-transparent sm:text-xl">
@@ -41,7 +41,7 @@ export function EmptyState({
           </p>
         )}
         {action && (
-          <Button onClick={action.onClick} className="mt-8 shadow-sm" size="lg">
+          <Button onClick={action.onClick} className="mt-8 shadow-sm transition-all duration-150 hover:shadow-md" size="lg">
             {action.label}
           </Button>
         )}
