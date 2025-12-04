@@ -717,6 +717,89 @@ import type { Plan } from '@/lib/api/endpoints/plans'
 - Texto: `text-xs sm:text-sm lg:text-base`
 - Padding: `p-3 sm:p-4 lg:p-6`
 
+## 🧭 NAVEGAÇÃO E SIDEBAR
+
+### Estrutura de Menu Items
+**Sempre usar subItems para rotas relacionadas**
+
+```typescript
+interface MenuItem {
+  name: string
+  href: string
+  icon?: React.ComponentType<{ className?: string }>
+  subItems?: {
+    name: string
+    href: string
+  }[]
+}
+```
+
+**Regras**:
+- ✅ Item principal aponta para a rota principal (ex: `/companies`)
+- ✅ SubItems incluem todas as rotas relacionadas (ex: `/companies/new`)
+- ✅ O item fica ativo quando o pathname corresponde ao `href` ou a qualquer `subItem.href`
+- ✅ SubItems são exibidos apenas quando o item está ativo e não está colapsado
+
+**Exemplo**:
+```typescript
+{
+  name: 'Usuários',
+  href: `${basePath}/members`,
+  icon: UsersRound,
+  subItems: [
+    {
+      name: 'Lista de Usuários',
+      href: `${basePath}/members`,
+    },
+    {
+      name: 'Convidar Funcionário',
+      href: `${basePath}/invite`,
+    },
+  ],
+}
+```
+
+### Design do Sidebar
+**Padrões visuais obrigatórios**:
+
+- **Background**: Gradiente sutil com backdrop blur
+  - ✅ `bg-gradient-to-b from-card via-card to-card/98 backdrop-blur-xl`
+  - ❌ `bg-card` (sem gradiente)
+
+- **Bordas e Sombras**: Hierarquia visual clara
+  - ✅ `border-r border-border/60 shadow-xl lg:shadow-2xl`
+  - ❌ Bordas opacas ou sem sombra
+
+- **Itens do Menu**:
+  - ✅ `rounded-xl` para bordas arredondadas
+  - ✅ `duration-300` para transições suaves
+  - ✅ Gradientes sutis nos estados ativo/hover
+  - ✅ Indicador lateral (`h-8 w-1`) quando ativo
+  - ✅ `font-semibold` quando ativo, `font-medium` quando inativo
+
+- **SubItems**:
+  - ✅ Borda lateral com cor primária (`border-l-2 border-primary/20`)
+  - ✅ Espaçamento adequado (`space-y-1`, `ml-4`, `pl-4`)
+  - ✅ Gradiente sutil quando ativo
+  - ✅ Indicador visual quando subItem está ativo
+
+- **Botão de Toggle**:
+  - ✅ Gradiente no hover com sombra colorida
+  - ✅ `hover:scale-110` para feedback visual
+  - ✅ Posicionamento absoluto com `-right-3`
+
+- **Botão de Logout**:
+  - ✅ Estilo consistente com itens do menu
+  - ✅ Hover com gradiente destrutivo
+  - ✅ Animação de rotação no ícone (`group-hover:rotate-[-5deg]`)
+
+### Rotas Redundantes
+**NUNCA** criar páginas redundantes quando a funcionalidade já existe em outro lugar
+- ❌ Página `/select-company` quando já existe `CompanySelector` no sidebar
+- ❌ Múltiplas formas de acessar a mesma funcionalidade
+- ✅ Consolidar funcionalidades similares em uma única interface
+- ✅ Usar componentes reutilizáveis (ex: `CompanySelector`) ao invés de páginas dedicadas
+
 ## 🔐 GUARDS
 
 ### Estrutura
