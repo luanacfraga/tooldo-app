@@ -1,16 +1,13 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { useCompanyStore } from '@/lib/stores/company-store'
 import { useCompanies } from '@/lib/services/queries/use-companies'
-import type { UserRole } from '@/lib/permissions'
+import { getCompaniesWithRoles, type CompanyWithRole } from '@/lib/utils/user-role'
 
-export interface CompanyWithRole {
-  id: string
-  name: string
-  role: UserRole
-}
+import type { UserRole } from '@/lib/permissions'
 
 interface UserContextValue {
   user: {
@@ -69,27 +66,7 @@ export function UserProvider({ children }: UserProviderProps) {
   }
 
   const companiesWithRoles = useMemo<CompanyWithRole[]>(() => {
-    if (!authUser || !companies.length) return []
-
-    return companies.map((company) => {
-      if (authUser.role === 'master') {
-        return { id: company.id, name: company.name, role: 'master' as UserRole }
-      }
-
-      if (authUser.role === 'admin') {
-        return {
-          id: company.id,
-          name: company.name,
-          role: 'admin' as UserRole,
-        }
-      }
-
-      return {
-        id: company.id,
-        name: company.name,
-        role: authUser.role as UserRole,
-      }
-    })
+    return getCompaniesWithRoles(companies, authUser)
   }, [authUser, companies])
 
   const currentRole = useMemo<UserRole | null>(() => {

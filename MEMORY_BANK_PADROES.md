@@ -22,6 +22,27 @@ Este documento define os padrões que devem ser seguidos em TODAS as implementa�
 - ❌ `console.error('erro')`
 - ✅ Se necessário para debug, usar apenas em desenvolvimento e remover antes do commit
 
+### 4. NÃO USAR TIPAGEM FRACA
+**NUNCA** usar `any`, `unknown` sem validação, ou tipagem implícita.
+- ❌ `function process(data: any) { ... }`
+- ❌ `const result: any = await service.execute()`
+- ❌ `as any` para contornar erros de tipo
+- ✅ Sempre tipar explicitamente: `function process(data: CreateUserInput): Promise<User>`
+- ✅ Usar `unknown` com type guards quando necessário: `if (isUser(data)) { ... }`
+- ✅ Criar interfaces/tipos específicos para cada caso de uso
+- ✅ Usar generics quando apropriado: `function findById<T>(id: string): Promise<T | null>`
+
+### 5. NÃO ESCREVER CÓDIGO VERBOSO E CONFUSO
+**NUNCA** escrever código que seja difícil de entender ou excessivamente verboso.
+- ❌ Funções com múltiplas responsabilidades
+- ❌ Variáveis com nomes genéricos (`data`, `item`, `result`)
+- ❌ Lógica complexa aninhada sem extrair para funções
+- ❌ Código duplicado
+- ✅ Funções pequenas e focadas (Single Responsibility)
+- ✅ Nomes descritivos e específicos (`userEmail`, `planList`, `isAuthenticated`)
+- ✅ Extrair lógica complexa para funções auxiliares
+- ✅ Reutilizar código através de hooks, utils e componentes
+
 ## 📁 ESTRUTURA DE PASTAS
 
 ### Componentes
@@ -103,6 +124,246 @@ src/app/
 - **Constantes**: UPPER_SNAKE_CASE (`PLANS_KEY`, `API_BASE_URL`)
 - **Tipos/Interfaces**: PascalCase (`PlanFormData`, `CreatePlanRequest`)
 
+## 🎯 PRINCÍPIOS SOLID
+
+### Single Responsibility Principle (SRP)
+**Cada componente/hook/função tem uma única responsabilidade**
+
+```typescript
+// ❌ ERRADO - Múltiplas responsabilidades
+function UserCard({ userId }: { userId: string }) {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    fetch(`/api/users/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        setUser(data)
+        setLoading(false)
+      })
+  }, [userId])
+  
+  if (loading) return <div>Loading...</div>
+  return <div>{user.name}</div>
+}
+
+// ✅ CORRETO - Responsabilidades separadas
+function useUser(userId: string) {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: () => usersApi.getById(userId),
+  })
+}
+
+function UserCard({ userId }: { userId: string }) {
+  const { data: user, isLoading } = useUser(userId)
+  
+  if (isLoading) return <LoadingSpinner />
+  if (!user) return <EmptyState />
+  
+  return <div>{user.name}</div>
+}
+```
+
+### Open/Closed Principle (OCP)
+**Aberto para extensão, fechado para modificação**
+
+```typescript
+// ❌ ERRADO - Modificar componente existente
+function Button({ variant }: { variant: 'primary' | 'secondary' }) {
+  if (variant === 'primary') return <button className="bg-blue-500">...</button>
+  if (variant === 'secondary') return <button className="bg-gray-500">...</button>
+  if (variant === 'danger') return <button className="bg-red-500">...</button>
+}
+
+// ✅ CORRETO - Extensível via props e variantes
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'destructive'
+  size?: 'sm' | 'md' | 'lg'
+  children: ReactNode
+}
+
+function Button({ variant = 'primary', size = 'md', children }: ButtonProps) {
+  return (
+    <button className={cn(buttonVariants({ variant, size }))}>
+      {children}
+    </button>
+  )
+}
+```
+
+### Liskov Substitution Principle (LSP)
+**Componentes derivados devem ser substituíveis por seus componentes base**
+
+```typescript
+// ✅ CORRETO - Componentes seguem contratos consistentes
+interface FormFieldProps {
+  label: string
+  error?: string
+  required?: boolean
+}
+
+function TextField({ label, error, required }: FormFieldProps) { ... }
+function NumberField({ label, error, required }: FormFieldProps) { ... }
+function SelectField({ label, error, required }: FormFieldProps) { ... }
+```
+
+### Interface Segregation Principle (ISP)
+**Interfaces específicas ao invés de genéricas**
+
+```typescript
+// ❌ ERRADO - Interface genérica demais
+interface ComponentProps {
+  data: any
+  onAction: (action: any) => void
+  config: any
+}
+
+// ✅ CORRETO - Interfaces específicas
+interface PlanCardProps {
+  plan: Plan
+  onSelect: (planId: string) => void
+  isSelected?: boolean
+}
+
+interface CompanyCardProps {
+  company: Company
+  onEdit: (companyId: string) => void
+  showActions?: boolean
+}
+```
+
+### Dependency Inversion Principle (DIP)
+**Depender de abstrações, não de implementações**
+
+```typescript
+// ❌ ERRADO - Dependência direta de implementação
+function PlansList() {
+  const plans = useAuthStore((state) => state.plans)
+  const user = useAuthStore((state) => state.user)
+  // ...
+}
+
+// ✅ CORRETO - Dependência de abstração (hook)
+function PlansList() {
+  const { plans, isLoading } = usePlans()
+  const { user } = useUserContext()
+  // ...
+}
+```
+
+### Aplicação Prática de SOLID
+
+#### Exemplo Completo: Refatoração de Componente
+
+```typescript
+// ❌ ERRADO - Violando múltiplos princípios SOLID
+function CompanyManagement() {
+  const [companies, setCompanies] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCompany, setSelectedCompany] = useState(null)
+  const user = useAuthStore((state) => state.user)
+  
+  useEffect(() => {
+    setLoading(true)
+    fetch('/api/companies')
+      .then(res => res.json())
+      .then(data => {
+        setCompanies(data)
+        setLoading(false)
+      })
+  }, [])
+  
+  const handleSelect = (id: string) => {
+    const company = companies.find(c => c.id === id)
+    setSelectedCompany(company)
+    if (user?.role === 'admin') {
+      router.push(`/companies/${id}/dashboard`)
+    }
+  }
+  
+  if (loading) return <div>Loading...</div>
+  if (companies.length === 0) return <div>No companies</div>
+  
+  return (
+    <div>
+      {companies.map(company => (
+        <div key={company.id} onClick={() => handleSelect(company.id)}>
+          <h3>{company.name}</h3>
+          <p>{company.description}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ✅ CORRETO - Seguindo SOLID
+function useCompanies() {
+  return useQuery({
+    queryKey: ['companies'],
+    queryFn: () => companiesApi.getAll(),
+    select: (data) => data || [],
+  })
+}
+
+function useCompanyNavigation() {
+  const router = useRouter()
+  const { user } = useUserContext()
+  
+  return (companyId: string) => {
+    if (user?.globalRole === 'admin') {
+      router.push(`/companies/${companyId}/dashboard`)
+    }
+  }
+}
+
+interface CompanyCardProps {
+  company: Company
+  onSelect: (companyId: string) => void
+}
+
+function CompanyCard({ company, onSelect }: CompanyCardProps) {
+  return (
+    <Card onClick={() => onSelect(company.id)}>
+      <CardHeader>
+        <CardTitle>{company.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>{company.description}</p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function CompanyManagement() {
+  const { data: companies = [], isLoading } = useCompanies()
+  const navigateToCompany = useCompanyNavigation()
+  
+  if (isLoading) return <LoadingScreen message="Carregando empresas..." />
+  if (companies.length === 0) return <EmptyState title="Nenhuma empresa encontrada" />
+  
+  return (
+    <div className="grid gap-4">
+      {companies.map(company => (
+        <CompanyCard
+          key={company.id}
+          company={company}
+          onSelect={navigateToCompany}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+**Benefícios da refatoração:**
+- **SRP**: Cada função/hook tem uma única responsabilidade
+- **OCP**: `CompanyCard` pode ser estendido via props sem modificar código
+- **LSP**: `CompanyCard` pode ser substituído por qualquer componente que siga `CompanyCardProps`
+- **ISP**: Props específicas ao invés de objeto genérico
+- **DIP**: Componente depende de hooks (abstrações), não de stores diretamente
+
 ## 🏗️ PADRÕES DE CÓDIGO
 
 ### 1. Componentes React
@@ -146,6 +407,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading = false }: PlanFo
 - Valores padrão para props opcionais
 - Handlers com prefixo `handle`
 - Export nomeado, não default
+- Evitar tipagem fraca: nunca usar `any`, sempre tipar explicitamente
+- Extrair lógica complexa para funções auxiliares
+- Manter componentes pequenos e focados (SRP)
 
 ### 2. Hooks Customizados
 
@@ -507,11 +771,323 @@ try {
 - Mensagens de erro em português
 - Re-throw se não for erro conhecido
 
+## 🔍 TIPAGEM FORTE
+
+### Regras de Tipagem
+
+#### 1. Nunca Usar `any`
+```typescript
+// ❌ ERRADO
+function process(data: any) {
+  return data.value
+}
+
+// ✅ CORRETO
+interface ProcessData {
+  value: string
+}
+
+function process(data: ProcessData): string {
+  return data.value
+}
+```
+
+#### 2. Sempre Tipar Funções
+```typescript
+// ❌ ERRADO
+function getUser(id) {
+  return api.get(`/users/${id}`)
+}
+
+// ✅ CORRETO
+function getUser(id: string): Promise<User> {
+  return api.get<User>(`/users/${id}`)
+}
+```
+
+#### 3. Tipar Props de Componentes
+```typescript
+// ❌ ERRADO
+function PlanCard({ plan, onSelect }) {
+  // ...
+}
+
+// ✅ CORRETO
+interface PlanCardProps {
+  plan: Plan
+  onSelect: (planId: string) => void
+}
+
+function PlanCard({ plan, onSelect }: PlanCardProps) {
+  // ...
+}
+```
+
+#### 4. Usar Type Guards para `unknown`
+```typescript
+// ❌ ERRADO
+function process(data: unknown) {
+  return data.value
+}
+
+// ✅ CORRETO
+function isUserData(data: unknown): data is { value: string } {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'value' in data &&
+    typeof (data as { value: unknown }).value === 'string'
+  )
+}
+
+function process(data: unknown): string {
+  if (isUserData(data)) {
+    return data.value
+  }
+  throw new Error('Invalid data')
+}
+```
+
+#### 5. Evitar Type Assertions Desnecessárias
+```typescript
+// ❌ ERRADO
+const user = data as User
+const result = (await service.execute()) as CreateUserOutput
+
+// ✅ CORRETO - Validar e tipar corretamente
+const user = User.create(data)
+const result = await service.execute()
+```
+
+#### 6. Tipar Objetos Literais
+```typescript
+// ❌ ERRADO
+const config = {
+  host: 'localhost',
+  port: 3000,
+}
+
+// ✅ CORRETO
+interface ServerConfig {
+  host: string
+  port: number
+}
+
+const config: ServerConfig = {
+  host: 'localhost',
+  port: 3000,
+}
+```
+
+#### 7. Usar Generics Quando Apropriado
+```typescript
+// ❌ ERRADO
+function findById(id: string) {
+  return this.repository.findById(id)
+}
+
+// ✅ CORRETO
+function findById<T extends Entity>(id: string): Promise<T | null> {
+  return this.repository.findById<T>(id)
+}
+```
+
+## 📝 CÓDIGO CONCISO E CLARO
+
+### Regras de Clareza
+
+#### 1. Nomes Descritivos
+```typescript
+// ❌ ERRADO - Nomes genéricos
+const data = fetchData()
+const item = list.find(x => x.id === id)
+const result = process(input)
+
+// ✅ CORRETO - Nomes específicos
+const userList = fetchUsers()
+const selectedPlan = plans.find(plan => plan.id === planId)
+const formattedPrice = formatCurrency(price)
+```
+
+#### 2. Funções Pequenas e Focadas
+```typescript
+// ❌ ERRADO - Função grande com múltiplas responsabilidades
+function handleSubmit() {
+  const formData = getFormData()
+  validateForm(formData)
+  if (errors.length > 0) {
+    setErrors(errors)
+    return
+  }
+  const payload = transformData(formData)
+  api.create(payload).then(response => {
+    if (response.success) {
+      router.push('/success')
+      showNotification('Created!')
+    } else {
+      setErrors([response.error])
+    }
+  })
+}
+
+// ✅ CORRETO - Funções pequenas e focadas
+function useCreatePlan() {
+  const router = useRouter()
+  const { showNotification } = useNotification()
+  
+  return useMutation({
+    mutationFn: (data: CreatePlanRequest) => plansApi.create(data),
+    onSuccess: () => {
+      router.push('/success')
+      showNotification('Created!')
+    },
+  })
+}
+
+function PlanForm() {
+  const form = useForm<PlanFormData>({ resolver: zodResolver(planSchema) })
+  const { mutate: createPlan, isPending } = useCreatePlan()
+  
+  const handleSubmit = (data: PlanFormData) => {
+    createPlan(data)
+  }
+  
+  return <form onSubmit={form.handleSubmit(handleSubmit)}>...</form>
+}
+```
+
+#### 3. Extrair Lógica Complexa
+```typescript
+// ❌ ERRADO - Lógica complexa inline
+function PlanCard({ plan }: { plan: Plan }) {
+  return (
+    <div>
+      {plan.status === 'active' && plan.expiresAt && new Date(plan.expiresAt) > new Date() 
+        ? `Expires in ${Math.floor((new Date(plan.expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days`
+        : plan.status === 'trial' 
+          ? `Trial ends ${new Date(plan.trialEndsAt).toLocaleDateString()}`
+          : 'Inactive'}
+    </div>
+  )
+}
+
+// ✅ CORRETO - Lógica extraída
+function getPlanStatusText(plan: Plan): string {
+  if (plan.status === 'active' && isPlanActive(plan)) {
+    return `Expires in ${getDaysUntilExpiration(plan.expiresAt)} days`
+  }
+  if (plan.status === 'trial') {
+    return `Trial ends ${formatDate(plan.trialEndsAt)}`
+  }
+  return 'Inactive'
+}
+
+function PlanCard({ plan }: { plan: Plan }) {
+  return <div>{getPlanStatusText(plan)}</div>
+}
+```
+
+#### 4. Evitar Código Duplicado
+```typescript
+// ❌ ERRADO - Código duplicado
+function PlanList() {
+  const [plans, setPlans] = useState([])
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    setLoading(true)
+    fetch('/api/plans')
+      .then(res => res.json())
+      .then(data => {
+        setPlans(data)
+        setLoading(false)
+      })
+  }, [])
+  
+  // ...
+}
+
+function CompanyList() {
+  const [companies, setCompanies] = useState([])
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    setLoading(true)
+    fetch('/api/companies')
+      .then(res => res.json())
+      .then(data => {
+        setCompanies(data)
+        setLoading(false)
+      })
+  }, [])
+  
+  // ...
+}
+
+// ✅ CORRETO - Reutilizar hook
+function usePlans() {
+  return useQuery({
+    queryKey: ['plans'],
+    queryFn: () => plansApi.getAll(),
+  })
+}
+
+function useCompanies() {
+  return useQuery({
+    queryKey: ['companies'],
+    queryFn: () => companiesApi.getAll(),
+  })
+}
+
+function PlanList() {
+  const { data: plans = [], isLoading } = usePlans()
+  // ...
+}
+
+function CompanyList() {
+  const { data: companies = [], isLoading } = useCompanies()
+  // ...
+}
+```
+
+#### 5. Usar Early Returns
+```typescript
+// ❌ ERRADO - Aninhamento excessivo
+function renderContent() {
+  if (user) {
+    if (user.role === 'admin') {
+      if (plans.length > 0) {
+        return <PlansList plans={plans} />
+      } else {
+        return <EmptyState />
+      }
+    } else {
+      return <Unauthorized />
+    }
+  } else {
+    return <LoadingScreen />
+  }
+}
+
+// ✅ CORRETO - Early returns
+function renderContent() {
+  if (!user) return <LoadingScreen />
+  if (user.role !== 'admin') return <Unauthorized />
+  if (plans.length === 0) return <EmptyState />
+  return <PlansList plans={plans} />
+}
+```
+
 ## ✅ CHECKLIST ANTES DE COMMIT
 
 - [ ] Nenhum arquivo `index.ts` criado ou usado
 - [ ] Nenhum comentário no código
 - [ ] Nenhum `console.log` ou `console.error` deixado
+- [ ] **Nenhum `any` ou tipagem fraca**
+- [ ] **Todos os tipos explicitamente definidos**
+- [ ] **Código conciso e fácil de entender**
+- [ ] **Funções pequenas e focadas (SRP)**
+- [ ] **Dependências de abstrações, não implementações (DIP)**
 - [ ] Imports organizados na ordem correta
 - [ ] Nomenclatura seguindo padrões
 - [ ] Componentes tipados corretamente

@@ -354,40 +354,47 @@ export default function CompanyMembersPage() {
       />
 
       {company && (
-        <div className="mb-6 space-y-3 rounded-xl border border-border/30 bg-card/30 p-4 backdrop-blur-sm sm:mb-8 sm:space-y-0 sm:p-5">
-          <div className="hidden items-center justify-between sm:flex">
-            <div className="flex items-center gap-3 text-sm">
-              <div className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1.5">
+        <div className="mb-6 rounded-xl border border-border/40 bg-card/60 p-4 shadow-sm backdrop-blur-sm transition-all duration-200 sm:mb-8 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex items-center gap-2.5 rounded-lg bg-primary/10 px-3 py-2">
                 <Building2 className="h-4 w-4 text-primary" />
                 <span className="font-semibold text-foreground">{company.name}</span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="font-medium text-foreground">{stats.total}</span>
-                <span>{stats.total === 1 ? 'funcionário' : 'funcionários'}</span>
+              
+              <div className="flex items-center gap-1.5 border-l border-border/40 pl-3 text-sm sm:border-l-0 sm:pl-0">
+                <span className="font-semibold text-foreground">{stats.total}</span>
+                <span className="text-muted-foreground">
+                  {stats.total === 1 ? 'funcionário' : 'funcionários'}
+                </span>
               </div>
-              {stats.active > 0 && (
-                <div className="flex items-center gap-1.5 rounded-md bg-success/10 px-2.5 py-1 text-xs font-medium text-success dark:bg-success/20">
-                  <div className="h-2 w-2 rounded-full bg-success" />
-                  {stats.active} ativos
-                </div>
-              )}
-              {stats.invited > 0 && (
-                <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning dark:bg-warning/20">
-                  <div className="h-2 w-2 rounded-full bg-warning" />
-                  {stats.invited} convidados
-                </div>
-              )}
-              {stats.suspended > 0 && (
-                <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning dark:bg-warning/20">
-                  <div className="h-2 w-2 rounded-full bg-warning" />
-                  {stats.suspended} suspensos
-                </div>
-              )}
+
+              <div className="flex flex-wrap items-center gap-2">
+                {stats.active > 0 && (
+                  <div className="flex items-center gap-1.5 rounded-md bg-success/10 px-2.5 py-1.5 text-xs font-medium text-success dark:bg-success/20">
+                    <div className="h-2 w-2 rounded-full bg-success" />
+                    <span>{stats.active} ativos</span>
+                  </div>
+                )}
+                {stats.invited > 0 && (
+                  <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1.5 text-xs font-medium text-warning dark:bg-warning/20">
+                    <div className="h-2 w-2 rounded-full bg-warning" />
+                    <span>{stats.invited} convidados</span>
+                  </div>
+                )}
+                {stats.suspended > 0 && (
+                  <div className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-xs font-medium text-destructive dark:bg-destructive/20">
+                    <div className="h-2 w-2 rounded-full bg-destructive" />
+                    <span>{stats.suspended} suspensos</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-2 border-t border-border/40 pt-3 sm:border-t-0 sm:pt-0">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-                <SelectTrigger className="h-9 w-[160px] rounded-lg border-border/50">
+                <SelectTrigger className="h-9 w-full rounded-lg border-border/50 sm:w-[180px]">
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>

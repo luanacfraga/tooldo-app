@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Cookies from 'js-cookie'
+
+import { useAuthStore, type User } from '@/lib/stores/auth-store'
 import { config } from '@/config/config'
-import { useAuthStore } from '@/lib/stores/auth-store'
 
 interface UseAuthGuardOptions {
   redirectTo?: string
@@ -14,7 +15,7 @@ interface UseAuthGuardOptions {
 interface AuthGuardState {
   isChecking: boolean
   isAuthenticated: boolean
-  user: any
+  user: User | null
 }
 
 /**
@@ -34,13 +35,11 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}): AuthGuardState 
     const token = Cookies.get(config.cookies.tokenName)
 
     const checkAuth = setTimeout(() => {
-      // Se não tem token e não tem usuário, redirecionar para login
       if (!token && !user && requireAuth) {
         router.push(redirectTo)
         return
       }
 
-      // Se tem token mas Zustand não hidratou ainda, aguardar
       if (token && !user) {
         setIsChecking(true)
         return
