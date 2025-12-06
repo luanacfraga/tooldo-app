@@ -11,6 +11,13 @@ export const teamSchema = z.object({
   managerId: z
     .string()
     .min(1, 'Gerente é obrigatório'),
+  description: z
+    .string()
+    .optional(),
+  iaContext: z
+    .string()
+    .max(1000, 'O contexto de IA deve ter no máximo 1000 caracteres')
+    .optional(),
 })
 
 export type TeamFormData = z.infer<typeof teamSchema>
