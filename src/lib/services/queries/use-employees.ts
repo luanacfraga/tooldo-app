@@ -74,3 +74,44 @@ export function useRemoveEmployee() {
     },
   })
 }
+
+export function useResendInvite() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => employeesApi.resendInvite(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: EMPLOYEES_KEY })
+    },
+  })
+}
+
+export function useManagersByCompany(companyId: string) {
+  return useQuery({
+    queryKey: [...EMPLOYEES_KEY, 'company', companyId, 'managers'],
+    queryFn: async () => {
+      const response = await employeesApi.listByCompany(companyId, {
+        status: 'ACTIVE',
+      })
+      const employees = response?.data || []
+      // Filtrar apenas managers ativos
+      return employees.filter((employee) => employee.role === 'manager')
+    },
+    enabled: !!companyId,
+  })
+}
+
+export function useExecutorsByCompany(companyId: string) {
+  return useQuery({
+    queryKey: [...EMPLOYEES_KEY, 'company', companyId, 'executors'],
+    queryFn: async () => {
+      const response = await employeesApi.listByCompany(companyId, {
+        status: 'ACTIVE',
+      })
+      const employees = response?.data || []
+      // Filtrar apenas executores ativos
+      return employees.filter((employee) => employee.role === 'executor')
+    },
+    enabled: !!companyId,
+  })
+}

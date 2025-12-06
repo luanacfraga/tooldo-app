@@ -29,6 +29,8 @@ export const employeesApi = {
   activate: (id: string) => apiClient.put<Employee>(`/api/v1/employees/${id}/activate`),
 
   remove: (id: string) => apiClient.delete<Employee>(`/api/v1/employees/${id}`),
+
+  resendInvite: (id: string) => apiClient.post<Employee>(`/api/v1/employees/${id}/resend-invite`),
 }
 
 export type { Employee, InviteEmployeeRequest }

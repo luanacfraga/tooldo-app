@@ -56,6 +56,11 @@ export function DashboardSidebar() {
           ],
         },
         {
+          name: 'Equipes',
+          href: `${basePath}/teams`,
+          icon: Users,
+        },
+        {
           name: 'Tarefas',
           href: `${basePath}/tasks`,
           icon: CheckSquare,

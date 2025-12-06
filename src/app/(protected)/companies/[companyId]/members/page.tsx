@@ -13,6 +13,7 @@ import {
   ArrowUpDown,
   Building2,
   Filter,
+  Mail,
   MoreHorizontal,
   Trash2,
   UserCheck,
@@ -55,6 +56,7 @@ import {
   useActivateEmployee,
   useEmployeesByCompany,
   useRemoveEmployee,
+  useResendInvite,
   useSuspendEmployee,
 } from '@/lib/services/queries/use-employees'
 import { useUserContext } from '@/lib/contexts/user-context'
@@ -109,6 +111,7 @@ export default function CompanyMembersPage() {
   const { mutateAsync: suspend, isPending: isSuspending } = useSuspendEmployee()
   const { mutateAsync: activate, isPending: isActivating } = useActivateEmployee()
   const { mutateAsync: remove, isPending: isRemoving } = useRemoveEmployee()
+  const { mutateAsync: resendInvite, isPending: isResendingInvite } = useResendInvite()
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
@@ -140,6 +143,16 @@ export default function CompanyMembersPage() {
       } catch (error) {}
     },
     [activate]
+  )
+
+  const handleResendInvite = useCallback(
+    async (id: string) => {
+      try {
+        await resendInvite(id)
+        refetch()
+      } catch (error) {}
+    },
+    [resendInvite, refetch]
   )
 
   const handleRemove = useCallback(
@@ -268,7 +281,7 @@ export default function CompanyMembersPage() {
         header: 'Ações',
         cell: ({ row }) => {
           const employee = row.original
-          const isLoading = isSuspending || isActivating || isRemoving
+          const isLoading = isSuspending || isActivating || isRemoving || isResendingInvite
 
           return (
             <div className="flex justify-end">
@@ -280,6 +293,15 @@ export default function CompanyMembersPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {employee.status === 'INVITED' && (
+                    <DropdownMenuItem
+                      onClick={() => handleResendInvite(employee.id)}
+                      disabled={isLoading}
+                    >
+                      <Mail className="mr-2 h-4 w-4" />
+                      Reenviar Convite
+                    </DropdownMenuItem>
+                  )}
                   {employee.status === 'SUSPENDED' && (
                     <DropdownMenuItem
                       onClick={() => handleActivate(employee.id)}
