@@ -12,6 +12,10 @@ interface ListEmployeesParams extends PaginationParams {
   status?: string
 }
 
+interface ListExecutorsParams {
+  excludeTeamId?: string
+}
+
 export const employeesApi = {
   invite: (data: InviteEmployeeRequest) =>
     apiClient.post<Employee>('/api/v1/employees/invite', data),
@@ -21,6 +25,11 @@ export const employeesApi = {
 
   listByCompany: (companyId: string, params?: ListEmployeesParams) =>
     apiClient.get<PaginatedResponse<Employee>>(`/api/v1/employees/company/${companyId}`, {
+      params: params as Record<string, string | number | boolean | undefined>,
+    }),
+
+  listExecutorsByCompany: (companyId: string, params?: ListExecutorsParams) =>
+    apiClient.get<Employee[]>(`/api/v1/employees/company/${companyId}/executors`, {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
 

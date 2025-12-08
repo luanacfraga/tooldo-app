@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { EmptyState } from '@/components/shared/feedback/empty-state'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -16,12 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Trash2, UserPlus, Users } from 'lucide-react'
-import { useTeamMembers, useAddTeamMember, useRemoveTeamMember } from '@/lib/services/queries/use-teams'
-import { useExecutorsByCompany } from '@/lib/services/queries/use-employees'
 import { ApiError } from '@/lib/api/api-client'
-import { EmptyState } from '@/components/shared/feedback/empty-state'
 import type { Team } from '@/lib/api/endpoints/teams'
+import { useExecutorsByCompany } from '@/lib/services/queries/use-employees'
+import {
+  useAddTeamMember,
+  useRemoveTeamMember,
+  useTeamMembers,
+} from '@/lib/services/queries/use-teams'
+import { Loader2, Trash2, UserPlus, Users } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 interface ApiErrorData {
   message?: string
@@ -31,7 +35,10 @@ function isApiErrorData(data: unknown): data is ApiErrorData {
   return (
     typeof data === 'object' &&
     data !== null &&
-    ('message' in data ? typeof (data as ApiErrorData).message === 'string' || (data as ApiErrorData).message === undefined : true)
+    ('message' in data
+      ? typeof (data as ApiErrorData).message === 'string' ||
+        (data as ApiErrorData).message === undefined
+      : true)
   )
 }
 
@@ -49,24 +56,30 @@ interface TeamMembersDialogProps {
   companyId: string
 }
 
-export function TeamMembersDialog({
-  open,
-  onOpenChange,
-  team,
-  companyId,
-}: TeamMembersDialogProps) {
+export function TeamMembersDialog({ open, onOpenChange, team, companyId }: TeamMembersDialogProps) {
   const [selectedExecutorId, setSelectedExecutorId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const { data: members = [], isLoading: loadingMembers, refetch } = useTeamMembers(team.id)
-  const { data: executors = [], isLoading: loadingExecutors } = useExecutorsByCompany(companyId)
+  const { data: members = [], isLoading: loadingMembers } = useTeamMembers(team.id)
+  const { data: executorsWithTeam = [], isLoading: loadingExecutors } = useExecutorsByCompany(
+    companyId,
+    team.id
+  )
+  const { data: allExecutors = [] } = useExecutorsByCompany(companyId)
   const { mutateAsync: addMember, isPending: isAdding } = useAddTeamMember()
   const { mutateAsync: removeMember, isPending: isRemoving } = useRemoveTeamMember()
 
+  const availableExecutors = useMemo(() => {
+    const memberUserIds = new Set(members.map((m) => m.userId))
+    return executorsWithTeam.filter((executor) => !memberUserIds.has(executor.userId))
+  }, [executorsWithTeam, members])
+
   const membersWithInfo = useMemo(() => {
     return members.map((member) => {
-      const executor = executors.find((e) => e.userId === member.userId)
+      const executor =
+        executorsWithTeam.find((e) => e.userId === member.userId) ||
+        allExecutors.find((e) => e.userId === member.userId)
       return {
         ...member,
         executor,
@@ -76,15 +89,7 @@ export function TeamMembersDialog({
         email: executor?.user?.email || 'Email não disponível',
       }
     })
-  }, [members, executors])
-
-  const availableExecutors = useMemo(() => {
-    return executors.filter(
-      (executor) =>
-        executor.status === 'ACTIVE' &&
-        !members.some((member) => member.userId === executor.userId)
-    )
-  }, [executors, members])
+  }, [members, executorsWithTeam, allExecutors])
 
   const handleAddMember = async () => {
     if (!selectedExecutorId) return
@@ -98,7 +103,6 @@ export function TeamMembersDialog({
       })
       setSuccess('Membro adicionado com sucesso!')
       setSelectedExecutorId('')
-      await refetch()
       setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
       setError(getErrorMessage(err, 'Erro ao adicionar membro. Tente novamente.'))
@@ -114,7 +118,6 @@ export function TeamMembersDialog({
         memberId,
       })
       setSuccess('Membro removido com sucesso!')
-      await refetch()
       setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
       setError(getErrorMessage(err, 'Erro ao remover membro. Tente novamente.'))
@@ -123,11 +126,12 @@ export function TeamMembersDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Gerenciar Membros - {team.name}</DialogTitle>
           <DialogDescription>
-            Adicione ou remova executores desta equipe. Cada executor pode fazer parte de apenas uma equipe.
+            Adicione ou remova executores desta equipe. Cada executor pode fazer parte de apenas uma
+            equipe.
           </DialogDescription>
         </DialogHeader>
 
@@ -135,9 +139,7 @@ export function TeamMembersDialog({
           <div className="space-y-4">
             <div className="flex items-end gap-2">
               <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">
-                  Adicionar Executor
-                </label>
+                <label className="mb-2 block text-sm font-medium">Adicionar Executor</label>
                 <Select
                   value={selectedExecutorId || undefined}
                   onValueChange={setSelectedExecutorId}
@@ -153,11 +155,7 @@ export function TeamMembersDialog({
                       </div>
                     ) : availableExecutors.length === 0 ? (
                       <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                        {executors.length === 0
-                          ? 'Nenhum executor cadastrado na empresa'
-                          : members.length === 0
-                            ? 'Todos os executores já estão em outras equipes'
-                            : 'Todos os executores disponíveis já estão na equipe'}
+                        Nenhum executor disponível para adicionar a esta equipe
                       </div>
                     ) : (
                       availableExecutors.map((executor) => (
@@ -206,7 +204,7 @@ export function TeamMembersDialog({
           )}
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
               <Users className="h-4 w-4" />
               Membros da Equipe ({membersWithInfo.length})
             </h3>
@@ -226,16 +224,14 @@ export function TeamMembersDialog({
                 {membersWithInfo.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
                   >
                     <div className="flex-1">
                       <div>
                         <p className="font-medium">{member.displayName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {member.email}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{member.email}</p>
                         {member.executor?.position && (
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="mt-1 text-xs text-muted-foreground">
                             {member.executor.position}
                           </p>
                         )}
@@ -246,7 +242,7 @@ export function TeamMembersDialog({
                       size="sm"
                       onClick={() => handleRemoveMember(member.id)}
                       disabled={isRemoving}
-                      className="text-danger-base hover:text-danger-dark hover:bg-danger-lightest"
+                      className="text-danger-base hover:bg-danger-lightest hover:text-danger-dark"
                       title="Remover membro"
                     >
                       {isRemoving ? (
@@ -265,4 +261,3 @@ export function TeamMembersDialog({
     </Dialog>
   )
 }
-
