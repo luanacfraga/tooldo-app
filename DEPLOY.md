@@ -63,7 +63,7 @@ O projeto já está configurado com:
    - Clique em **"Environment variables"**
    - Adicione:
      ```
-     NEXT_PUBLIC_API_URL=https://sua-api.com
+     NEXT_PUBLIC_API_URL=https://api.tooldo.net
      NODE_ENV=production
      ```
 6. Clique em **"Save and deploy"**
@@ -131,7 +131,7 @@ No Amplify Console → Domain management:
 No Amplify Console → App settings → Environment variables:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.tooldo.com
+NEXT_PUBLIC_API_URL=https://api.tooldo.net
 NODE_ENV=production
 ```
 

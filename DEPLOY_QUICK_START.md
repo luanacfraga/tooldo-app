@@ -25,7 +25,7 @@ git push origin main
 Na tela de configuração, adicione:
 
 ```
-NEXT_PUBLIC_API_URL=https://sua-api.com
+NEXT_PUBLIC_API_URL=https://api.tooldo.net
 NODE_ENV=production
 ```
 

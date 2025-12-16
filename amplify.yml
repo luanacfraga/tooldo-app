@@ -3,9 +3,20 @@ frontend:
   phases:
     preBuild:
       commands:
+        - echo "Validating environment variables..."
+        - |
+          if [ -z "$NEXT_PUBLIC_API_URL" ]; then
+            echo "⚠️  WARNING: NEXT_PUBLIC_API_URL is not set"
+            echo "⚠️  Using default: http://localhost:3000"
+          else
+            echo "✅ NEXT_PUBLIC_API_URL is set"
+          fi
+        - echo "Node version:" && node --version
+        - echo "NPM version:" && npm --version
         - npm ci
     build:
       commands:
+        - echo "Building Next.js application..."
         - npm run build
   artifacts:
     baseDirectory: .next
@@ -15,9 +26,3 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
-# Configuração para Next.js SSR no Amplify
-backend:
-  phases:
-    build:
-      commands:
-        - '# Amplify detecta automaticamente Next.js e configura SSR'
