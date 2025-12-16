@@ -11,7 +11,7 @@ export const config = {
   },
 
   cookies: {
-    tokenName: 'weedu_token',
+    tokenName: 'tooldo_token',
     maxAge: 7,
   },
 

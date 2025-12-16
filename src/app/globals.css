@@ -16,11 +16,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    /* Primary - Purple/Violet (from weedu-app: #8855f6) */
+    /* Primary - Purple/Violet (from tooldo-app: #8855f6) */
     --primary: 258 90% 66%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Teal (from weedu-app: #2dd4bf) */
+    /* Secondary - Teal (from tooldo-app: #2dd4bf) */
     --secondary: 173 80% 50%;
     --secondary-foreground: 0 0% 100%;
 
@@ -32,7 +32,7 @@
     --accent: 258 80% 95%;
     --accent-foreground: 258 90% 50%;
 
-    /* Destructive - Red (from weedu-app: #ef4444) */
+    /* Destructive - Red (from tooldo-app: #ef4444) */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
@@ -44,7 +44,7 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* Info - Blue (from weedu-app: #3b82f6) */
+    /* Info - Blue (from tooldo-app: #3b82f6) */
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
 

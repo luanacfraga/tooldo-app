@@ -1,6 +1,6 @@
 # Refatoração SOLID - Organização de Componentes
 
-Este documento descreve a refatoração realizada nos componentes da aplicação Weedu Web seguindo os princípios SOLID.
+Este documento descreve a refatoração realizada nos componentes da aplicação Tooldo App seguindo os princípios SOLID.
 
 ## Princípios SOLID Aplicados
 

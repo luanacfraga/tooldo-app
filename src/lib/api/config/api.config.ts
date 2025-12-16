@@ -1,6 +1,6 @@
 import { apiClient } from '../api-client'
 
-// Wrapper para manter compatibilidade com o padrão do weedu-app
+// Wrapper para manter compatibilidade com o padrão do tooldo-app
 // Retorna response.data diretamente como o axios faz
 const api = {
   get: async <T>(

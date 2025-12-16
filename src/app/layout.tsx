@@ -6,15 +6,11 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Weedu - Gestão de Empresas e Times',
+  title: 'Tooldo - Gestão de Empresas e Times',
   description: 'Plataforma de gestão para empresas, times e membros',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>

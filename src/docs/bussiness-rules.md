@@ -1,4 +1,4 @@
-# 🧠 **Weedu – Business Rules (Memory Bank)**
+# 🧠 **Tooldo – Business Rules (Memory Bank)**
 
 **Versão:** 1.0
 **Propósito:** instruir a IA do Cursor sobre TODAS as regras de negócio que o backend deve respeitar.

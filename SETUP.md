@@ -1,4 +1,4 @@
-# Weedu Web - Configuração do Projeto
+# Tooldo App - Configuração do Projeto
 
 ## Visão Geral
 
@@ -18,7 +18,7 @@ Este projeto foi configurado com as seguintes tecnologias:
 ## Estrutura do Projeto
 
 ```
-weedu-web/
+tooldo-app/
 ├── src/
 │   ├── app/                    # App Router do Next.js 14
 │   │   ├── layout.tsx          # Layout raiz
@@ -274,7 +274,7 @@ npm run format
 
 ## Integração com Backend
 
-O projeto está configurado para se comunicar com a API Weedu. Certifique-se de:
+O projeto está configurado para se comunicar com a API Tooldo. Certifique-se de:
 
 1. A API está rodando em `http://localhost:3000` (ou configure `NEXT_PUBLIC_API_URL`)
 2. Os endpoints da API seguem o padrão definido em `src/lib/api/endpoints/`

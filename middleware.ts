@@ -6,7 +6,7 @@ const protectedRoutes = ['/companies', '/plans', '/dashboard']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const token = request.cookies.get('weedu_token')
+  const token = request.cookies.get('tooldo_token')
 
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route))
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))

@@ -10,7 +10,7 @@ interface AuthLayoutProps {
 
 export function AuthLayout({
   children,
-  title = 'Weedu',
+  title = 'Tooldo',
   subtitle = 'Gestão inteligente',
   showWelcome = true,
 }: AuthLayoutProps) {

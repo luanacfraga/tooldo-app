@@ -16,7 +16,7 @@ git push origin main
 1. Acesse: https://console.aws.amazon.com/amplify/
 2. **New app** → **Host web app**
 3. Conecte seu Git (GitHub/GitLab/Bitbucket)
-4. Selecione repositório: `weedu-web`
+4. Selecione repositório: `tooldo-app`
 5. Branch: `main`
 6. **Next.js - SSR** será detectado automaticamente
 

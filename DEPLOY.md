@@ -1,6 +1,6 @@
 # Guia de Deploy - AWS + GoDaddy
 
-Este guia explica como publicar o frontend Weedu no seu domínio usando AWS Amplify e configurar o DNS na GoDaddy.
+Este guia explica como publicar o frontend Tooldo no seu domínio usando AWS Amplify e configurar o DNS na GoDaddy.
 
 ## Opções de Deploy na AWS
 
@@ -54,7 +54,7 @@ O projeto já está configurado com:
 3. Conecte seu repositório Git:
    - Escolha seu provedor (GitHub, GitLab, Bitbucket)
    - Autorize o acesso
-   - Selecione o repositório `weedu-web`
+   - Selecione o repositório `tooldo-app`
    - Selecione a branch `main` (ou a branch de produção)
 4. Configure o build:
    - **Build settings**: O Amplify detectará automaticamente o `amplify.yml`
@@ -72,7 +72,7 @@ O projeto já está configurado com:
 
 1. No Amplify Console, vá em **"App settings"** → **"Domain management"**
 2. Clique em **"Add domain"**
-3. Digite seu domínio (ex: `weedu.com` ou `www.weedu.com`)
+3. Digite seu domínio (ex: `tooldo.com` ou `www.tooldo.com`)
 4. O Amplify irá gerar um certificado SSL automaticamente (pode levar alguns minutos)
 
 ### Passo 4: Configurar DNS na GoDaddy
@@ -82,7 +82,7 @@ O projeto já está configurado com:
 3. Vá em **"DNS"** ou **"Manage DNS"**
 4. Você verá os registros DNS que o Amplify forneceu (na tela de Domain management)
 
-#### Para domínio principal (weedu.com):
+#### Para domínio principal (tooldo.com):
 
 Adicione/edite os registros:
 
@@ -131,14 +131,14 @@ No Amplify Console → Domain management:
 No Amplify Console → App settings → Environment variables:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.weedu.com
+NEXT_PUBLIC_API_URL=https://api.tooldo.com
 NODE_ENV=production
 ```
 
 ### Variáveis Opcionais
 
 ```env
-NEXT_PUBLIC_APP_NAME=Weedu
+NEXT_PUBLIC_APP_NAME=Tooldo
 NEXT_PUBLIC_APP_DESCRIPTION=Plataforma de gestão
 ```
 
@@ -200,7 +200,7 @@ sudo apt update
 sudo apt install nginx
 
 # Configurar Nginx
-sudo nano /etc/nginx/sites-available/weedu
+sudo nano /etc/nginx/sites-available/tooldo
 ```
 
 Configuração Nginx:
@@ -208,7 +208,7 @@ Configuração Nginx:
 ```nginx
 server {
     listen 80;
-    server_name weedu.com www.weedu.com;
+    server_name tooldo.com www.tooldo.com;
 
     location / {
         proxy_pass http://localhost:3001;
@@ -225,15 +225,15 @@ server {
 
 ```bash
 sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d weedu.com -d www.weedu.com
+sudo certbot --nginx -d tooldo.com -d www.tooldo.com
 ```
 
 ### 5. Deploy da Aplicação
 
 ```bash
 # Clonar repositório
-git clone https://github.com/seu-usuario/weedu-web.git
-cd weedu-web
+git clone https://github.com/seu-usuario/tooldo-app.git
+cd tooldo-app
 
 # Instalar dependências
 npm install
@@ -242,7 +242,7 @@ npm install
 npm run build
 
 # Iniciar com PM2
-pm2 start npm --name "weedu-web" -- start
+pm2 start npm --name "tooldo-app" -- start
 pm2 save
 pm2 startup
 ```
@@ -250,7 +250,7 @@ pm2 startup
 ### 6. Configurar DNS na GoDaddy
 
 - **Tipo A:** Apontar para o IP público da instância EC2
-- **Tipo CNAME:** `www` → `weedu.com`
+- **Tipo CNAME:** `www` → `tooldo.com`
 
 ---
 
@@ -265,7 +265,7 @@ pm2 startup
 
 ```bash
 # Ver logs da aplicação
-pm2 logs weedu-web
+pm2 logs tooldo-app
 
 # Ver logs do Nginx
 sudo tail -f /var/log/nginx/error.log
