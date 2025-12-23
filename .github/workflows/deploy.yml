@@ -12,7 +12,8 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '20.x'
+  # Alinhado com a versão do Node.js usada no AWS Amplify (v22.18.0)
+  NODE_VERSION: '22.x'
   NPM_VERSION: '10.x'
 
 jobs:
@@ -30,15 +31,50 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Build Environment Info
+        run: |
+          echo "=== Build Environment ==="
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo ""
+
+      - name: Environment Variables Check
+        run: |
+          echo "=== Environment Variables ==="
+          if [ -z "${{ secrets.NEXT_PUBLIC_API_URL }}" ]; then
+            echo "⚠️  WARNING: NEXT_PUBLIC_API_URL is not set in secrets"
+            echo "⚠️  Using default: http://localhost:3000"
+          else
+            echo "✅ NEXT_PUBLIC_API_URL is set in secrets"
+          fi
+          echo ""
+
       - name: Install dependencies
-        run: npm ci
+        run: |
+          echo "=== Installing Dependencies ==="
+          echo "⚠️  Ensuring NODE_ENV is not set to install devDependencies..."
+          unset NODE_ENV || true
+          echo "Clearing npm cache to ensure fresh install..."
+          npm cache clean --force || true
+          echo "Installing all dependencies (including devDependencies for build)..."
+          npm ci --prefer-offline=false
+          echo "Verifying critical devDependencies..."
+          npm list tailwindcss postcss autoprefixer || (echo "⚠️  Some devDependencies not found, trying to install..." && npm install tailwindcss postcss autoprefixer --save-dev)
+          echo "Final verification..."
+          ls -la node_modules | grep tailwindcss || echo "⚠️  tailwindcss still not found in node_modules"
+          echo ""
 
       - name: Run linter
         run: npm run lint
         continue-on-error: true
 
       - name: Build application
-        run: npm run build
+        run: |
+          echo "=== Building Next.js Application ==="
+          echo "Cleaning Next.js cache..."
+          rm -rf .next
+          echo "Starting build..."
+          npm run build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
           NODE_ENV: production
