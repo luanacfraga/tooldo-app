@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 const publicRoutes = [
   '/login',
@@ -13,7 +13,7 @@ const protectedRoutes = ['/companies', '/plans', '/dashboard']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const token = request.cookies.get('weedu_token')
+  const token = request.cookies.get('tooldo_token')
 
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route))
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
@@ -32,8 +32,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|images).*)'],
 }
-

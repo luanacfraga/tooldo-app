@@ -1,5 +1,5 @@
 {
-  "name": "weedu-web",
+  "name": "tooldo-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "predeploy": "npm run lint && npm run build",
+    "verify": "npm run lint && npm run build && echo '✅ All checks passed!'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

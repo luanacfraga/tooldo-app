@@ -1,0 +1,134 @@
+name: Deploy to AWS Amplify
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  # Alinhado com a versão do Node.js usada no AWS Amplify (v22.18.0)
+  NODE_VERSION: '22.x'
+  NPM_VERSION: '10.x'
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Build Environment Info
+        run: |
+          echo "=== Build Environment ==="
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo ""
+
+      - name: Environment Variables Check
+        run: |
+          echo "=== Environment Variables ==="
+          if [ -z "${{ secrets.NEXT_PUBLIC_API_URL }}" ]; then
+            echo "⚠️  WARNING: NEXT_PUBLIC_API_URL is not set in secrets"
+            echo "⚠️  Using default: http://localhost:3000"
+          else
+            echo "✅ NEXT_PUBLIC_API_URL is set in secrets"
+          fi
+          echo ""
+
+      - name: Install dependencies
+        run: |
+          echo "=== Installing Dependencies ==="
+          echo "⚠️  Ensuring NODE_ENV is not set to install devDependencies..."
+          unset NODE_ENV || true
+          echo "Clearing npm cache to ensure fresh install..."
+          npm cache clean --force || true
+          echo "Installing all dependencies (including devDependencies for build)..."
+          npm ci --prefer-offline=false
+          echo "Verifying critical devDependencies..."
+          npm list tailwindcss postcss autoprefixer || (echo "⚠️  Some devDependencies not found, trying to install..." && npm install tailwindcss postcss autoprefixer --save-dev)
+          echo "Final verification..."
+          ls -la node_modules | grep tailwindcss || echo "⚠️  tailwindcss still not found in node_modules"
+          echo ""
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build application
+        run: |
+          echo "=== Building Next.js Application ==="
+          echo "Cleaning Next.js cache..."
+          rm -rf .next
+          echo "Starting build..."
+          npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+          NODE_ENV: production
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: .next
+          retention-days: 1
+
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'pull_request' && needs.build-and-test.result == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: .next
+        continue-on-error: true
+
+      - name: Deploy to Amplify Preview
+        run: |
+          echo "Preview deployment would happen here"
+          echo "Configure AWS Amplify to auto-deploy PRs"
+          echo "Note: AWS Amplify handles deployments automatically on push"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && needs.build-and-test.result == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: .next
+        continue-on-error: true
+
+      - name: Deploy to Amplify
+        run: |
+          echo "Production deployment would happen here"
+          echo "AWS Amplify will auto-deploy on push to main"
+          echo "This workflow is for CI/CD validation only"

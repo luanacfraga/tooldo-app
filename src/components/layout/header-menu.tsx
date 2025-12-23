@@ -1,11 +1,12 @@
 'use client'
 
-import { Logo } from '@/components/shared/logo'
 import { formatRole } from '@/lib/formatters'
 import { useIsMobile } from '@/lib/hooks/use-media-query'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { Bell, Menu, X } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -76,10 +77,16 @@ export function HeaderMenu({ onProfileClick }: HeaderMenuProps) {
             )}
 
             <div className="flex-shrink-0">
-              <Logo
-                size="md"
-                className="cursor-pointer transition-all duration-300 hover:opacity-80"
-              />
+              <Link href="/dashboard" className="flex items-center">
+                <Image
+                  src="/images/logo.png"
+                  alt="Weedu"
+                  width={120}
+                  height={40}
+                  className="h-8 w-auto object-contain sm:h-10"
+                  priority
+                />
+              </Link>
             </div>
           </div>
 

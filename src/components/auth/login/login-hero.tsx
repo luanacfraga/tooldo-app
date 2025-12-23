@@ -1,4 +1,4 @@
-import { Logo } from '@/components/shared/logo'
+import Image from 'next/image'
 
 export function LoginHero() {
   return (
@@ -9,9 +9,16 @@ export function LoginHero() {
 
       <div className="relative z-10 mx-auto flex max-w-md flex-col justify-center px-12">
         <div className="mb-6 flex items-center">
-          <Logo size="lg" />
+          <Image
+            src="/images/logo.png"
+            alt="Weedu"
+            width={150}
+            height={50}
+            className="h-12 w-auto object-contain"
+            priority
+          />
         </div>
-        <h2 className="mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-4xl font-bold leading-tight text-transparent md:text-5xl">
+        <h2 className="font-heading mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-4xl font-bold leading-tight text-transparent md:text-5xl">
           Transforme a gestão da sua empresa
         </h2>
         <p className="text-lg text-muted-foreground">

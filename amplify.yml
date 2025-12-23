@@ -1,0 +1,77 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "=== Build Environment ==="
+        - echo "Node version:" && node --version
+        - echo "NPM version:" && npm --version
+        - echo ""
+        - echo "=== Environment Variables ==="
+        - |
+          if [ -z "$NEXT_PUBLIC_API_URL" ]; then
+            echo "❌ ERROR: NEXT_PUBLIC_API_URL is not set in production!"
+            echo "❌ Please configure it in AWS Amplify Console:"
+            echo "   - Go to App settings → Environment variables"
+            echo "   - Add: NEXT_PUBLIC_API_URL=https://api.tooldo.net"
+            echo "❌ Build will fail to prevent using wrong API in production."
+            exit 1
+          else
+            echo "✅ NEXT_PUBLIC_API_URL is set: $NEXT_PUBLIC_API_URL"
+            # Validação adicional: garantir que não está usando localhost em produção
+            if echo "$NEXT_PUBLIC_API_URL" | grep -q "localhost\|127.0.0.1"; then
+              echo "❌ ERROR: NEXT_PUBLIC_API_URL contains localhost in production!"
+              echo "❌ Production must use: https://api.tooldo.net"
+              exit 1
+            fi
+            # Validação: garantir que está usando HTTPS
+            if ! echo "$NEXT_PUBLIC_API_URL" | grep -q "^https://"; then
+              echo "❌ ERROR: NEXT_PUBLIC_API_URL must use HTTPS in production!"
+              echo "❌ Expected: https://api.tooldo.net"
+              exit 1
+            fi
+            # Validação: avisar se não for a API de produção esperada
+            if ! echo "$NEXT_PUBLIC_API_URL" | grep -q "api.tooldo.net"; then
+              echo "⚠️  WARNING: NEXT_PUBLIC_API_URL is not the expected production URL"
+              echo "⚠️  Current: $NEXT_PUBLIC_API_URL"
+              echo "⚠️  Expected: https://api.tooldo.net"
+            fi
+          fi
+        - echo ""
+        - echo "=== Installing Dependencies ==="
+        - echo "⚠️  Temporarily unsetting NODE_ENV to install devDependencies..."
+        - unset NODE_ENV || true
+        - echo "Clearing npm cache to ensure fresh install..."
+        - npm cache clean --force || true
+        - echo "Installing all dependencies (including devDependencies for build)..."
+        - npm ci --prefer-offline=false
+        - echo "Verifying critical devDependencies..."
+        - npm list tailwindcss postcss autoprefixer || (echo "⚠️  Some devDependencies not found, trying to install..." && npm install tailwindcss postcss autoprefixer --save-dev)
+        - echo "Final verification..."
+        - ls -la node_modules | grep tailwindcss || echo "⚠️  tailwindcss still not found in node_modules"
+        - echo ""
+        - echo "=== Setting Production Environment ==="
+        - |
+          if [ -z "$NODE_ENV" ]; then
+            echo "⚠️  WARNING: NODE_ENV is not set, defaulting to production"
+            export NODE_ENV="production"
+          else
+            echo "✅ NODE_ENV is set: $NODE_ENV"
+          fi
+    build:
+      commands:
+        - echo "=== Building Next.js Application ==="
+        - echo "Cleaning Next.js cache..."
+        - rm -rf .next
+        - echo "Starting build..."
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
+    # Note: Cache pode causar problemas se devDependencies não forem instaladas
+    # Se o build falhar, considere limpar o cache no Amplify Console

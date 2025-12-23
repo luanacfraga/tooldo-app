@@ -1,6 +1,6 @@
-# Memory Bank - Padrões de Implementação Weedu Web
+# Memory Bank - Padrões de Implementação Tooldo App
 
-Este documento define os padrões que devem ser seguidos em TODAS as implementações do projeto Weedu Web para manter consistência e qualidade do código.
+Este documento define os padrões que devem ser seguidos em TODAS as implementações do projeto Tooldo App para manter consistência e qualidade do código.
 
 ## 🚫 REGRAS ABSOLUTAS
 

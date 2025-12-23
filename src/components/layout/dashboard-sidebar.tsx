@@ -1,22 +1,37 @@
 'use client'
 
 import { CompanySelector } from '@/components/features/company/selectors/company-selector'
-import { useAuth } from '@/lib/hooks/use-auth'
 import { useUserContext } from '@/lib/contexts/user-context'
+import { useAuth } from '@/lib/hooks/use-auth'
 import { usePermissions } from '@/lib/hooks/use-permissions'
-import { useParams } from 'next/navigation'
 import {
   BarChart3,
   Building2,
   CheckSquare,
-  Home,
   LayoutDashboard,
   Settings,
   Users,
   UsersRound,
 } from 'lucide-react'
+import Image from 'next/image'
+import { useParams } from 'next/navigation'
 import { useMemo } from 'react'
 import { Sidebar, type MenuItem } from './sidebar'
+
+function SidebarLogo({ isCollapsed }: { isCollapsed?: boolean }) {
+  return (
+    <div className="flex items-center justify-center px-2">
+      <Image
+        src="/images/logo.png"
+        alt="Weedu"
+        width={120}
+        height={40}
+        className="h-8 w-auto object-contain"
+        priority
+      />
+    </div>
+  )
+}
 
 export function DashboardSidebar() {
   const { logout } = useAuth()
@@ -136,13 +151,11 @@ export function DashboardSidebar() {
     }
 
     if (isConsultant && companyId) {
-      items.push(
-        {
-          name: 'Dashboard',
-          href: `${basePath}/dashboard`,
-          icon: BarChart3,
-        }
-      )
+      items.push({
+        name: 'Dashboard',
+        href: `${basePath}/dashboard`,
+        icon: BarChart3,
+      })
     }
 
     if (isMaster) {
@@ -178,7 +191,7 @@ export function DashboardSidebar() {
     })
 
     return items
-  }, [isAdmin, isManager, isExecutor, isConsultant, isMaster, companyId])
+  }, [isAdmin, isManager, isExecutor, isConsultant, isMaster, companyId, canInviteEmployee])
 
   return (
     <Sidebar
@@ -188,7 +201,9 @@ export function DashboardSidebar() {
       topComponent={
         isAdmin && companyId ? (
           <CompanySelector variant="default" showLabel={true} />
-        ) : undefined
+        ) : (
+          <SidebarLogo />
+        )
       }
     />
   )

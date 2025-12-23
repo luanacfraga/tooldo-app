@@ -1,5 +1,5 @@
-import { Logo } from '@/components/shared/logo'
 import { Steps } from '@/components/ui/steps'
+import Image from 'next/image'
 
 interface RegisterHeroProps {
   steps: Array<{ id: number; title: string; description: string }>
@@ -16,12 +16,16 @@ export function RegisterHero({ steps, currentStep }: RegisterHeroProps) {
       <div className="relative z-10 flex flex-1 flex-col justify-center px-12 py-16">
         <div className="mx-auto w-full max-w-md">
           <div className="mb-8">
-            <Logo
-              size="lg"
-              className="cursor-pointer transition-all duration-300 hover:opacity-80"
+            <Image
+              src="/images/logo.png"
+              alt="Weedu"
+              width={150}
+              height={50}
+              className="h-12 w-auto object-contain"
+              priority
             />
           </div>
-          <h1 className="mb-3 text-4xl font-semibold tracking-tight text-foreground">
+          <h1 className="font-heading mb-3 text-4xl font-semibold tracking-tight text-foreground">
             Cadastre sua empresa
           </h1>
           <p className="mb-8 text-muted-foreground">

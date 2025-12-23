@@ -1,6 +1,6 @@
-# Weedu Web - Front-end
+# Tooldo App - Front-end
 
-Front-end da plataforma Weedu, construído com Next.js 14 e arquitetura hexagonal.
+Front-end da plataforma Tooldo, construído com Next.js 14 e arquitetura hexagonal.
 
 ## Tecnologias
 
@@ -21,7 +21,7 @@ Front-end da plataforma Weedu, construído com Next.js 14 e arquitetura hexagona
 ## Estrutura do Projeto
 
 ```
-weedu-web/
+tooldo-app/
 ├── src/
 │   ├── app/                      # App Router (Next.js 14)
 │   │   ├── layout.tsx           # Layout raiz com providers
@@ -319,7 +319,7 @@ import { useAuthStore } from '@/lib/stores/auth.store'
 
 ## Integração com Backend
 
-O backend está em `weedu-api/` e roda em `http://localhost:3000`.
+O backend está em `tooldo-api/` e roda em `http://localhost:3000`.
 
 Endpoints principais:
 - `POST /auth/login` - Autenticação
@@ -337,4 +337,4 @@ Ver documentação completa em: `http://localhost:3000/api` (Swagger)
 3. Use TypeScript strict mode
 4. Valide dados com Zod
 5. Documente componentes complexos
-# weedu-web
+# tooldo-app

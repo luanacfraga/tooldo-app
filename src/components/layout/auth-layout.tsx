@@ -1,5 +1,5 @@
-import { Logo } from '@/components/shared/logo'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 import * as React from 'react'
 
 interface AuthLayoutProps {
@@ -34,9 +34,16 @@ export function AuthLayout({
 
           <div className="relative z-10 mx-auto flex max-w-md flex-col justify-center px-12">
             <div className="mb-6 flex items-center">
-              <Logo size="lg" />
+              <Image
+                src="/images/logo.png"
+                alt="Weedu"
+                width={300}
+                height={100}
+                className="h-24 w-auto object-contain"
+                priority
+              />
             </div>
-            <h2 className="mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-4xl font-bold leading-tight text-transparent md:text-5xl">
+            <h2 className="font-heading mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-4xl font-bold leading-tight text-transparent md:text-5xl">
               Transforme a gestão da sua empresa
             </h2>
             <p className="text-lg text-muted-foreground">
@@ -55,8 +62,16 @@ export function AuthLayout({
           <div className="mb-8 animate-fade-in text-center lg:hidden">
             <div className="mb-6 flex flex-col items-center gap-4">
               <div className="text-center">
-                <Logo size="lg" className="justify-center" />
-                <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
+                <div className="mb-2 flex justify-center">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Weedu"
+                    width={200}
+                    height={66}
+                    className="h-16 w-auto object-contain"
+                    priority
+                  />
+                </div>
               </div>
             </div>
           </div>
