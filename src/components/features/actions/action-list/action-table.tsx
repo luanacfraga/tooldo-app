@@ -11,6 +11,7 @@ import {
 import { useActions, useDeleteAction } from '@/lib/hooks/use-actions';
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useCompany } from '@/lib/hooks/use-company';
 import { ActionTableRow } from './action-table-row';
 import { ActionListEmpty } from './action-list-empty';
 import { ActionListSkeleton } from './action-list-skeleton';
@@ -19,6 +20,7 @@ import type { ActionFilters } from '@/lib/types/action';
 
 export function ActionTable() {
   const { user } = useAuth();
+  const { selectedCompany } = useCompany();
   const filtersState = useActionFiltersStore();
   const deleteActionMutation = useDeleteAction();
 
@@ -36,11 +38,17 @@ export function ActionTable() {
       filters.responsibleId = user?.id;
     }
 
-    if (filtersState.companyId) filters.companyId = filtersState.companyId;
+    // Company/Team filters - use selectedCompany as default if no filter is set
+    if (filtersState.companyId) {
+      filters.companyId = filtersState.companyId;
+    } else if (selectedCompany?.id) {
+      filters.companyId = selectedCompany.id;
+    }
+
     if (filtersState.teamId) filters.teamId = filtersState.teamId;
 
     return filters;
-  }, [filtersState, user]);
+  }, [filtersState, user, selectedCompany]);
 
   const { data: actions = [], isLoading, error } = useActions(apiFilters);
   const visibleActions = useMemo(() => {

@@ -10,6 +10,7 @@ import {
 import { useActions } from '@/lib/hooks/use-actions';
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useCompany } from '@/lib/hooks/use-company';
 import { ActionListEmpty } from './action-list-empty';
 import { ActionListSkeleton } from './action-list-skeleton';
 import { ActionStatus, type Action, type ActionFilters } from '@/lib/types/action';
@@ -40,6 +41,7 @@ const columns = [
 
 export function ActionKanbanBoard() {
   const { user } = useAuth();
+  const { selectedCompany } = useCompany();
   const filtersState = useActionFiltersStore();
 
   // Build API filters from store
@@ -61,11 +63,17 @@ export function ActionKanbanBoard() {
       filters.responsibleId = user?.id;
     }
 
-    if (filtersState.companyId) filters.companyId = filtersState.companyId;
+    // Company/Team filters - use selectedCompany as default if no filter is set
+    if (filtersState.companyId) {
+      filters.companyId = filtersState.companyId;
+    } else if (selectedCompany?.id) {
+      filters.companyId = selectedCompany.id;
+    }
+
     if (filtersState.teamId) filters.teamId = filtersState.teamId;
 
     return filters;
-  }, [filtersState, user]);
+  }, [filtersState, user, selectedCompany]);
 
   const { data: actions = [], isLoading, error } = useActions(apiFilters);
   const visibleActions = useMemo(() => {
