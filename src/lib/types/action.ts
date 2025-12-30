@@ -13,6 +13,15 @@ export enum ActionPriority {
   URGENT = 'URGENT',
 }
 
+// Kanban Order (ordering information for Kanban board)
+export interface KanbanOrder {
+  id: string;
+  column: ActionStatus;
+  position: number;
+  sortOrder: number;
+  lastMovedAt: string;
+}
+
 // Checklist Item (as returned inside ActionResponseDto.checklistItems)
 export interface Action {
   id: string;
@@ -32,6 +41,7 @@ export interface Action {
   creatorId: string;
   responsibleId: string;
   checklistItems: ChecklistItem[];
+  kanbanOrder: KanbanOrder | null;
 }
 
 // Checklist Item
@@ -78,6 +88,7 @@ export interface ActionFilters {
 
 export interface MoveActionDto {
   toStatus: ActionStatus;
+  position?: number;
   notes?: string;
 }
 
