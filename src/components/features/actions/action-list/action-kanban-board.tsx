@@ -3,13 +3,8 @@
 import { useMemo, useState } from 'react';
 import {
   DndContext,
-  DragEndEvent,
   DragOverlay,
-  DragStartEvent,
-  closestCorners,
-  PointerSensor,
-  useSensor,
-  useSensors,
+  closestCenter,
   useDroppable,
 } from '@dnd-kit/core';
 import {
@@ -24,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useActions, useMoveAction } from '@/lib/hooks/use-actions';
+import { useKanbanActions } from '@/lib/hooks/use-kanban-actions';
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useCompany } from '@/lib/hooks/use-company';
@@ -37,7 +32,6 @@ import { LateIndicator } from '../shared/late-indicator';
 import { BlockedBadge } from '../shared/blocked-badge';
 import { ActionDetailSheet } from '../action-detail-sheet';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 
 const columns = [
   {
@@ -63,16 +57,6 @@ export function ActionKanbanBoard() {
   const filtersState = useActionFiltersStore();
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [activeAction, setActiveAction] = useState<Action | null>(null);
-  const moveAction = useMoveAction();
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
 
   // Build API filters from store
   const apiFilters: ActionFilters = useMemo(() => {
@@ -105,25 +89,39 @@ export function ActionKanbanBoard() {
     return filters;
   }, [filtersState, user, selectedCompany]);
 
-  const { data: actions = [], isLoading, error } = useActions(apiFilters);
-  const visibleActions = useMemo(() => {
-    let result = actions;
+  // Use the consolidated Kanban actions hook
+  const {
+    actions,
+    isLoading,
+    error,
+    getColumnActions,
+    sensors,
+    handleDragStart,
+    handleDragEnd,
+    activeAction,
+  } = useKanbanActions(apiFilters);
 
-    // Backend doesn't support search/creatorId filter yet, so we apply client-side filtering.
-    if (filtersState.assignment === 'created-by-me' && user?.id) {
-      result = result.filter((a) => a.creatorId === user.id);
-    }
+  // Apply client-side filters that aren't supported by the API yet
+  const getFilteredColumnActions = useMemo(() => {
+    return (status: ActionStatus) => {
+      let result = getColumnActions(status);
 
-    const q = filtersState.searchQuery?.trim().toLowerCase();
-    if (q) {
-      result = result.filter((a) => {
-        const haystack = `${a.title} ${a.description}`.toLowerCase();
-        return haystack.includes(q);
-      });
-    }
+      // Backend doesn't support search/creatorId filter yet, so we apply client-side filtering.
+      if (filtersState.assignment === 'created-by-me' && user?.id) {
+        result = result.filter((a) => a.creatorId === user.id);
+      }
 
-    return result;
-  }, [actions, filtersState.assignment, filtersState.searchQuery, user?.id]);
+      const q = filtersState.searchQuery?.trim().toLowerCase();
+      if (q) {
+        result = result.filter((a) => {
+          const haystack = `${a.title} ${a.description}`.toLowerCase();
+          return haystack.includes(q);
+        });
+      }
+
+      return result;
+    };
+  }, [getColumnActions, filtersState.assignment, filtersState.searchQuery, user?.id]);
 
   const canCreate = user?.role === 'admin' || user?.role === 'manager';
   const hasFilters =
@@ -154,56 +152,22 @@ export function ActionKanbanBoard() {
     );
   }
 
-  const getActionsByStatus = (status: ActionStatus) => {
-    return visibleActions.filter((action) => action.status === status);
-  };
-
   const handleActionClick = (actionId: string) => {
     setSelectedActionId(actionId);
     setSheetOpen(true);
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const action = visibleActions.find((a) => a.id === event.active.id);
-    if (action) {
-      setActiveAction(action);
-    }
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveAction(null);
-
-    if (!over) return;
-
-    const actionId = active.id as string;
-    const newStatus = over.id as ActionStatus;
-
-    const action = visibleActions.find((a) => a.id === actionId);
-    if (!action || action.status === newStatus) return;
-
-    try {
-      await moveAction.mutateAsync({
-        id: actionId,
-        data: { toStatus: newStatus },
-      });
-      toast.success('Ação movida com sucesso');
-    } catch (error) {
-      toast.error('Erro ao mover ação');
-    }
   };
 
   return (
     <>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full overflow-x-auto pb-4">
         {columns.map((column) => {
-          const columnActions = getActionsByStatus(column.status);
+          const columnActions = getFilteredColumnActions(column.status);
 
           return (
             <KanbanColumn
