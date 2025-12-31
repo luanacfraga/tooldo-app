@@ -1,25 +1,25 @@
-'use client';
+'use client'
 
-import { LayoutGrid, LayoutList, Search, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { useActionFiltersStore } from '@/lib/stores/action-filters-store';
-import { ActionPriority, ActionStatus } from '@/lib/types/action';
+} from '@/components/ui/select'
+import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
+import { ActionPriority, ActionStatus } from '@/lib/types/action'
+import { LayoutGrid, LayoutList, Search, X } from 'lucide-react'
 
 export function ActionFilters() {
-  const filters = useActionFiltersStore();
+  const filters = useActionFiltersStore()
 
   return (
     <div className="flex flex-wrap gap-4 rounded-lg border bg-card p-4">
       {/* Search */}
-      <div className="flex-1 min-w-[200px]">
+      <div className="min-w-[200px] flex-1">
         <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -131,5 +131,5 @@ export function ActionFilters() {
         </Button>
       )}
     </div>
-  );
+  )
 }
