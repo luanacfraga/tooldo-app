@@ -38,7 +38,7 @@ export function ActionDetailSheet({
   const toggleChecklistItem = useToggleChecklistItem();
 
   const handleAddChecklistItem = async () => {
-    if (!actionId || !newItemDescription.trim()) return;
+    if (!actionId || !newItemDescription.trim() || !action) return;
 
     try {
       await addChecklistItem.mutateAsync({
