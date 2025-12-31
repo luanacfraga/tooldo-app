@@ -15,7 +15,7 @@ import { ActionDetailSheet } from '../action-detail-sheet'
 import { PriorityBadge } from '../shared/priority-badge'
 import { ActionListEmpty } from './action-list-empty'
 import { ActionListSkeleton } from './action-list-skeleton'
-import { CalendarIcon, AlertCircleIcon } from 'lucide-react'
+import { CalendarIcon, AlertCircleIcon, Eye } from 'lucide-react'
 
 // Helper to generate color from string
 const stringToColor = (str: string) => {
@@ -47,10 +47,10 @@ const columns = [
 
 const columnStyles = {
   [ActionStatus.TODO]: {
-    containerClass: "bg-muted/30 border-muted",
-    barClass: "bg-muted-foreground",
-    titleClass: "text-muted-foreground",
-    countClass: "bg-muted text-muted-foreground border border-muted-foreground/20",
+    containerClass: "bg-warning/5 border-warning/10",
+    barClass: "bg-warning",
+    titleClass: "text-warning-dark",
+    countClass: "bg-warning/10 text-warning-dark border border-warning/20",
   },
   [ActionStatus.IN_PROGRESS]: {
     containerClass: "bg-primary/5 border-primary/10",
@@ -61,8 +61,8 @@ const columnStyles = {
   [ActionStatus.DONE]: {
     containerClass: "bg-success/5 border-success/10",
     barClass: "bg-success",
-    titleClass: "text-success-700 dark:text-success",
-    countClass: "bg-success/10 text-success-700 dark:text-success border border-success/20",
+    titleClass: "text-success-dark",
+    countClass: "bg-success/10 text-success-dark border border-success/20",
   },
 }
 
@@ -346,19 +346,26 @@ function ActionKanbanCard({
       <CardContent className="p-3 space-y-2.5">
         {/* Clickable Header */}
         <div
-          className="flex items-start justify-between gap-2 cursor-pointer"
+          className="flex items-start justify-between gap-2 cursor-pointer group"
           onClick={handleClick}
           onMouseDown={(e) => {
             e.stopPropagation()
           }}
         >
-          <h4 className="line-clamp-2 text-sm font-medium leading-snug text-foreground hover:text-primary transition-colors">
+          <h4 className="line-clamp-2 text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1">
             {action.title}
           </h4>
+          <button
+            type="button"
+            className="shrink-0 rounded-full p-1.5 hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
+            onClick={handleClick}
+          >
+            <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
         </div>
 
         {/* Draggable Content */}
-        <div {...dragListeners} className="space-y-2 cursor-grab active:cursor-grabbing">
+        <div {...dragListeners} className="space-y-2 select-none">
           {action.description && (
             <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
               {action.description}
