@@ -1,0 +1,307 @@
+'use client'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
+import { ActionPriority, ActionStatus } from '@/lib/types/action'
+import { cn } from '@/lib/utils'
+import {
+  CheckCircle2,
+  Filter,
+  Flag,
+  LayoutGrid,
+  LayoutList,
+  Search,
+  UserCircle2,
+  X,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+
+export function ActionFilters() {
+  const filters = useActionFiltersStore()
+  const router = useRouter()
+
+  const hasActiveFilters =
+    filters.status !== 'all' ||
+    filters.priority !== 'all' ||
+    filters.assignment !== 'all' ||
+    filters.showBlockedOnly ||
+    filters.showLateOnly
+
+  const getButtonState = (isActive: boolean) => {
+    return cn(
+      'h-8 text-xs font-medium border-dashed',
+      isActive && 'bg-accent border-solid text-accent-foreground'
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        {/* Search Bar */}
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por título ou descrição..."
+            value={filters.searchQuery}
+            onChange={(e) => filters.setFilter('searchQuery', e.target.value)}
+            className="h-9 bg-background/60 pl-9"
+          />
+        </div>
+
+        {/* View Toggles & Create Button */}
+        <div className="ml-auto flex w-full items-center gap-2 sm:w-auto">
+          <div className="flex items-center rounded-lg border border-border/50 bg-muted/50 p-1">
+            <Button
+              variant={filters.viewMode === 'list' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => filters.setFilter('viewMode', 'list')}
+              className={cn(
+                'h-7 w-7 p-0',
+                filters.viewMode === 'list' && 'bg-background shadow-sm'
+              )}
+              title="Lista"
+              aria-label="Visualizar como lista"
+              aria-pressed={filters.viewMode === 'list'}
+            >
+              <LayoutList className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={filters.viewMode === 'kanban' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => filters.setFilter('viewMode', 'kanban')}
+              className={cn(
+                'h-7 w-7 p-0',
+                filters.viewMode === 'kanban' && 'bg-background shadow-sm'
+              )}
+              title="Kanban"
+              aria-label="Visualizar como kanban"
+              aria-pressed={filters.viewMode === 'kanban'}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="mx-1 hidden h-4 w-px bg-border sm:block" />
+        </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="mr-2 flex items-center text-sm font-medium text-muted-foreground">
+          <Filter className="mr-2 h-4 w-4" />
+          Filtros:
+        </div>
+
+        {/* Status Popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={getButtonState(filters.status !== 'all')}
+            >
+              <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+              Status
+              {filters.status !== 'all' && (
+                <span className="ml-1.5 rounded-sm bg-secondary px-1 py-0.5 text-[10px] font-semibold">
+                  1
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <div className="p-2">
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs font-normal"
+                  onClick={() => filters.setFilter('status', 'all')}
+                >
+                  Todos
+                  {filters.status === 'all' && (
+                    <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
+                  )}
+                </Button>
+                <div className="my-1 h-px bg-muted" />
+                {[
+                  { label: 'Pendente', value: ActionStatus.TODO },
+                  { label: 'Em Andamento', value: ActionStatus.IN_PROGRESS },
+                  { label: 'Concluído', value: ActionStatus.DONE },
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'w-full justify-start text-xs font-normal',
+                      filters.status === option.value && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => filters.setFilter('status', option.value as ActionStatus)}
+                  >
+                    {option.label}
+                    {filters.status === option.value && (
+                      <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Priority Popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={getButtonState(filters.priority !== 'all')}
+            >
+              <Flag className="mr-2 h-3.5 w-3.5" />
+              Prioridade
+              {filters.priority !== 'all' && (
+                <span className="ml-1.5 rounded-sm bg-secondary px-1 py-0.5 text-[10px] font-semibold">
+                  1
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <div className="p-2">
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs font-normal"
+                  onClick={() => filters.setFilter('priority', 'all')}
+                >
+                  Todas
+                  {filters.priority === 'all' && (
+                    <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
+                  )}
+                </Button>
+                <div className="my-1 h-px bg-muted" />
+                {[
+                  { label: 'Baixa', value: ActionPriority.LOW },
+                  { label: 'Média', value: ActionPriority.MEDIUM },
+                  { label: 'Alta', value: ActionPriority.HIGH },
+                  { label: 'Urgente', value: ActionPriority.URGENT },
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'w-full justify-start text-xs font-normal',
+                      filters.priority === option.value && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => filters.setFilter('priority', option.value as ActionPriority)}
+                  >
+                    {option.label}
+                    {filters.priority === option.value && (
+                      <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Assignment Popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={getButtonState(filters.assignment !== 'all')}
+            >
+              <UserCircle2 className="mr-2 h-3.5 w-3.5" />
+              Atribuição
+              {filters.assignment !== 'all' && (
+                <span className="ml-1.5 rounded-sm bg-secondary px-1 py-0.5 text-[10px] font-semibold">
+                  1
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <div className="p-2">
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs font-normal"
+                  onClick={() => filters.setFilter('assignment', 'all')}
+                >
+                  Todas
+                  {filters.assignment === 'all' && (
+                    <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
+                  )}
+                </Button>
+                <div className="my-1 h-px bg-muted" />
+                {[
+                  { label: 'Atribuídas a Mim', value: 'assigned-to-me' as const },
+                  { label: 'Criadas por Mim', value: 'created-by-me' as const },
+                  { label: 'Minhas Equipes', value: 'my-teams' as const },
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'w-full justify-start text-xs font-normal',
+                      filters.assignment === option.value && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => filters.setFilter('assignment', option.value)}
+                  >
+                    {option.label}
+                    {filters.assignment === option.value && (
+                      <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <div className="mx-1 h-6 w-px bg-border" />
+
+        {/* Quick Toggles */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => filters.setFilter('showBlockedOnly', !filters.showBlockedOnly)}
+          className={getButtonState(filters.showBlockedOnly)}
+        >
+          Bloqueadas
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => filters.setFilter('showLateOnly', !filters.showLateOnly)}
+          className={getButtonState(filters.showLateOnly)}
+        >
+          Atrasadas
+        </Button>
+
+        {/* Clear Filters */}
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={filters.resetFilters}
+            className="ml-auto h-8 px-2 text-xs text-muted-foreground hover:text-foreground sm:ml-0"
+          >
+            Limpar filtros
+            <X className="ml-2 h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -8,7 +8,7 @@ import { usePermissions } from '@/lib/hooks/use-permissions'
 import {
   BarChart3,
   Building2,
-  CheckSquare,
+  ClipboardList,
   LayoutDashboard,
   Settings,
   Users,
@@ -43,6 +43,11 @@ export function DashboardSidebar() {
           icon: BarChart3,
         },
         {
+          name: 'Ações',
+          href: '/actions',
+          icon: ClipboardList,
+        },
+        {
           name: 'Usuários',
           href: `${basePath}/members`,
           icon: UsersRound,
@@ -61,16 +66,6 @@ export function DashboardSidebar() {
           name: 'Equipes',
           href: `${basePath}/teams`,
           icon: Users,
-        },
-        {
-          name: 'Tarefas',
-          href: `${basePath}/tasks`,
-          icon: CheckSquare,
-        },
-        {
-          name: 'Board',
-          href: `${basePath}/board`,
-          icon: LayoutDashboard,
         }
       )
     }
@@ -81,6 +76,11 @@ export function DashboardSidebar() {
           name: 'Dashboard',
           href: `${basePath}/dashboard`,
           icon: BarChart3,
+        },
+        {
+          name: 'Ações',
+          href: '/actions',
+          icon: ClipboardList,
         },
         {
           name: 'Minhas equipes',
@@ -101,17 +101,7 @@ export function DashboardSidebar() {
                 ],
               },
             ]
-          : []),
-        {
-          name: 'Board geral',
-          href: `${basePath}/board/general`,
-          icon: LayoutDashboard,
-        },
-        {
-          name: 'Tarefas',
-          href: `${basePath}/tasks`,
-          icon: CheckSquare,
-        }
+          : [])
       )
     }
 
@@ -123,14 +113,9 @@ export function DashboardSidebar() {
           icon: BarChart3,
         },
         {
-          name: 'Minhas tarefas',
-          href: `${basePath}/tasks/my-tasks`,
-          icon: CheckSquare,
-        },
-        {
-          name: 'Board equipe',
-          href: `${basePath}/board/team`,
-          icon: LayoutDashboard,
+          name: 'Ações',
+          href: '/actions',
+          icon: ClipboardList,
         }
       )
     }

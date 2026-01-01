@@ -13,7 +13,16 @@ export enum ActionPriority {
   URGENT = 'URGENT',
 }
 
-// Main Action Entity
+// Kanban Order (ordering information for Kanban board)
+export interface KanbanOrder {
+  id: string;
+  column: ActionStatus;
+  position: number;
+  sortOrder: number;
+  lastMovedAt: string;
+}
+
+// Checklist Item (as returned inside ActionResponseDto.checklistItems)
 export interface Action {
   id: string;
   title: string;
@@ -31,56 +40,18 @@ export interface Action {
   teamId: string | null;
   creatorId: string;
   responsibleId: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-
-  // Populated relations
-  creator?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  responsible?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  company?: {
-    id: string;
-    name: string;
-  };
-  team?: {
-    id: string;
-    name: string;
-  } | null;
-  checklistItems?: ChecklistItem[];
+  checklistItems: ChecklistItem[];
+  kanbanOrder: KanbanOrder | null;
 }
 
 // Checklist Item
 export interface ChecklistItem {
   id: string;
-  actionId: string;
   description: string;
   isCompleted: boolean;
+  checked?: boolean;
   completedAt: string | null;
   order: number;
-  createdAt: string;
-}
-
-// Action Movement (status change history)
-export interface ActionMovement {
-  id: string;
-  actionId: string;
-  fromStatus: ActionStatus;
-  toStatus: ActionStatus;
-  movedById: string;
-  movedAt: string;
-  notes: string | null;
-  movedBy?: {
-    id: string;
-    name: string;
-  };
 }
 
 // DTOs for API requests
@@ -109,16 +80,16 @@ export interface ActionFilters {
   status?: ActionStatus;
   priority?: ActionPriority;
   responsibleId?: string;
-  creatorId?: string;
   companyId?: string;
   teamId?: string;
   isLate?: boolean;
   isBlocked?: boolean;
-  search?: string;
 }
 
 export interface MoveActionDto {
-  status: ActionStatus;
+  toStatus: ActionStatus;
+  position?: number;
+  notes?: string;
 }
 
 export interface BlockActionDto {
@@ -127,4 +98,19 @@ export interface BlockActionDto {
 
 export interface AddChecklistItemDto {
   description: string;
+  order: number;
+}
+
+export interface GenerateActionPlanDto {
+  companyId: string;
+  teamId?: string;
+  goal: string;
+}
+
+export interface ActionSuggestion {
+  title: string;
+  description: string;
+  priority: ActionPriority;
+  estimatedDurationDays: number;
+  checklistItems: string[];
 }
