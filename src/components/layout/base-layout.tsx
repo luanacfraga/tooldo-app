@@ -45,10 +45,8 @@ export function BaseLayout({ children, sidebar }: BaseLayoutProps) {
         {sidebar}
 
         <main className={mainClasses}>
-          <div className="mx-auto h-full w-full max-w-7xl">
-            <div className="h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden px-4 pb-6">
-              {children}
-            </div>
+          <div className="h-[calc(100vh-3.5rem)] w-full sm:h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden">
+            {children}
           </div>
         </main>
       </div>
