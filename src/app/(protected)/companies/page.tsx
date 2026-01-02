@@ -28,7 +28,7 @@ export default function CompaniesPage() {
 
   return (
     <AdminOnly>
-        <PageContainer maxWidth="5xl">
+        <PageContainer maxWidth="7xl">
           <PageHeader
             title="Minhas Empresas"
             description="Gerencie suas empresas"

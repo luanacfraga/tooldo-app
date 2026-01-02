@@ -1,18 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  AlertCircle,
-  ArrowLeft,
-  Building2,
-  CheckCircle2,
-  FileText,
-  Loader2,
-  Save,
-} from 'lucide-react'
+import { AdminOnly } from '@/components/features/auth/guards/admin-only'
 import { FormSection } from '@/components/shared/forms/form-section'
 import { InputWithIcon } from '@/components/shared/forms/input-with-icon'
 import { PageContainer } from '@/components/shared/layout/page-container'
@@ -30,10 +18,22 @@ import {
 } from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
 import { ApiError } from '@/lib/api/api-client'
-import { AdminOnly } from '@/components/features/auth/guards/admin-only'
 import { useCreateCompany } from '@/lib/services/queries/use-companies'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { createCompanySchema, type CreateCompanyFormData } from '@/lib/validators/company'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  AlertCircle,
+  ArrowLeft,
+  Building2,
+  CheckCircle2,
+  FileText,
+  Loader2,
+  Save,
+} from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 export default function NewCompanyPage() {
   const router = useRouter()
@@ -64,7 +64,8 @@ export default function NewCompanyPage() {
 
       await createCompany({
         name: data.name,
-        description: data.description && data.description.trim() !== '' ? data.description.trim() : undefined,
+        description:
+          data.description && data.description.trim() !== '' ? data.description.trim() : undefined,
         adminId: user.id,
       })
 
@@ -100,7 +101,9 @@ export default function NewCompanyPage() {
             <CardContent>
               <Button
                 variant="outline"
-                onClick={() => router.push(redirectPath === '/companies' ? '/companies' : '/dashboard')}
+                onClick={() =>
+                  router.push(redirectPath === '/companies' ? '/companies' : '/dashboard')
+                }
                 className="w-full"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -170,9 +173,7 @@ export default function NewCompanyPage() {
                         autoFocus
                       />
                     </FormControl>
-                    <FormDescription>
-                      Nome oficial ou razão social da empresa
-                    </FormDescription>
+                    <FormDescription>Nome oficial ou razão social da empresa</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

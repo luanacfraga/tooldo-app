@@ -16,23 +16,25 @@ export default function ActionsPage() {
   const canCreate = user?.role === 'admin' || user?.role === 'manager'
 
   return (
-    <PageContainer maxWidth="full">
-      <PageHeader
-        title="Ações"
-        description="Gerencie e acompanhe o progresso das suas tarefas"
-        action={
-          canCreate ? (
-            <Button asChild>
-              <Link href="/actions/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Ação
-              </Link>
-            </Button>
-          ) : null
-        }
-      />
+    <PageContainer maxWidth="full" className="px-0 sm:px-0">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
+        <PageHeader
+          title="Ações"
+          description="Gerencie e acompanhe o progresso das suas tarefas"
+          action={
+            canCreate ? (
+              <Button asChild>
+                <Link href="/actions/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Ação
+                </Link>
+              </Button>
+            ) : null
+          }
+        />
+      </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 px-4 sm:px-6">
         <ActionFilters />
         <Suspense fallback={<ActionListSkeleton />}>
           <ActionListContainer />
