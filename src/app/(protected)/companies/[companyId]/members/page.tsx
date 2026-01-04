@@ -389,7 +389,7 @@ export default function CompanyMembersPage() {
       />
 
       {company && (
-        <div className="mb-6 rounded-xl border border-border/40 bg-card/60 p-4 shadow-sm backdrop-blur-sm transition-all duration-200 sm:mb-8 sm:p-6">
+        <div className="mb-6 rounded-xl border border-border/40 bg-card/95 backdrop-blur-sm p-4 shadow-sm transition-all duration-200 sm:mb-8 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <div className="flex items-center gap-2.5 rounded-lg bg-primary/10 px-3 py-2">
@@ -470,7 +470,7 @@ export default function CompanyMembersPage() {
 
       {!error && employees.length > 0 && (
         <>
-          <div className="overflow-hidden rounded-xl border border-border/50 bg-card/30 shadow-sm backdrop-blur-sm">
+          <div className="overflow-hidden rounded-xl border border-border/50 bg-card/95 backdrop-blur-sm shadow-sm">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

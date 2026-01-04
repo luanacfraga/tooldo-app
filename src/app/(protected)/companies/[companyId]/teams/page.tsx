@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/shared/feedback/error-state'
 import { LoadingScreen } from '@/components/shared/feedback/loading-screen'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
+import { ResponsiveDataTable } from '@/components/shared/table'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiError } from '@/lib/api/api-client'
@@ -16,6 +17,7 @@ import { formatDate } from '@/lib/formatters'
 import { useManagersByCompany } from '@/lib/services/queries/use-employees'
 import { useCreateTeam, useTeamsByCompany, useUpdateTeam } from '@/lib/services/queries/use-teams'
 import { type TeamFormData } from '@/lib/validators/team'
+import type { ColumnDef } from '@tanstack/react-table'
 import {
   AlertCircle,
   ArrowLeft,
@@ -28,6 +30,7 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
+import { TeamCard } from './team-card'
 
 export default function TeamsPage() {
   const params = useParams()
@@ -69,6 +72,65 @@ export default function TeamsPage() {
 
   const hasSingleTeam = teams.length === 1
   const myTeam = isManager && hasSingleTeam ? teams[0] : null
+
+  const columns = useMemo<ColumnDef<Team>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Nome',
+      },
+      {
+        accessorKey: 'description',
+        header: 'Descrição',
+        cell: ({ row }) => {
+          const description = row.getValue('description') as string | null | undefined
+          return description ? (
+            <span className="text-sm text-muted-foreground line-clamp-1">{description}</span>
+          ) : (
+            <span className="text-sm text-muted-foreground">-</span>
+          )
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Ações',
+        cell: ({ row }) => {
+          const team = row.original
+          return (
+            <div className="flex justify-end gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedTeam(team)
+                  setShowMembersDialog(true)
+                }}
+                className="h-8 px-2 gap-1"
+              >
+                <UserCog className="h-4 w-4" />
+                <span className="hidden sm:inline">Membros</span>
+              </Button>
+              {(isAdmin || (isManager && team.managerId === user?.id)) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingTeam(team)
+                    setError(null)
+                  }}
+                  className="h-8 px-2 gap-1"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span className="hidden sm:inline">Editar</span>
+                </Button>
+              )}
+            </div>
+          )
+        },
+      },
+    ],
+    [isAdmin, isManager, user?.id]
+  )
 
   const getErrorMessage = (err: unknown, defaultMessage: string): string => {
     if (err instanceof ApiError) {
@@ -394,76 +456,25 @@ export default function TeamsPage() {
                 </Card>
               ) : (
                 // Layout em grid para múltiplas equipes
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {teams.map((team) => {
-                    const isMyTeam = isManager && team.managerId === user?.id
-                    return (
-                      <Card key={team.id} className="transition-shadow hover:shadow-md">
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <CardTitle className="text-lg">{team.name}</CardTitle>
-                                {isMyTeam && (
-                                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                                    Sua equipe
-                                  </span>
-                                )}
-                              </div>
-                              {team.description && (
-                                <CardDescription className="mt-2 line-clamp-2">
-                                  {team.description}
-                                </CardDescription>
-                              )}
-                            </div>
-                            <Building2 className="ml-2 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            {team.iaContext && (
-                              <div className="text-sm text-muted-foreground">
-                                <span className="font-medium">Contexto IA:</span>{' '}
-                                <span className="line-clamp-2">{team.iaContext}</span>
-                              </div>
-                            )}
-                            <div className="text-xs text-muted-foreground">
-                              Criada em {formatDate(team.createdAt)}
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-1 gap-2"
-                                onClick={() => {
-                                  setSelectedTeam(team)
-                                  setShowMembersDialog(true)
-                                }}
-                              >
-                                <UserCog className="h-4 w-4" />
-                                Membros
-                              </Button>
-                              {(isAdmin || (isManager && team.managerId === user?.id)) && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-2"
-                                  onClick={() => {
-                                    setEditingTeam(team)
-                                    setError(null)
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                  Editar
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
+                <ResponsiveDataTable
+                  data={teams}
+                  columns={columns}
+                  CardComponent={(props) => (
+                    <TeamCard
+                      {...props}
+                      onEdit={(team) => {
+                        setEditingTeam(team)
+                        setError(null)
+                      }}
+                      onManageMembers={(team) => {
+                        setSelectedTeam(team)
+                        setShowMembersDialog(true)
+                      }}
+                    />
+                  )}
+                  isLoading={false}
+                  emptyMessage="Nenhuma equipe encontrada"
+                />
               )}
             </>
           )}
