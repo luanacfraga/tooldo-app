@@ -5,11 +5,12 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'bg-gradient-to-r from-primary via-primary/95 to-primary/90 text-primary-foreground shadow-sm hover:shadow-md hover:from-primary/95 hover:via-primary/90 hover:to-primary/85 active:scale-[0.97]',
+        default:
+          'rounded-[10px] bg-gradient-to-r from-primary via-primary/95 to-primary/90 text-primary-foreground shadow-sm hover:shadow-md hover:from-primary-hover hover:via-primary-hover/95 hover:to-primary-hover/90 active:scale-[0.97]',
         destructive:
           'bg-gradient-to-r from-destructive via-destructive/95 to-destructive/90 text-destructive-foreground shadow-sm hover:shadow-md hover:from-destructive/95 hover:via-destructive/90 hover:to-destructive/85 active:scale-[0.97]',
         success:
@@ -25,8 +26,8 @@ const buttonVariants = cva(
       },
       size: {
         default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-md px-3',
-        lg: 'h-11 rounded-md px-8',
+        sm: 'h-9 px-3',
+        lg: 'h-11 px-8',
         icon: 'h-10 w-10',
       },
     },

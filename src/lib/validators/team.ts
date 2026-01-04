@@ -10,7 +10,7 @@ export const teamSchema = z.object({
     .min(1, 'Empresa é obrigatória'),
   managerId: z
     .string()
-    .min(1, 'Gerente é obrigatório'),
+    .min(1, 'Gestor é obrigatório'),
   description: z
     .string()
     .optional(),

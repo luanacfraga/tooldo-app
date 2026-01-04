@@ -36,6 +36,8 @@ interface ActionFormProps {
   initialData?: Partial<ActionFormData>;
   mode: 'create' | 'edit';
   onSuccess?: () => void;
+  onCancel?: () => void;
+  readOnly?: boolean;
 }
 
 const priorityLabels: Record<ActionPriority, string> = {
@@ -45,7 +47,14 @@ const priorityLabels: Record<ActionPriority, string> = {
   [ActionPriority.URGENT]: 'Urgente',
 };
 
-export function ActionForm({ action, initialData, mode, onSuccess }: ActionFormProps) {
+export function ActionForm({
+  action,
+  initialData,
+  mode,
+  onSuccess,
+  onCancel,
+  readOnly = false,
+}: ActionFormProps) {
   const router = useRouter();
   const { companies } = useCompany();
   const createAction = useCreateAction();
@@ -85,6 +94,7 @@ export function ActionForm({ action, initialData, mode, onSuccess }: ActionFormP
 
   const onSubmit = async (data: ActionFormData) => {
     try {
+      if (readOnly) return;
       if (mode === 'create') {
         await createAction.mutateAsync({
           ...data,
@@ -124,41 +134,42 @@ export function ActionForm({ action, initialData, mode, onSuccess }: ActionFormP
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Title */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm">Título</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o título da ação" {...field} className="h-9 text-sm" />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
+        <fieldset disabled={isSubmitting || readOnly} className="space-y-4">
+          {/* Title */}
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm">Título</FormLabel>
+                <FormControl>
+                  <Input placeholder="Digite o título da ação" {...field} className="h-9 text-sm" />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
 
-        {/* Description */}
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm">Descrição</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Descreva a ação em detalhes"
-                  className="min-h-[100px] text-sm"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
+          {/* Description */}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm">Descrição</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Descreva a ação em detalhes"
+                    className="min-h-[100px] text-sm"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Priority */}
           <FormField
             control={form.control}
@@ -210,9 +221,9 @@ export function ActionForm({ action, initialData, mode, onSuccess }: ActionFormP
               </FormItem>
             )}
           />
-        </div>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Start Date */}
           <FormField
             control={form.control}
@@ -242,9 +253,9 @@ export function ActionForm({ action, initialData, mode, onSuccess }: ActionFormP
               </FormItem>
             )}
           />
-        </div>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Team (Optional) */}
           <FormField
             control={form.control}
@@ -306,23 +317,30 @@ export function ActionForm({ action, initialData, mode, onSuccess }: ActionFormP
               </FormItem>
             )}
           />
-        </div>
+          </div>
+
+        </fieldset>
 
         {/* Actions */}
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.back()}
+            onClick={() => {
+              if (onCancel) return onCancel();
+              router.back();
+            }}
             disabled={isSubmitting}
             size="sm"
           >
-            Cancelar
+            {readOnly ? 'Fechar' : 'Cancelar'}
           </Button>
-          <Button type="submit" disabled={isSubmitting} size="sm">
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === 'create' ? 'Criar Ação' : 'Salvar Alterações'}
-          </Button>
+          {!readOnly && (
+            <Button type="submit" disabled={isSubmitting} size="sm">
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {mode === 'create' ? 'Criar Ação' : 'Salvar Alterações'}
+            </Button>
+          )}
         </div>
       </form>
     </Form>

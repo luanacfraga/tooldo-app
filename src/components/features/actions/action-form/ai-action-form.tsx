@@ -162,7 +162,7 @@ export function AIActionForm({ onSuggestion, onCancel }: AIActionFormProps) {
             type="submit" 
             disabled={isSubmitting} 
             size="sm"
-            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0"
+            className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary-hover hover:to-primary-hover/90 text-primary-foreground border-0"
           >
             {isSubmitting ? (
                 <>

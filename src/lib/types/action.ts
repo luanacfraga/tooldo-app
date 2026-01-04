@@ -40,6 +40,11 @@ export interface Action {
   teamId: string | null;
   creatorId: string;
   responsibleId: string;
+  responsible?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  } | null;
   checklistItems: ChecklistItem[];
   kanbanOrder: KanbanOrder | null;
 }

@@ -1,8 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
-import { MoreVertical } from 'lucide-react';
-import Link from 'next/link';
+import { Eye, MoreVertical } from 'lucide-react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,23 +21,28 @@ interface ActionTableRowProps {
   canEdit: boolean;
   canDelete: boolean;
   onDelete: (id: string) => void;
+  onView: () => void;
 }
 
-export function ActionTableRow({ action, canEdit, canDelete, onDelete }: ActionTableRowProps) {
+export function ActionTableRow({ action, canEdit, canDelete, onDelete, onView }: ActionTableRowProps) {
   const checklistProgress = action.checklistItems
     ? `${action.checklistItems.filter((i) => i.isCompleted).length}/${action.checklistItems.length}`
     : '—';
+  const responsibleName =
+    action.responsible?.firstName && action.responsible?.lastName
+      ? `${action.responsible.firstName} ${action.responsible.lastName}`
+      : '—';
 
   return (
-    <TableRow className="cursor-pointer hover:bg-muted/50">
+    <TableRow className="cursor-pointer hover:bg-muted/50" onClick={onView}>
       <TableCell>
-        <Link href={`/actions/${action.id}/edit`} className="block">
+        <div className="block">
           <div className="font-medium">{action.title}</div>
           <div className="flex gap-2 mt-1">
             <LateIndicator isLate={action.isLate} />
             <BlockedBadge isBlocked={action.isBlocked} reason={action.blockedReason} />
           </div>
-        </Link>
+        </div>
       </TableCell>
       <TableCell>
         <StatusBadge status={action.status} />
@@ -46,32 +50,43 @@ export function ActionTableRow({ action, canEdit, canDelete, onDelete }: ActionT
       <TableCell>
         <PriorityBadge priority={action.priority} />
       </TableCell>
-      <TableCell>{action.responsibleId ? `#${action.responsibleId.slice(0, 8)}` : '—'}</TableCell>
-      <TableCell>{format(new Date(action.estimatedEndDate), 'MMM d, yyyy')}</TableCell>
+      <TableCell>{responsibleName}</TableCell>
+      <TableCell>{format(new Date(action.estimatedEndDate), 'dd/MM/yyyy')}</TableCell>
       <TableCell>{checklistProgress}</TableCell>
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
               <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">Actions menu</span>
+              <span className="sr-only">Menu de ações</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/actions/${action.id}/edit`}>Editar</Link>
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault();
+                onView();
+              }}
+              className="gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Ver detalhes
             </DropdownMenuItem>
-            {canEdit && (
-              <DropdownMenuItem asChild>
-                <Link href={`/actions/${action.id}/edit`}>Edit</Link>
-              </DropdownMenuItem>
-            )}
             {canDelete && (
               <DropdownMenuItem
                 className="text-destructive"
-                onClick={() => onDelete(action.id)}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  onDelete(action.id);
+                }}
               >
-                Delete
+                Excluir
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>

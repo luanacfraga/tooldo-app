@@ -31,13 +31,13 @@ export function ActionFilters() {
 
   const getButtonState = (isActive: boolean) => {
     return cn(
-      'h-8 text-xs font-medium border-dashed',
-      isActive && 'bg-accent border-solid text-accent-foreground'
+      'h-8 text-xs font-medium border-border/60 bg-background/50 hover:bg-accent/60 hover:border-border/80',
+      isActive && 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15'
     )
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 rounded-xl border border-border/50 bg-card/60 p-4 shadow-sm backdrop-blur-sm">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         {/* Search Bar */}
         <div className="relative w-full sm:max-w-xs">
@@ -46,20 +46,20 @@ export function ActionFilters() {
             placeholder="Buscar por título ou descrição..."
             value={filters.searchQuery}
             onChange={(e) => filters.setFilter('searchQuery', e.target.value)}
-            className="h-9 bg-background/60 pl-9"
+            className="h-9 bg-background/70 pl-9 border-border/60 focus-visible:border-primary/40 focus-visible:ring-primary/15"
           />
         </div>
 
         {/* View Toggles & Create Button */}
         <div className="ml-auto flex w-full items-center gap-2 sm:w-auto">
-          <div className="flex items-center rounded-lg border border-border/50 bg-muted/50 p-1">
+          <div className="flex items-center rounded-lg border border-border/60 bg-background/40 p-1 shadow-sm">
             <Button
               variant={filters.viewMode === 'list' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => filters.setFilter('viewMode', 'list')}
               className={cn(
                 'h-7 w-7 p-0',
-                filters.viewMode === 'list' && 'bg-background shadow-sm'
+                filters.viewMode === 'list' && 'bg-background shadow-sm text-foreground'
               )}
               title="Lista"
               aria-label="Visualizar como lista"
@@ -73,7 +73,7 @@ export function ActionFilters() {
               onClick={() => filters.setFilter('viewMode', 'kanban')}
               className={cn(
                 'h-7 w-7 p-0',
-                filters.viewMode === 'kanban' && 'bg-background shadow-sm'
+                filters.viewMode === 'kanban' && 'bg-background shadow-sm text-foreground'
               )}
               title="Kanban"
               aria-label="Visualizar como kanban"
@@ -83,7 +83,7 @@ export function ActionFilters() {
             </Button>
           </div>
 
-          <div className="mx-1 hidden h-4 w-px bg-border sm:block" />
+          <div className="mx-1 hidden h-4 w-px bg-border/60 sm:block" />
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export function ActionFilters() {
               <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
               Status
               {filters.status !== 'all' && (
-                <span className="ml-1.5 rounded-sm bg-secondary px-1 py-0.5 text-[10px] font-semibold">
+                <span className="ml-1.5 rounded-sm bg-primary/15 px-1 py-0.5 text-[10px] font-semibold text-primary">
                   1
                 </span>
               )}
@@ -137,7 +137,7 @@ export function ActionFilters() {
                     size="sm"
                     className={cn(
                       'w-full justify-start text-xs font-normal',
-                      filters.status === option.value && 'bg-accent text-accent-foreground'
+                      filters.status === option.value && 'bg-primary/10 text-primary'
                     )}
                     onClick={() => filters.setFilter('status', option.value as ActionStatus)}
                   >
@@ -163,7 +163,7 @@ export function ActionFilters() {
               <Flag className="mr-2 h-3.5 w-3.5" />
               Prioridade
               {filters.priority !== 'all' && (
-                <span className="ml-1.5 rounded-sm bg-secondary px-1 py-0.5 text-[10px] font-semibold">
+                <span className="ml-1.5 rounded-sm bg-primary/15 px-1 py-0.5 text-[10px] font-semibold text-primary">
                   1
                 </span>
               )}
@@ -196,7 +196,7 @@ export function ActionFilters() {
                     size="sm"
                     className={cn(
                       'w-full justify-start text-xs font-normal',
-                      filters.priority === option.value && 'bg-accent text-accent-foreground'
+                      filters.priority === option.value && 'bg-primary/10 text-primary'
                     )}
                     onClick={() => filters.setFilter('priority', option.value as ActionPriority)}
                   >
@@ -222,7 +222,7 @@ export function ActionFilters() {
               <UserCircle2 className="mr-2 h-3.5 w-3.5" />
               Atribuição
               {filters.assignment !== 'all' && (
-                <span className="ml-1.5 rounded-sm bg-secondary px-1 py-0.5 text-[10px] font-semibold">
+                <span className="ml-1.5 rounded-sm bg-primary/15 px-1 py-0.5 text-[10px] font-semibold text-primary">
                   1
                 </span>
               )}
@@ -254,7 +254,7 @@ export function ActionFilters() {
                     size="sm"
                     className={cn(
                       'w-full justify-start text-xs font-normal',
-                      filters.assignment === option.value && 'bg-accent text-accent-foreground'
+                      filters.assignment === option.value && 'bg-primary/10 text-primary'
                     )}
                     onClick={() => filters.setFilter('assignment', option.value)}
                   >
@@ -269,7 +269,7 @@ export function ActionFilters() {
           </PopoverContent>
         </Popover>
 
-        <div className="mx-1 h-6 w-px bg-border" />
+        <div className="mx-1 h-6 w-px bg-border/60" />
 
         {/* Quick Toggles */}
         <Button

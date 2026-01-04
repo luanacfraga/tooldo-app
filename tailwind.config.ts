@@ -29,13 +29,15 @@ const config: Config = {
   			ring: 'hsl(var(--ring))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
+        'primary-hover': 'hsl(var(--primary-hover))',
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
-  				base: '#504371',
-  				dark: '#40355a',
-  				light: '#5f5087',
-  				lighter: '#7968a5',
-  				lightest: '#978ab9',
+  					/* Legacy shades used across the app (aligned with new primary) */
+  					base: '#554B7F',
+  					dark: '#403762',
+  					light: '#6959A6',
+  					lighter: '#9387C5',
+  					lightest: '#E7E4F1',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
   			secondary: {
@@ -68,16 +70,16 @@ const config: Config = {
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
   			success: {
-  				DEFAULT: '#10B981',
-  				base: '#10B981',
-  				dark: '#34D399',
-  				light: '#6EE7B7',
-  				lighter: '#A7F3D0',
-  				lightest: '#D1FAE5',
+  					DEFAULT: 'hsl(var(--success))',
+  					base: '#16A34A',
+  					dark: '#15803D',
+  					light: '#22C55E',
+  					lighter: '#4ADE80',
+  					lightest: '#DCFCE7',
   				foreground: 'hsl(var(--success-foreground))'
   			},
   			warning: {
-  				DEFAULT: '#F59E0B',
+  					DEFAULT: 'hsl(var(--warning))',
   				base: '#F59E0B',
   				dark: '#FBBF24',
   				light: '#FCD34D',
@@ -114,9 +116,12 @@ const config: Config = {
   			}
   		},
   		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  				sm: 'var(--radius-sm)',
+  				md: 'var(--radius-md)',
+  				lg: 'var(--radius-lg)',
+  				xl: 'var(--radius-xl)',
+  				'2xl': 'var(--radius-2xl)',
+  				full: 'var(--radius-full)'
   		},
   		keyframes: {
   			blob: {

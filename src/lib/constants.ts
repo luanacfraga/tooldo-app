@@ -13,7 +13,7 @@ export const USER_ROLES = {
 export const USER_ROLES_LABELS = {
   [USER_ROLES.MASTER]: 'Master',
   [USER_ROLES.ADMIN]: 'Administrador',
-  [USER_ROLES.MANAGER]: 'Gerente',
+  [USER_ROLES.MANAGER]: 'Gestor',
   [USER_ROLES.EXECUTOR]: 'Executor',
   [USER_ROLES.CONSULTANT]: 'Consultor',
 } as const

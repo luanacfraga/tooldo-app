@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -17,12 +17,16 @@ import { ActionListEmpty } from './action-list-empty';
 import { ActionListSkeleton } from './action-list-skeleton';
 import { toast } from 'sonner';
 import type { ActionFilters } from '@/lib/types/action';
+import { ActionDetailSheet } from '../action-detail-sheet';
 
 export function ActionTable() {
   const { user } = useAuth();
   const { selectedCompany } = useCompany();
   const filtersState = useActionFiltersStore();
   const deleteActionMutation = useDeleteAction();
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const [selectedCanEdit, setSelectedCanEdit] = useState<boolean>(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Build API filters from store
   const apiFilters: ActionFilters = useMemo(() => {
@@ -71,13 +75,13 @@ export function ActionTable() {
   }, [actions, filtersState.assignment, filtersState.searchQuery, user?.id]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this action?')) return;
+    if (!confirm('Tem certeza que deseja excluir esta ação?')) return;
 
     try {
       await deleteActionMutation.mutateAsync(id);
-      toast.success('Action deleted successfully');
+      toast.success('Ação excluída com sucesso');
     } catch (error) {
-      toast.error('Failed to delete action');
+      toast.error('Erro ao excluir ação');
     }
   };
 
@@ -96,7 +100,7 @@ export function ActionTable() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-destructive">Failed to load actions. Please try again.</p>
+        <p className="text-destructive">Erro ao carregar ações. Tente novamente.</p>
       </div>
     );
   }
@@ -112,16 +116,17 @@ export function ActionTable() {
   }
 
   return (
-    <div className="rounded-lg border">
+    <>
+      <div className="rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Title</TableHead>
+            <TableHead>Título</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Assigned To</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Progress</TableHead>
+            <TableHead>Prioridade</TableHead>
+            <TableHead>Responsável</TableHead>
+            <TableHead>Prazo</TableHead>
+            <TableHead>Checklist</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -140,11 +145,27 @@ export function ActionTable() {
                 canEdit={canEdit}
                 canDelete={canDelete}
                 onDelete={handleDelete}
+                onView={() => {
+                  setSelectedActionId(action.id);
+                  setSelectedCanEdit(!!canEdit);
+                  setSheetOpen(true);
+                }}
               />
             );
           })}
         </TableBody>
       </Table>
-    </div>
+      </div>
+
+      <ActionDetailSheet
+        actionId={selectedActionId}
+        open={sheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open);
+          if (!open) setSelectedActionId(null);
+        }}
+        canEdit={selectedCanEdit}
+      />
+    </>
   );
 }
