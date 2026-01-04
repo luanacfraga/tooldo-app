@@ -38,6 +38,8 @@ export interface Employee {
     email: string
     phone: string
     role: string
+    initials?: string | null
+    avatarColor?: string | null
   }
 }
 

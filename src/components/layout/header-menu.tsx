@@ -113,9 +113,12 @@ export function HeaderMenu({ onProfileClick }: HeaderMenuProps) {
               </div>
 
               {/* Avatar */}
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary shadow-sm transition-transform duration-200 group-hover:scale-105 sm:h-9 sm:w-9">
+              <div 
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full shadow-sm transition-transform duration-200 group-hover:scale-105 sm:h-9 sm:w-9"
+                style={{ backgroundColor: user?.avatarColor || 'hsl(var(--primary))' }}
+              >
                 <span className="text-sm font-semibold text-white">
-                  {user?.name?.[0]?.toUpperCase()}
+                  {user?.initials || user?.name?.[0]?.toUpperCase()}
                 </span>
               </div>
             </button>

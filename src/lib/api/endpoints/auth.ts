@@ -13,6 +13,8 @@ export interface LoginResponse {
     firstName: string
     lastName: string
     role: 'master' | 'admin' | 'manager' | 'executor' | 'consultant'
+    initials?: string | null
+    avatarColor?: string | null
   }
 }
 
