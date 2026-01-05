@@ -24,7 +24,6 @@ export default function NewActionPage() {
         title="Nova Ação"
         description="Crie uma nova ação para sua equipe"
         backHref="/actions"
-        backLabel="Voltar para Ações"
       />
 
       <div className="rounded-xl border bg-card shadow-sm">

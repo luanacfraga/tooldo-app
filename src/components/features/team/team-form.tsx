@@ -1,7 +1,5 @@
 'use client'
 
-import { FormSection } from '@/components/shared/forms/form-section'
-import { InputWithIcon } from '@/components/shared/forms/input-with-icon'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -12,6 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -22,8 +21,9 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import type { Employee } from '@/lib/types/api'
 import { teamSchema, type TeamFormData } from '@/lib/validators/team'
+import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, FileText, Loader2, Save, Sparkles, Users } from 'lucide-react'
+import { FileText, Loader2, Save, Sparkles, UserCog, Users } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -52,6 +52,9 @@ export function TeamForm({
 }: TeamFormProps) {
   const isManager = currentUserRole === 'manager'
   const defaultManagerId = !isEditing && isManager && currentUserId ? currentUserId : ''
+  const currentManagerName = managers.find((m) => m.userId === currentUserId)?.user
+    ? `${managers.find((m) => m.userId === currentUserId)?.user?.firstName} ${managers.find((m) => m.userId === currentUserId)?.user?.lastName}`
+    : 'Você'
 
   const form = useForm<TeamFormData>({
     resolver: zodResolver(teamSchema),
@@ -77,34 +80,45 @@ export function TeamForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormSection
-          title="Informações da Equipe"
-          description="Dados básicos da equipe"
-          icon={Users}
-          iconColor="text-primary-base"
-          bgColor="bg-primary-lightest"
-          className="animate-fade-in"
-        >
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="rounded-xl border bg-card shadow-sm">
+          <div className="border-b p-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold">Informações da Equipe</h3>
+                <p className="text-sm text-muted-foreground">Dados básicos da equipe</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <fieldset disabled={isLoading || form.formState.isSubmitting} className="space-y-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Nome da Equipe <span className="text-danger-base">*</span>
+                <FormLabel className="text-sm">
+                  Nome da Equipe <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
-                  <InputWithIcon
-                    icon={Users}
-                    placeholder="Ex: Equipe de Desenvolvimento"
-                    {...field}
-                    autoFocus
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Users className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Ex: Equipe de Desenvolvimento"
+                      {...field}
+                      autoFocus
+                      className="h-9 pl-10 text-sm"
+                    />
+                  </div>
                 </FormControl>
-                <FormDescription>Nome que identifica a equipe na empresa</FormDescription>
-                <FormMessage />
+                <FormDescription className="text-xs">
+                  Nome que identifica a equipe na empresa
+                </FormDescription>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -114,28 +128,22 @@ export function TeamForm({
             name="managerId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Gestor da Equipe <span className="text-danger-base">*</span>
+                <FormLabel className="text-sm">
+                  Gestor da Equipe <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
                   {!isEditing && isManager ? (
-                    <InputWithIcon
-                      icon={Users}
-                      value={
-                        managers.find((m) => m.userId === currentUserId)?.user
-                          ? `${managers.find((m) => m.userId === currentUserId)?.user?.firstName} ${managers.find((m) => m.userId === currentUserId)?.user?.lastName}`
-                          : 'Você'
-                      }
-                      disabled
-                      readOnly
-                    />
+                    <div className="relative">
+                      <UserCog className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input value={currentManagerName} disabled readOnly className="h-9 pl-10 text-sm" />
+                    </div>
                   ) : (
                     <Select
                       onValueChange={field.onChange}
                       value={field.value || undefined}
-                      disabled={isLoading}
+                      disabled={isLoading || form.formState.isSubmitting}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="Selecione um gestor" />
                       </SelectTrigger>
                       <SelectContent>
@@ -145,7 +153,7 @@ export function TeamForm({
                           </div>
                         ) : (
                           managers.map((manager) => (
-                            <SelectItem key={manager.id} value={manager.userId}>
+                            <SelectItem key={manager.id} value={manager.userId} className="text-sm">
                               {manager.user
                                 ? `${manager.user.firstName} ${manager.user.lastName}`
                                 : manager.userId}
@@ -156,14 +164,14 @@ export function TeamForm({
                     </Select>
                   )}
                 </FormControl>
-                <FormDescription>
+                <FormDescription className="text-xs">
                   {isEditing
                     ? 'Você pode substituir o gestor da equipe. Cada gestor só pode gerenciar uma equipe por vez na empresa.'
                     : isManager
                       ? 'Você será o gestor desta equipe'
                       : 'Selecione o gestor responsável pela equipe'}
                 </FormDescription>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -173,20 +181,22 @@ export function TeamForm({
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Descrição</FormLabel>
+                <FormLabel className="text-sm">Descrição</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Textarea
                       placeholder="Descreva a equipe (opcional)"
-                      className="min-h-[100px] resize-none pl-10"
+                      className="min-h-[100px] resize-none pl-10 text-sm"
                       {...field}
-                      disabled={isLoading}
+                      disabled={isLoading || form.formState.isSubmitting}
                     />
                   </div>
                 </FormControl>
-                <FormDescription>Adicione uma descrição sobre a equipe (opcional)</FormDescription>
-                <FormMessage />
+                <FormDescription className="text-xs">
+                  Adicione uma descrição sobre a equipe (opcional)
+                </FormDescription>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -196,58 +206,54 @@ export function TeamForm({
             name="iaContext"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Contexto de IA</FormLabel>
+                <FormLabel className="text-sm">Contexto de IA</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Sparkles className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Textarea
                       placeholder="Ex: Equipe responsável por campanhas de mídia paga no setor de varejo"
-                      className="min-h-[100px] resize-none pl-10"
+                      className="min-h-[100px] resize-none pl-10 text-sm"
                       {...field}
-                      disabled={isLoading}
+                      disabled={isLoading || form.formState.isSubmitting}
                     />
                   </div>
                 </FormControl>
-                <FormDescription>
+                <FormDescription className="text-xs">
                   Contexto específico para uso de IA (máximo 1000 caracteres, opcional)
                 </FormDescription>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
-        </FormSection>
+            </fieldset>
+          </div>
 
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          {onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isLoading || form.formState.isSubmitting}
-              className="w-full sm:w-auto"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Cancelar
-            </Button>
-          )}
-          <Button
-            type="submit"
-            disabled={isLoading || form.formState.isSubmitting}
-            className="w-full sm:w-auto sm:min-w-[200px]"
-            size="lg"
-          >
-            {isLoading || form.formState.isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditing ? 'Salvando alterações...' : 'Criando equipe...'}
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                {isEditing ? 'Salvar Alterações' : 'Criar Equipe'}
-              </>
+          <div className="flex flex-col-reverse gap-2 border-t p-6 sm:flex-row sm:justify-end">
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isLoading || form.formState.isSubmitting}
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
             )}
-          </Button>
+            <Button
+              type="submit"
+              disabled={isLoading || form.formState.isSubmitting}
+              size="sm"
+              className={cn('w-full sm:w-auto', onCancel ? 'sm:min-w-[200px]' : 'sm:min-w-[220px]')}
+            >
+              {(isLoading || form.formState.isSubmitting) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {!isLoading && !form.formState.isSubmitting && <Save className="mr-2 h-4 w-4" />}
+              {isEditing ? 'Salvar Alterações' : 'Criar Equipe'}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

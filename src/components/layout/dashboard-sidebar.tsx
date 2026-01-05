@@ -5,15 +5,7 @@ import { USER_ROLES } from '@/lib/constants'
 import { useUserContext } from '@/lib/contexts/user-context'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { usePermissions } from '@/lib/hooks/use-permissions'
-import {
-  BarChart3,
-  Building2,
-  ClipboardList,
-  LayoutDashboard,
-  Settings,
-  Users,
-  UsersRound,
-} from 'lucide-react'
+import { BarChart3, Building2, ClipboardList, Settings, Users, UsersRound } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useMemo } from 'react'
 import { Sidebar, type MenuItem } from './sidebar'
@@ -53,12 +45,12 @@ export function DashboardSidebar() {
           ],
         },
         {
-          name: 'Usuários',
+          name: 'Funcionários',
           href: `${basePath}/members`,
           icon: UsersRound,
           subItems: [
             {
-              name: 'Lista de Usuários',
+              name: 'Lista de Funcionários',
               href: `${basePath}/members`,
             },
             {
@@ -99,7 +91,7 @@ export function DashboardSidebar() {
         ...(canInviteEmployee
           ? [
               {
-                name: 'Usuários',
+                name: 'Funcionários',
                 href: `${basePath}/members`,
                 icon: UsersRound,
                 subItems: [
@@ -171,7 +163,16 @@ export function DashboardSidebar() {
     })
 
     return items
-  }, [isAdmin, isManager, isExecutor, isConsultant, isMaster, companyId, canInviteEmployee, canCreateActions])
+  }, [
+    isAdmin,
+    isManager,
+    isExecutor,
+    isConsultant,
+    isMaster,
+    companyId,
+    canInviteEmployee,
+    canCreateActions,
+  ])
 
   return (
     <Sidebar

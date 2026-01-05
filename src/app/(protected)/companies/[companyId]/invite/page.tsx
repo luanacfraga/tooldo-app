@@ -148,7 +148,6 @@ export default function CompanyInvitePage() {
         title="Convidar Funcionário"
         description={`Preencha os dados do funcionário para enviar o convite${company ? ` - ${company.name}` : ''}`}
         backHref={`/companies/${companyId}/members`}
-        backLabel="Voltar para Funcionários"
       />
 
       {error && (

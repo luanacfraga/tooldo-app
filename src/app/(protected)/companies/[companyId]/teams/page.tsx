@@ -18,16 +18,7 @@ import { useManagersByCompany } from '@/lib/services/queries/use-employees'
 import { useCreateTeam, useTeamsByCompany, useUpdateTeam } from '@/lib/services/queries/use-teams'
 import { type TeamFormData } from '@/lib/validators/team'
 import type { ColumnDef } from '@tanstack/react-table'
-import {
-  AlertCircle,
-  ArrowLeft,
-  Building2,
-  CheckCircle2,
-  Edit,
-  Plus,
-  UserCog,
-  Users,
-} from 'lucide-react'
+import { AlertCircle, Building2, CheckCircle2, Edit, Plus, UserCog, Users } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { TeamCard } from './team-card'
@@ -85,7 +76,7 @@ export default function TeamsPage() {
         cell: ({ row }) => {
           const description = row.getValue('description') as string | null | undefined
           return description ? (
-            <span className="text-sm text-muted-foreground line-clamp-1">{description}</span>
+            <span className="line-clamp-1 text-sm text-muted-foreground">{description}</span>
           ) : (
             <span className="text-sm text-muted-foreground">-</span>
           )
@@ -105,7 +96,7 @@ export default function TeamsPage() {
                   setSelectedTeam(team)
                   setShowMembersDialog(true)
                 }}
-                className="h-8 px-2 gap-1"
+                className="h-8 gap-1 px-2"
               >
                 <UserCog className="h-4 w-4" />
                 <span className="hidden sm:inline">Membros</span>
@@ -118,7 +109,7 @@ export default function TeamsPage() {
                     setEditingTeam(team)
                     setError(null)
                   }}
-                  className="h-8 px-2 gap-1"
+                  className="h-8 gap-1 px-2"
                 >
                   <Edit className="h-4 w-4" />
                   <span className="hidden sm:inline">Editar</span>
@@ -210,19 +201,41 @@ export default function TeamsPage() {
     )
   }
 
+  const isEditingFlow = showCreateForm || !!editingTeam
+  const handleBackFromForm = () => {
+    setShowCreateForm(false)
+    setEditingTeam(null)
+    setError(null)
+  }
+
   return (
     <PageContainer maxWidth="7xl">
       <PageHeader
-        title={isManager ? (hasSingleTeam ? 'Minha Equipe' : 'Minhas Equipes') : 'Equipes'}
-        description={
-          isManager
-            ? hasSingleTeam
-              ? `Gerencie sua equipe${company ? ` em ${company.name}` : ''}`
-              : `Gerencie suas equipes${company ? ` em ${company.name}` : ''}`
-            : `Gerencie as equipes${company ? ` de ${company.name}` : ''}`
+        title={
+          isEditingFlow
+            ? editingTeam
+              ? 'Editar Equipe'
+              : 'Nova Equipe'
+            : isManager
+              ? hasSingleTeam
+                ? 'Minha Equipe'
+                : 'Minhas Equipes'
+              : 'Equipes'
         }
+        description={
+          isEditingFlow
+            ? editingTeam
+              ? `Atualize as informações da equipe${company ? ` em ${company.name}` : ''}`
+              : `Crie uma nova equipe${company ? ` em ${company.name}` : ''}`
+            : isManager
+              ? hasSingleTeam
+                ? `Gerencie sua equipe${company ? ` em ${company.name}` : ''}`
+                : `Gerencie suas equipes${company ? ` em ${company.name}` : ''}`
+              : `Gerencie as equipes${company ? ` de ${company.name}` : ''}`
+        }
+        backOnClick={isEditingFlow ? handleBackFromForm : undefined}
         action={
-          !showCreateForm &&
+          !isEditingFlow &&
           !isManager && (
             <Button
               onClick={() => setShowCreateForm(true)}
@@ -269,25 +282,6 @@ export default function TeamsPage() {
 
       {showCreateForm || editingTeam ? (
         <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setShowCreateForm(false)
-                setEditingTeam(null)
-                setError(null)
-              }}
-              className="gap-1.5 font-medium sm:gap-2"
-            >
-              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Voltar</span>
-            </Button>
-            <h2 className="text-xl font-semibold">
-              {editingTeam ? 'Editar Equipe' : 'Nova Equipe'}
-            </h2>
-          </div>
-
           {availableManagers.length === 0 ? (
             <Card>
               <CardHeader>
@@ -309,24 +303,6 @@ export default function TeamsPage() {
             </Card>
           ) : (
             <>
-              {isManager && !editingTeam && (
-                <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-                  <p className="text-sm text-foreground">
-                    <strong>Você está criando uma equipe como gestor.</strong> Você será
-                    automaticamente designado como gestor desta equipe e poderá adicionar executores
-                    para trabalhar com você.
-                  </p>
-                </div>
-              )}
-              {editingTeam && (
-                <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-                  <p className="text-sm text-foreground">
-                    <strong>Editando equipe:</strong> Você pode alterar o nome, descrição, contexto
-                    de IA e até substituir o gestor da equipe. Cada gestor só pode gerenciar uma
-                    equipe por vez na empresa.
-                  </p>
-                </div>
-              )}
               <TeamForm
                 companyId={companyId}
                 managers={availableManagers}
