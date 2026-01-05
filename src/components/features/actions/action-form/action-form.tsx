@@ -203,9 +203,12 @@ export function ActionForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {readOnly && (
-          <Alert variant="warning">
-            <Lock className="h-4 w-4" />
-            <AlertDescription>
+          <Alert
+            variant="warning"
+            className="flex items-start gap-2 [&>svg]:static [&>svg+div]:translate-y-0 [&>svg~*]:pl-0"
+          >
+            <Lock className="mt-0.5 h-4 w-4" />
+            <AlertDescription className="leading-relaxed">
               Esta ação está bloqueada.
               {canBlock
                 ? ' Desmarque o bloqueio para editar.'
