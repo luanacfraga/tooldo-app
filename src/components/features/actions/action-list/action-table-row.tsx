@@ -10,11 +10,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { StatusBadge } from '../shared/status-badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { PriorityBadge } from '../shared/priority-badge';
 import { LateIndicator } from '../shared/late-indicator';
 import { BlockedBadge } from '../shared/blocked-badge';
-import type { Action } from '@/lib/types/action';
+import { actionStatusUI } from '../shared/action-status-ui';
+import { useMoveAction } from '@/lib/hooks/use-actions';
+import { ActionStatus, type Action } from '@/lib/types/action';
+import { toast } from 'sonner';
 
 interface ActionTableRowProps {
   action: Action;
@@ -25,6 +34,8 @@ interface ActionTableRowProps {
 }
 
 export function ActionTableRow({ action, canEdit, canDelete, onDelete, onView }: ActionTableRowProps) {
+  const moveAction = useMoveAction();
+
   const checklistProgress = action.checklistItems
     ? `${action.checklistItems.filter((i) => i.isCompleted).length}/${action.checklistItems.length}`
     : '—';
@@ -32,6 +43,18 @@ export function ActionTableRow({ action, canEdit, canDelete, onDelete, onView }:
     action.responsible?.firstName && action.responsible?.lastName
       ? `${action.responsible.firstName} ${action.responsible.lastName}`
       : '—';
+
+  const handleStatusChange = async (newStatus: ActionStatus) => {
+    try {
+      await moveAction.mutateAsync({
+        id: action.id,
+        data: { toStatus: newStatus },
+      });
+      toast.success('Status atualizado com sucesso');
+    } catch (error) {
+      toast.error('Erro ao atualizar status');
+    }
+  };
 
   return (
     <TableRow className="cursor-pointer hover:bg-muted/50" onClick={onView}>
@@ -44,8 +67,23 @@ export function ActionTableRow({ action, canEdit, canDelete, onDelete, onView }:
           </div>
         </div>
       </TableCell>
-      <TableCell>
-        <StatusBadge status={action.status} />
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <Select
+          disabled={action.isBlocked || !canEdit}
+          value={action.status}
+          onValueChange={(value) => handleStatusChange(value as ActionStatus)}
+        >
+          <SelectTrigger className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(ActionStatus).map((status) => (
+              <SelectItem key={status} value={status}>
+                {actionStatusUI[status].label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </TableCell>
       <TableCell>
         <PriorityBadge priority={action.priority} />
