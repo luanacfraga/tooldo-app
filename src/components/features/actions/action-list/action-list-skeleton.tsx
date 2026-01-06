@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -6,7 +6,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/ui/table'
 
 export function ActionListSkeleton() {
   return (
@@ -14,12 +14,12 @@ export function ActionListSkeleton() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Title</TableHead>
+            <TableHead>Título</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Assigned To</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Progress</TableHead>
+            <TableHead>Prioridade</TableHead>
+            <TableHead>Responsável</TableHead>
+            <TableHead>Prazo</TableHead>
+            <TableHead>Checklist</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -52,5 +52,5 @@ export function ActionListSkeleton() {
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

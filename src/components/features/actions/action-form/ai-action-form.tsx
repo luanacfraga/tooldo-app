@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Building2, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -75,10 +75,6 @@ export function AIActionForm({ onSuggestion, onCancel }: AIActionFormProps) {
           companyId: data.companyId,
           estimatedStartDate: startDate.toISOString().split('T')[0],
           estimatedEndDate: endDate.toISOString().split('T')[0],
-          tasks: suggestion.checklistItems.map(item => ({
-            description: item,
-            isCompleted: false,
-          })),
         };
 
         onSuggestion(formData);
@@ -122,6 +118,7 @@ export function AIActionForm({ onSuggestion, onCancel }: AIActionFormProps) {
                         <SelectContent>
                         {companies.map((company) => (
                             <SelectItem key={company.id} value={company.id} className="text-sm">
+                            <Building2 className="mr-2 h-3.5 w-3.5 text-primary" />
                             {company.name}
                             </SelectItem>
                         ))}
@@ -166,7 +163,7 @@ export function AIActionForm({ onSuggestion, onCancel }: AIActionFormProps) {
             type="submit" 
             disabled={isSubmitting} 
             size="sm"
-            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0"
+            className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary-hover hover:to-primary-hover/90 text-primary-foreground border-0"
           >
             {isSubmitting ? (
                 <>

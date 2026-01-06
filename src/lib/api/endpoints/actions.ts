@@ -1,4 +1,5 @@
 import { apiClient } from '../api-client';
+import type { PaginatedResponse } from '@/lib/api/types';
 import type {
   Action,
   ActionFilters,
@@ -23,16 +24,29 @@ function buildQueryString(filters: ActionFilters): string {
     'companyId',
     'teamId',
     'responsibleId',
+    'creatorId',
     'status',
+    'statuses',
     'priority',
     'isLate',
     'isBlocked',
+    'q',
+    'page',
+    'limit',
   ];
 
   supportedKeys.forEach((key) => {
     const value = filters[key];
     if (value !== undefined && value !== null && value !== '') {
-      params.append(String(key), String(value));
+      if (Array.isArray(value)) {
+        value.forEach((v) => {
+          if (v !== undefined && v !== null && String(v) !== '') {
+            params.append(String(key), String(v));
+          }
+        });
+      } else {
+        params.append(String(key), String(value));
+      }
     }
   });
 
@@ -44,9 +58,16 @@ export const actionsApi = {
   /**
    * Get list of actions with optional filters
    */
-  getAll: (filters: ActionFilters = {}): Promise<Action[]> => {
+  getAll: (filters: ActionFilters = {}): Promise<PaginatedResponse<Action>> => {
     const queryString = buildQueryString(filters);
-    return apiClient.get<Action[]>(`/api/v1/actions${queryString}`);
+    return apiClient.get<PaginatedResponse<Action>>(`/api/v1/actions${queryString}`);
+  },
+
+  /**
+   * Get action by id
+   */
+  getById: (id: string): Promise<Action> => {
+    return apiClient.get<Action>(`/api/v1/actions/${id}`);
   },
 
   /**
@@ -106,6 +127,19 @@ export const actionsApi = {
    */
   toggleChecklistItem: (itemId: string): Promise<ChecklistItem> => {
     return apiClient.patch<ChecklistItem>(`/api/v1/actions/checklist/${itemId}/toggle`);
+  },
+
+  /**
+   * Reorder checklist items
+   */
+  reorderChecklistItems: (
+    actionId: string,
+    itemIds: string[]
+  ): Promise<ChecklistItem[]> => {
+    return apiClient.patch<ChecklistItem[]>(
+      `/api/v1/actions/${actionId}/checklist/reorder`,
+      { itemIds }
+    );
   },
 
   /**

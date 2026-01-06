@@ -1,20 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  AlertCircle,
-  ArrowLeft,
-  Building2,
-  CheckCircle2,
-  FileText,
-  Loader2,
-  Save,
-} from 'lucide-react'
-import { FormSection } from '@/components/shared/forms/form-section'
-import { InputWithIcon } from '@/components/shared/forms/input-with-icon'
+import { AdminOnly } from '@/components/features/auth/guards/admin-only'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
 import { Button } from '@/components/ui/button'
@@ -28,12 +14,25 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ApiError } from '@/lib/api/api-client'
-import { AdminOnly } from '@/components/features/auth/guards/admin-only'
 import { useCreateCompany } from '@/lib/services/queries/use-companies'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { createCompanySchema, type CreateCompanyFormData } from '@/lib/validators/company'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  AlertCircle,
+  ArrowLeft,
+  Building2,
+  CheckCircle2,
+  FileText,
+  Loader2,
+  Save,
+} from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 export default function NewCompanyPage() {
   const router = useRouter()
@@ -64,7 +63,8 @@ export default function NewCompanyPage() {
 
       await createCompany({
         name: data.name,
-        description: data.description && data.description.trim() !== '' ? data.description.trim() : undefined,
+        description:
+          data.description && data.description.trim() !== '' ? data.description.trim() : undefined,
         adminId: user.id,
       })
 
@@ -85,7 +85,7 @@ export default function NewCompanyPage() {
 
   if (success) {
     return (
-      <PageContainer maxWidth="4xl">
+      <PageContainer>
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
           <Card className="w-full max-w-md animate-fade-in text-center">
             <CardHeader>
@@ -100,7 +100,9 @@ export default function NewCompanyPage() {
             <CardContent>
               <Button
                 variant="outline"
-                onClick={() => router.push(redirectPath === '/companies' ? '/companies' : '/dashboard')}
+                onClick={() =>
+                  router.push(redirectPath === '/companies' ? '/companies' : '/dashboard')
+                }
                 className="w-full"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -115,21 +117,11 @@ export default function NewCompanyPage() {
 
   return (
     <AdminOnly>
-      <PageContainer maxWidth="4xl">
+      <PageContainer>
         <PageHeader
           title="Nova Empresa"
           description="Cadastre uma nova empresa para gerenciar sua equipe e projetos"
-          action={
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push(redirectPath)}
-              className="gap-1.5 font-medium sm:gap-2"
-            >
-              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Cancelar</span>
-            </Button>
-          }
+          backHref={redirectPath}
         />
 
         {error && (
@@ -145,35 +137,45 @@ export default function NewCompanyPage() {
         )}
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormSection
-              title="Informações da Empresa"
-              description="Dados básicos da empresa"
-              icon={Building2}
-              iconColor="text-primary-base"
-              bgColor="bg-primary-lightest"
-              className="animate-fade-in"
-            >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="rounded-xl border bg-card shadow-sm">
+              <div className="border-b p-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-base font-semibold">Informações da Empresa</h3>
+                    <p className="text-sm text-muted-foreground">Dados básicos da empresa</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <fieldset disabled={form.formState.isSubmitting || isPending} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      Nome da Empresa <span className="text-danger-base">*</span>
+                    <FormLabel className="text-sm">
+                      Nome da Empresa <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <InputWithIcon
-                        icon={Building2}
-                        placeholder="Ex: Minha Empresa LTDA"
-                        {...field}
-                        autoFocus
-                      />
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Ex: Minha Empresa LTDA"
+                          {...field}
+                          autoFocus
+                          className="h-9 pl-10 text-sm"
+                        />
+                      </div>
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-xs">
                       Nome oficial ou razão social da empresa
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -183,55 +185,57 @@ export default function NewCompanyPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição</FormLabel>
+                    <FormLabel className="text-sm">Descrição</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Textarea
                           placeholder="Descreva sua empresa (opcional)"
-                          className="min-h-[100px] resize-none pl-10"
+                          className="min-h-[100px] resize-none pl-10 text-sm"
                           {...field}
                         />
                       </div>
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-xs">
                       Adicione uma descrição sobre sua empresa (máximo 500 caracteres)
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
-            </FormSection>
+                </fieldset>
+              </div>
 
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push(redirectPath)}
-                disabled={form.formState.isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={form.formState.isSubmitting}
-                className="w-full sm:w-auto sm:min-w-[200px]"
-                size="lg"
-              >
-                {form.formState.isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando empresa...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Criar Empresa
-                  </>
-                )}
-              </Button>
+              <div className="flex flex-col-reverse gap-2 border-t p-6 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push(redirectPath)}
+                  disabled={form.formState.isSubmitting || isPending}
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={form.formState.isSubmitting || isPending}
+                  size="sm"
+                  className="w-full sm:w-auto sm:min-w-[200px]"
+                >
+                  {(form.formState.isSubmitting || isPending) ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Criando empresa...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Criar Empresa
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>

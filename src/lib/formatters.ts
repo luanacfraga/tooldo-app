@@ -70,7 +70,7 @@ export function formatRole(
   const roles = {
     master: 'Master',
     admin: 'Administrador',
-    manager: 'Gerente',
+    manager: 'Gestor',
     executor: 'Executor',
     consultant: 'Consultor',
   }

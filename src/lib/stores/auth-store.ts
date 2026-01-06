@@ -10,6 +10,8 @@ export interface User {
   email: string
   name: string
   role: UserRole
+  initials?: string | null
+  avatarColor?: string | null
 }
 
 interface AuthState {

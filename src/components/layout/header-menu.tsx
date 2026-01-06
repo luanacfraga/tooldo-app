@@ -1,5 +1,6 @@
 'use client'
 
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { formatRole } from '@/lib/formatters'
 import { useIsMobile } from '@/lib/hooks/use-media-query'
 import { usePermissions } from '@/lib/hooks/use-permissions'
@@ -78,7 +79,7 @@ export function HeaderMenu({ onProfileClick }: HeaderMenuProps) {
                   alt="Weedu"
                   width={120}
                   height={40}
-                  className="h-8 w-auto sm:h-10 object-contain"
+                  className="h-8 w-auto object-contain sm:h-10"
                   priority
                 />
               </Link>
@@ -112,12 +113,14 @@ export function HeaderMenu({ onProfileClick }: HeaderMenuProps) {
                 </span>
               </div>
 
-              {/* Avatar */}
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary shadow-sm transition-transform duration-200 group-hover:scale-105 sm:h-9 sm:w-9">
-                <span className="text-sm font-semibold text-white">
-                  {user?.name?.[0]?.toUpperCase()}
-                </span>
-              </div>
+              <UserAvatar
+                id={user?.id}
+                name={user?.name}
+                initials={user?.initials}
+                avatarColor={user?.avatarColor}
+                size="lg"
+                className="group-hover:scale-105"
+              />
             </button>
           </div>
         </div>

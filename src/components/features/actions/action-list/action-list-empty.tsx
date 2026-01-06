@@ -13,10 +13,10 @@ export function ActionListEmpty({ hasFilters, canCreate, onClearFilters }: Actio
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No actions match your filters</h3>
-        <p className="text-muted-foreground mb-4">Try adjusting your search or filters</p>
+        <h3 className="text-lg font-semibold mb-2">Nenhuma ação encontrada</h3>
+        <p className="text-muted-foreground mb-4">Tente ajustar sua busca ou filtros</p>
         <Button variant="outline" onClick={onClearFilters}>
-          Clear Filters
+          Limpar filtros
         </Button>
       </div>
     );
@@ -25,15 +25,15 @@ export function ActionListEmpty({ hasFilters, canCreate, onClearFilters }: Actio
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-      <h3 className="text-lg font-semibold mb-2">No actions yet</h3>
+      <h3 className="text-lg font-semibold mb-2">Nenhuma ação cadastrada</h3>
       <p className="text-muted-foreground mb-4">
         {canCreate
-          ? 'Get started by creating your first action'
-          : 'No actions have been assigned to you yet'}
+          ? 'Comece criando sua primeira ação'
+          : 'Nenhuma ação foi atribuída a você ainda'}
       </p>
       {canCreate && (
         <Button asChild>
-          <Link href="/actions/new">Create Action</Link>
+          <Link href="/actions/new">Criar ação</Link>
         </Button>
       )}
     </div>

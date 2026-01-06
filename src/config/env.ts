@@ -13,33 +13,53 @@ function getApiUrl(): string {
   const isProduction = process.env.NODE_ENV === 'production'
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
-  // Em produção, a API URL é obrigatória e deve ser a de produção
+  // Em produção, fazemos validação "estrita" apenas em ambientes de CI/Deploy
+  // (evita quebrar build local quando `.env` está configurado para dev).
+  const isDeployedBuild = Boolean(
+    process.env.CI || process.env.AWS_AMPLIFY || process.env.VERCEL || process.env.NETLIFY
+  )
+  const strictProductionValidation = isProduction && isDeployedBuild
+
   if (isProduction) {
-    if (!apiUrl) {
-      throw new Error(
-        '❌ NEXT_PUBLIC_API_URL is required in production. Please configure it in AWS Amplify Console.'
-      )
+    // Modo estrito: mantém o comportamento anterior (falha rápido se estiver errado)
+    if (strictProductionValidation) {
+      if (!apiUrl) {
+        throw new Error(
+          '❌ NEXT_PUBLIC_API_URL is required in production. Please configure it in AWS Amplify Console.'
+        )
+      }
+
+      if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
+        throw new Error(
+          `❌ Invalid API URL for production: ${apiUrl}. Production must use https://api.tooldo.net`
+        )
+      }
+
+      if (!apiUrl.startsWith('https://')) {
+        throw new Error(
+          `❌ API URL must use HTTPS in production: ${apiUrl}. Expected: https://api.tooldo.net`
+        )
+      }
+
+      if (!apiUrl.includes('api.tooldo.net')) {
+        console.warn(
+          `⚠️  WARNING: API URL in production is not the expected production URL: ${apiUrl}. Expected: https://api.tooldo.net`
+        )
+      }
+
+      return apiUrl
     }
 
-    // Validação adicional: garantir que não está usando localhost em produção
-    if (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
-      throw new Error(
-        `❌ Invalid API URL for production: ${apiUrl}. Production must use https://api.tooldo.net`
-      )
-    }
-
-    // Validação: garantir que está usando HTTPS em produção
-    if (!apiUrl.startsWith('https://')) {
-      throw new Error(
-        `❌ API URL must use HTTPS in production: ${apiUrl}. Expected: https://api.tooldo.net`
-      )
-    }
-
-    // Validação: garantir que está usando a API de produção
-    if (!apiUrl.includes('api.tooldo.net')) {
+    // Modo não-estrito (build local): garante que build não quebra por env de dev
+    if (!apiUrl || apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
       console.warn(
-        `⚠️  WARNING: API URL in production is not the expected production URL: ${apiUrl}. Expected: https://api.tooldo.net`
+        `⚠️  Using default production API URL for local production build. Current NEXT_PUBLIC_API_URL: ${apiUrl ?? '(unset)'}`
       )
+      return 'https://api.tooldo.net'
+    }
+
+    if (!apiUrl.startsWith('https://')) {
+      console.warn(`⚠️  API URL should use HTTPS in production builds. Current: ${apiUrl}`)
     }
 
     return apiUrl

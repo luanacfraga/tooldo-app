@@ -43,7 +43,7 @@ export const inviteEmployeeSchema = z.object({
       message: 'CPF inválido (deve conter 11 dígitos)',
     }),
   role: z.enum(['manager', 'executor', 'consultant'], {
-    errorMap: () => ({ message: 'Cargo deve ser manager, executor ou consultant' }),
+    errorMap: () => ({ message: 'Cargo deve ser gestor, executor ou consultor' }),
   }),
   position: z.string().optional(),
   notes: z.string().optional(),

@@ -4,11 +4,9 @@ import { ActionForm } from '@/components/features/actions/action-form/action-for
 import { AIActionForm } from '@/components/features/actions/action-form/ai-action-form'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ActionFormData } from '@/lib/validators/action'
-import { ArrowLeft, PenLine, Sparkles } from 'lucide-react'
-import Link from 'next/link'
+import { PenLine, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 
 export default function NewActionPage() {
@@ -22,21 +20,11 @@ export default function NewActionPage() {
 
   return (
     <PageContainer>
-      <div className="mb-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild
-          className="-ml-2 text-muted-foreground hover:text-foreground"
-        >
-          <Link href="/actions">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para Ações
-          </Link>
-        </Button>
-      </div>
-
-      <PageHeader title="Nova Ação" description="Crie uma nova ação para sua equipe" />
+      <PageHeader
+        title="Nova Ação"
+        description="Crie uma nova ação para sua equipe"
+        backHref="/actions"
+      />
 
       <div className="rounded-xl border bg-card shadow-sm">
         <div className="border-b p-6">

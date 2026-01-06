@@ -1,21 +1,24 @@
-import { AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils'
+import { AlertCircle } from 'lucide-react'
 
 interface LateIndicatorProps {
-  isLate: boolean;
-  className?: string;
+  isLate: boolean
+  className?: string
 }
 
 export function LateIndicator({ isLate, className }: LateIndicatorProps) {
-  if (!isLate) return null;
+  if (!isLate) return null
 
   return (
     <div
-      className={cn('flex items-center gap-1 text-amber-600', className)}
-      title="This action is late"
+      className={cn(
+        'flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive',
+        className
+      )}
+      title="Ação atrasada"
     >
-      <AlertCircle className="h-4 w-4" />
-      <span className="text-xs font-medium">Late</span>
+      <AlertCircle className="h-3.5 w-3.5" />
+      <span>Atrasada</span>
     </div>
-  );
+  )
 }

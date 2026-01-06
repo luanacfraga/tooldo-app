@@ -1,122 +1,115 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useCallback, useState } from 'react'
+
 import {
-  DragStartEvent,
   DragEndEvent,
+  DragStartEvent,
+  MouseSensor,
   PointerSensor,
   TouchSensor,
-  MouseSensor,
   useSensor,
   useSensors,
-} from '@dnd-kit/core';
-import { useActions, useMoveAction } from './use-actions';
-import type { Action, ActionFilters, ActionStatus } from '@/lib/types/action';
-import { toast } from 'sonner';
+} from '@dnd-kit/core'
+import { toast } from 'sonner'
 
-export function useKanbanActions(filters: ActionFilters) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeAction, setActiveAction] = useState<Action | null>(null);
-  const moveAction = useMoveAction();
+import { ActionStatus } from '@/lib/types/action'
+import type { Action } from '@/lib/types/action'
 
-  // Configure sensors with proper activation constraints
+import { useMoveAction } from './use-actions'
+
+export function useKanbanActions(actions: Action[]) {
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeAction, setActiveAction] = useState<Action | null>(null)
+  const moveAction = useMoveAction()
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 3, tolerance: 5, delay: 50 },
+      activationConstraint: {
+        distance: 8,
+      },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 100, tolerance: 5 },
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
     }),
     useSensor(MouseSensor, {
-      activationConstraint: { distance: 3 },
+      activationConstraint: {
+        distance: 8,
+      },
     })
-  );
+  )
 
-  const { data: actions = [], isLoading, error } = useActions(filters);
-
-  // Sort actions by position within column
   const getColumnActions = useCallback(
     (status: ActionStatus) => {
       return actions
         .filter((action) => action.status === status)
         .sort((a, b) => {
-          const aPos = a.kanbanOrder?.position ?? 0;
-          const bPos = b.kanbanOrder?.position ?? 0;
-          return aPos - bPos;
-        });
+          const aPos = a.kanbanOrder?.position ?? 0
+          const bPos = b.kanbanOrder?.position ?? 0
+          return aPos - bPos
+        })
     },
     [actions]
-  );
+  )
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
-      const { active } = event;
-      setActiveId(active.id as string);
-      const draggedAction = actions.find((action) => action.id === active.id);
+      const { active } = event
+      const activeActionId = String(active.id)
+      setActiveId(activeActionId)
+      const draggedAction = actions.find((action) => action.id === activeActionId)
       if (draggedAction) {
-        setActiveAction(draggedAction);
+        setActiveAction(draggedAction)
       }
     },
     [actions]
-  );
+  )
+
+  const parseActionStatus = useCallback((value: unknown): ActionStatus | null => {
+    if (value === ActionStatus.TODO) return ActionStatus.TODO
+    if (value === ActionStatus.IN_PROGRESS) return ActionStatus.IN_PROGRESS
+    if (value === ActionStatus.DONE) return ActionStatus.DONE
+    return null
+  }, [])
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
-      const { active, over } = event;
-      setActiveId(null);
-      setActiveAction(null);
+      const { active, over } = event
+      setActiveId(null)
+      setActiveAction(null)
 
-      if (!over) return;
+      if (!over) return
 
-      const activeAction = actions.find((action) => action.id === active.id);
-      if (!activeAction) return;
+      const activeActionId = String(active.id)
+      const movedAction = actions.find((action) => action.id === activeActionId)
+      if (!movedAction) return
 
-      // Determine new status and position
-      const isColumn = ['TODO', 'IN_PROGRESS', 'DONE'].includes(over.id as string);
-      const newStatus = isColumn
-        ? (over.id as ActionStatus)
-        : actions.find((a) => a.id === over.id)?.status;
-
-      if (!newStatus) return;
-
-      const columnActions = actions.filter((a) => a.status === newStatus);
-      let newPosition = columnActions.length;
-
-      if (!isColumn) {
-        const overIndex = columnActions.findIndex((a) => a.id === over.id);
-        if (overIndex !== -1) {
-          newPosition = overIndex;
-        }
-      }
-
-      // No-op if same position
-      if (
-        activeAction.status === newStatus &&
-        activeAction.kanbanOrder?.position === newPosition
-      ) {
-        return;
-      }
+      const overActionId = String(over.id)
+      const columnStatus = parseActionStatus(over.id)
+      const overAction = actions.find((a) => a.id === overActionId)
+      const nextStatus = columnStatus ?? overAction?.status ?? null
+      if (!nextStatus) return
 
       try {
         await moveAction.mutateAsync({
-          id: activeAction.id,
-          data: { toStatus: newStatus, position: newPosition },
-        });
-        toast.success('Ação movida com sucesso');
-      } catch (error) {
-        toast.error('Erro ao mover ação');
+          id: movedAction.id,
+          data: { toStatus: nextStatus },
+        })
+        toast.success('Ação movida com sucesso')
+      } catch {
+        toast.error('Erro ao mover ação')
       }
     },
-    [actions, moveAction]
-  );
+    [actions, moveAction, parseActionStatus]
+  )
 
   return {
-    actions,
-    isLoading,
-    error,
     getColumnActions,
     sensors,
     handleDragStart,
     handleDragEnd,
     activeId,
     activeAction,
-  };
+  }
 }

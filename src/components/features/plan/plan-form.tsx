@@ -92,7 +92,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading = false }: PlanFo
             name="maxManagers"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Máximo de Gerentes</FormLabel>
+                <FormLabel>Máximo de Gestores</FormLabel>
                 <FormControl>
                   <Input
                     type="number"

@@ -1,8 +1,6 @@
 'use client'
 
 import { LoadingScreen } from '@/components/shared/feedback/loading-screen'
-import { FormSection } from '@/components/shared/forms/form-section'
-import { InputWithIcon } from '@/components/shared/forms/input-with-icon'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
 import { Button } from '@/components/ui/button'
@@ -32,19 +30,7 @@ import { usePermissions } from '@/lib/hooks/use-permissions'
 import { maskCPF, maskPhone, unmaskCPF, unmaskPhone } from '@/lib/utils/masks'
 import { inviteEmployeeSchema, type InviteEmployeeFormData } from '@/lib/validators/employee'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  AlertCircle,
-  ArrowLeft,
-  Briefcase,
-  Building2,
-  CheckCircle2,
-  FileText,
-  Loader2,
-  Mail,
-  Phone,
-  Send,
-  User,
-} from 'lucide-react'
+import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, Send } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -57,8 +43,6 @@ export default function CompanyInvitePage() {
   const { canInviteEmployee, isManager } = usePermissions()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [phoneValue, setPhoneValue] = useState('')
-  const [cpfValue, setCpfValue] = useState('')
 
   const company = user?.companies.find((c) => c.id === companyId)
 
@@ -91,7 +75,7 @@ export default function CompanyInvitePage() {
 
   if (!user || !canInviteEmployee) {
     return (
-      <PageContainer maxWidth="4xl">
+      <PageContainer>
         <LoadingScreen message="Verificando permissões..." />
       </PageContainer>
     )
@@ -130,7 +114,7 @@ export default function CompanyInvitePage() {
 
   if (success) {
     return (
-      <PageContainer maxWidth="4xl">
+      <PageContainer>
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
           <Card className="w-full max-w-md animate-fade-in text-center">
             <CardHeader>
@@ -159,21 +143,11 @@ export default function CompanyInvitePage() {
   }
 
   return (
-    <PageContainer maxWidth="4xl">
+    <PageContainer>
       <PageHeader
         title="Convidar Funcionário"
         description={`Preencha os dados do funcionário para enviar o convite${company ? ` - ${company.name}` : ''}`}
-        action={
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push(`/companies/${companyId}/members`)}
-            className="gap-1.5 font-medium sm:gap-2"
-          >
-            <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>Cancelar</span>
-          </Button>
-        }
+        backHref={`/companies/${companyId}/members`}
       />
 
       {error && (
@@ -188,273 +162,233 @@ export default function CompanyInvitePage() {
         </div>
       )}
 
-      {company && (
-        <div className="mb-6 animate-fade-in rounded-lg border border-border bg-muted/30 p-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary-lightest p-2">
-              <Building2 className="h-5 w-5 text-primary-base" />
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-medium text-muted-foreground">Empresa</p>
-              <p className="text-sm font-semibold text-foreground">{company.name}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormSection
-            title="Dados Pessoais"
-            description="Informações básicas do funcionário"
-            icon={User}
-            iconColor="text-secondary-base"
-            bgColor="bg-secondary-lightest"
-            className="animate-fade-in"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Nome <span className="text-danger-base">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <InputWithIcon icon={User} placeholder="João" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {company && (
+            <div className="rounded-xl border border-border/40 bg-card/95 p-4 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center gap-2.5 rounded-lg bg-primary/10 px-3 py-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-foreground">{company.name}</span>
+              </div>
+            </div>
+          )}
 
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Sobrenome <span className="text-danger-base">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <InputWithIcon icon={User} placeholder="Silva" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="rounded-xl border bg-card shadow-sm">
+            <div className="border-b p-6">
+              <h2 className="text-base font-semibold">Dados do usuário</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Preencha as informações para enviar o convite.
+              </p>
             </div>
 
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Email <span className="text-danger-base">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <InputWithIcon
-                      icon={Mail}
-                      type="email"
-                      placeholder="funcionario@empresa.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>O convite será enviado para este email</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="p-6">
+              <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Nome</FormLabel>
+                        <FormControl>
+                          <Input placeholder="João" {...field} className="h-9 text-sm" />
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Telefone</FormLabel>
-                    <FormControl>
-                      <InputWithIcon
-                        icon={Phone}
-                        type="tel"
-                        placeholder="(11) 98765-4321"
-                        value={phoneValue}
-                        onChange={(e) => {
-                          const unmasked = unmaskPhone(e.target.value)
-                          const masked = maskPhone(unmasked)
-                          setPhoneValue(masked)
-                          form.setValue('phone', unmasked, { shouldValidate: false })
-                        }}
-                        onBlur={() => {
-                          field.onBlur()
-                          form.trigger('phone')
-                        }}
-                        className={`h-12 text-base transition-all ${
-                          form.formState.errors.phone
-                            ? 'border-destructive focus-visible:ring-destructive'
-                            : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
-                        }`}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Sobrenome</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Silva" {...field} className="h-9 text-sm" />
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <FormField
-                control={form.control}
-                name="document"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      CPF <span className="text-danger-base">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <InputWithIcon
-                        icon={FileText}
-                        placeholder="000.000.000-00"
-                        value={cpfValue}
-                        onChange={(e) => {
-                          const unmasked = unmaskCPF(e.target.value)
-                          const masked = maskCPF(unmasked)
-                          setCpfValue(masked)
-                          form.setValue('document', unmasked, { shouldValidate: false })
-                        }}
-                        onBlur={() => {
-                          field.onBlur()
-                          form.trigger('document')
-                        }}
-                        className={`h-12 text-base transition-all ${
-                          form.formState.errors.document
-                            ? 'border-destructive focus-visible:ring-destructive'
-                            : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
-                        }`}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      O funcionário precisará informar este CPF ao criar sua senha
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </FormSection>
-
-          <FormSection
-            title="Informações Profissionais"
-            description="Cargo e função do funcionário na empresa"
-            icon={Briefcase}
-            iconColor="text-warning-base"
-            bgColor="bg-warning-lightest"
-            className="animate-fade-in"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Cargo no Sistema <span className="text-danger-base">*</span>
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Email</FormLabel>
                       <FormControl>
-                        <SelectTrigger className="h-11 w-full">
-                          <SelectValue placeholder="Selecione o cargo">
-                            {field.value === 'manager' && 'Gestor'}
-                            {field.value === 'executor' && 'Executor'}
-                            {field.value === 'consultant' && 'Consultor'}
-                            {!field.value && 'Selecione o cargo'}
-                          </SelectValue>
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {!isManager && <SelectItem value="manager">Gestor</SelectItem>}
-                        <SelectItem value="executor">Executor</SelectItem>
-                        {!isManager && <SelectItem value="consultant">Consultor</SelectItem>}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>Define as permissões do funcionário</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="position"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Posição/Função</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Briefcase className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                          placeholder="Ex: Pintor, Engenheiro, etc."
-                          className="h-11 pl-10"
+                          type="email"
+                          placeholder="funcionario@empresa.com"
+                          {...field}
+                          className="h-9 text-sm"
+                        />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        O convite será enviado para este email.
+                      </FormDescription>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Telefone</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="tel"
+                            placeholder="(11) 98765-4321"
+                            value={maskPhone(field.value || '')}
+                            onChange={(e) => {
+                              const unmasked = unmaskPhone(e.target.value)
+                              field.onChange(unmasked)
+                            }}
+                            onBlur={() => {
+                              field.onBlur()
+                              form.trigger('phone')
+                            }}
+                            className="h-9 text-sm"
+                          />
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="document"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">CPF</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="000.000.000-00"
+                            value={maskCPF(field.value || '')}
+                            onChange={(e) => {
+                              const unmasked = unmaskCPF(e.target.value)
+                              field.onChange(unmasked)
+                            }}
+                            onBlur={() => {
+                              field.onBlur()
+                              form.trigger('document')
+                            }}
+                            className="h-9 text-sm"
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          O usuário precisará informar este CPF ao criar a senha.
+                        </FormDescription>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Cargo no sistema</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-9 text-sm">
+                              <SelectValue placeholder="Selecione o cargo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {!isManager && <SelectItem value="manager">Gestor</SelectItem>}
+                            <SelectItem value="executor">Executor</SelectItem>
+                            {!isManager && <SelectItem value="consultant">Consultor</SelectItem>}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription className="text-xs">
+                          Define as permissões do usuário.
+                        </FormDescription>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="position"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Posição/Função</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex: Pintor, Engenheiro, etc."
+                            {...field}
+                            className="h-9 text-sm"
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          Função específica na empresa.
+                        </FormDescription>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Observações</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Informações adicionais sobre o usuário (opcional)"
+                          className="min-h-[100px] text-sm"
                           {...field}
                         />
-                      </div>
-                    </FormControl>
-                    <FormDescription>Função específica na empresa</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Notas internas sobre o usuário.
+                      </FormDescription>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              </fieldset>
+
+              <div className="mt-6 flex justify-end gap-2 border-t pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push(`/companies/${companyId}/members`)}
+                  disabled={form.formState.isSubmitting}
+                  size="sm"
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting} size="sm">
+                  {form.formState.isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Enviar convite
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Informações adicionais sobre o funcionário (opcional)"
-                      className="min-h-[100px] resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>Notas internas sobre o funcionário</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </FormSection>
-
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push(`/companies/${companyId}/members`)}
-              disabled={form.formState.isSubmitting}
-              className="w-full sm:w-auto"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={form.formState.isSubmitting}
-              className="w-full sm:w-auto sm:min-w-[200px]"
-              size="lg"
-            >
-              {form.formState.isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enviando convite...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Enviar Convite
-                </>
-              )}
-            </Button>
           </div>
         </form>
       </Form>

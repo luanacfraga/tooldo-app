@@ -1,13 +1,29 @@
 'use client';
 
-import { useMemo } from 'react';
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { useEffect, useMemo, useState } from 'react';
+import { ResponsiveDataTable } from '@/components/shared/data/responsive-data-table';
+import { ActionCard } from './action-card';
+
+// ... (keep existing imports)
+
+// Since ResponsiveDataTable handles the table structure, we might need to adjust.
+// Wait, ActionTable currently defines the Table, Header, etc. explicitly.
+// ResponsiveDataTable usually takes columns and data.
+// However, the current implementation uses ActionTableRow which is a custom row component.
+// The plan mentions:
+// <ResponsiveDataTable
+//   data={items}
+//   columns={columns}
+//   CardComponent={ItemCard}  // Mobile: Renderiza cards
+//   // Desktop: Renderiza table automaticamente
+// />
+//
+// But here we have custom logic for rows (canEdit, permissions, etc) inside the map.
+// To use ResponsiveDataTable properly we should probably define columns or just use the
+// layout switching logic directly here if ResponsiveDataTable is too rigid.
+// Let's check ResponsiveDataTable implementation.
+
+import { Pagination } from '@/components/shared/data/pagination';
 import { useActions, useDeleteAction } from '@/lib/hooks/use-actions';
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store';
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -16,92 +32,95 @@ import { ActionTableRow } from './action-table-row';
 import { ActionListEmpty } from './action-list-empty';
 import { ActionListSkeleton } from './action-list-skeleton';
 import { toast } from 'sonner';
-import type { ActionFilters } from '@/lib/types/action';
+import type { Action, ActionFilters } from '@/lib/types/action';
+import { ActionDetailSheet } from '../action-detail-sheet';
+import { buildActionsApiFilters } from '@/lib/utils/build-actions-api-filters';
+
+const EMPTY_ACTIONS: Action[] = [];
 
 export function ActionTable() {
   const { user } = useAuth();
   const { selectedCompany } = useCompany();
   const filtersState = useActionFiltersStore();
   const deleteActionMutation = useDeleteAction();
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const [selectedCanEdit, setSelectedCanEdit] = useState<boolean>(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Build API filters from store
   const apiFilters: ActionFilters = useMemo(() => {
-    const filters: ActionFilters = {};
-
-    if (filtersState.status !== 'all') filters.status = filtersState.status;
-    if (filtersState.priority !== 'all') filters.priority = filtersState.priority;
-    if (filtersState.showBlockedOnly) filters.isBlocked = true;
-    if (filtersState.showLateOnly) filters.isLate = true;
-
-    // Assignment filters
-    if (filtersState.assignment === 'assigned-to-me') {
-      filters.responsibleId = user?.id;
-    }
-
-    // Company/Team filters - use selectedCompany as default if no filter is set
-    if (filtersState.companyId) {
-      filters.companyId = filtersState.companyId;
-    } else if (selectedCompany?.id) {
-      filters.companyId = selectedCompany.id;
-    }
-
-    if (filtersState.teamId) filters.teamId = filtersState.teamId;
-
-    return filters;
+    return buildActionsApiFilters({
+      state: {
+        statuses: filtersState.statuses,
+        priority: filtersState.priority,
+        assignment: filtersState.assignment,
+        dateFrom: filtersState.dateFrom,
+        dateTo: filtersState.dateTo,
+        dateFilterType: filtersState.dateFilterType,
+        datePreset: filtersState.datePreset,
+        companyId: filtersState.companyId,
+        teamId: filtersState.teamId,
+        showBlockedOnly: filtersState.showBlockedOnly,
+        showLateOnly: filtersState.showLateOnly,
+        searchQuery: filtersState.searchQuery,
+      },
+      userId: user?.id,
+      selectedCompanyId: selectedCompany?.id,
+      page: filtersState.page,
+      limit: filtersState.pageSize,
+    });
   }, [filtersState, user, selectedCompany]);
 
-  const { data: actions = [], isLoading, error } = useActions(apiFilters);
-  const visibleActions = useMemo(() => {
-    let result = actions;
+  const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.responsibleId);
+  const { data, isLoading, isFetching, error } = useActions(apiFilters);
+  const actions = data?.data ?? EMPTY_ACTIONS;
+  const meta = data?.meta;
 
-    // Backend doesn't support search/creatorId filter yet, so we apply client-side filtering.
-    if (filtersState.assignment === 'created-by-me' && user?.id) {
-      result = result.filter((a) => a.creatorId === user.id);
+  useEffect(() => {
+    if (!meta || meta.totalPages <= 0) return;
+    if (filtersState.page > meta.totalPages) {
+      filtersState.setFilter('page', meta.totalPages);
     }
-
-    const q = filtersState.searchQuery?.trim().toLowerCase();
-    if (q) {
-      result = result.filter((a) => {
-        const haystack = `${a.title} ${a.description}`.toLowerCase();
-        return haystack.includes(q);
-      });
-    }
-
-    return result;
-  }, [actions, filtersState.assignment, filtersState.searchQuery, user?.id]);
+  }, [filtersState, meta]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this action?')) return;
+    if (!confirm('Tem certeza que deseja excluir esta ação?')) return;
 
     try {
       await deleteActionMutation.mutateAsync(id);
-      toast.success('Action deleted successfully');
+      toast.success('Ação excluída com sucesso');
     } catch (error) {
-      toast.error('Failed to delete action');
+      toast.error('Erro ao excluir ação');
     }
   };
 
   const canCreate = user?.role === 'admin' || user?.role === 'manager';
 
   const hasFilters =
-    filtersState.status !== 'all' ||
+    filtersState.statuses.length > 0 ||
     filtersState.priority !== 'all' ||
     filtersState.assignment !== 'all' ||
     filtersState.showBlockedOnly ||
     filtersState.showLateOnly ||
     !!filtersState.searchQuery;
 
-  if (isLoading) return <ActionListSkeleton />;
+  if (!hasScope) return <ActionListSkeleton />;
+
+  // Show skeleton during initial load OR when fetching with no previous data
+  // This handles view transitions (kanban → table) properly with keepPreviousData
+  if (isLoading || (isFetching && actions.length === 0)) {
+    return <ActionListSkeleton />;
+  }
 
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-destructive">Failed to load actions. Please try again.</p>
+        <p className="text-destructive">Erro ao carregar ações. Tente novamente.</p>
       </div>
     );
   }
 
-  if (visibleActions.length === 0) {
+  if (actions.length === 0) {
     return (
       <ActionListEmpty
         hasFilters={hasFilters}
@@ -112,21 +131,37 @@ export function ActionTable() {
   }
 
   return (
-    <div className="rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Assigned To</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Progress</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {visibleActions.map((action) => {
+    <>
+      <div className="rounded-lg">
+        <ResponsiveDataTable
+            data={actions}
+            headers={[
+                { label: 'Título' },
+                { label: 'Status', className: 'w-[150px]' },
+                { label: 'Prioridade', className: 'w-[100px]' },
+                { label: 'Responsável' },
+                { label: 'Prazo', className: 'w-[100px]' },
+                { label: 'Checklist', className: 'w-[80px]' },
+                { label: '', className: 'w-[50px]' },
+            ]}
+            CardComponent={(props) => (
+                <ActionCard
+                    data={props.data}
+                    onView={() => {
+                        const canEdit =
+                            user?.role === 'admin' ||
+                            props.data.creatorId === user?.id ||
+                            props.data.responsibleId === user?.id;
+                        setSelectedActionId(props.data.id);
+                        setSelectedCanEdit(!!canEdit);
+                        setSheetOpen(true);
+                    }}
+                />
+            )}
+            emptyMessage="Nenhuma ação encontrada com os filtros atuais."
+            isLoading={isFetching && actions.length > 0}
+        >
+            {(action) => {
             const canEdit =
               user?.role === 'admin' ||
               action.creatorId === user?.id ||
@@ -140,11 +175,43 @@ export function ActionTable() {
                 canEdit={canEdit}
                 canDelete={canDelete}
                 onDelete={handleDelete}
+                onView={() => {
+                  setSelectedActionId(action.id);
+                  setSelectedCanEdit(!!canEdit);
+                  setSheetOpen(true);
+                }}
               />
             );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+            }}
+        </ResponsiveDataTable>
+      </div>
+
+      {meta && meta.totalPages > 0 && (
+        <div className="mt-4">
+          <Pagination
+            page={meta.page}
+            limit={meta.limit}
+            total={meta.total}
+            totalPages={meta.totalPages}
+            onPageChange={(page) => filtersState.setFilter('page', page)}
+            onLimitChange={(limit) => {
+              filtersState.setFilter('pageSize', limit);
+              filtersState.setFilter('page', 1);
+            }}
+            pageSizeOptions={[20]}
+          />
+        </div>
+      )}
+
+      <ActionDetailSheet
+        actionId={selectedActionId}
+        open={sheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open);
+          if (!open) setSelectedActionId(null);
+        }}
+        canEdit={selectedCanEdit}
+      />
+    </>
   );
 }

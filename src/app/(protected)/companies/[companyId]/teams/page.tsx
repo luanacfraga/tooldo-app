@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/shared/feedback/error-state'
 import { LoadingScreen } from '@/components/shared/feedback/loading-screen'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
+import { ResponsiveDataTable } from '@/components/shared/table'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiError } from '@/lib/api/api-client'
@@ -16,18 +17,11 @@ import { formatDate } from '@/lib/formatters'
 import { useManagersByCompany } from '@/lib/services/queries/use-employees'
 import { useCreateTeam, useTeamsByCompany, useUpdateTeam } from '@/lib/services/queries/use-teams'
 import { type TeamFormData } from '@/lib/validators/team'
-import {
-  AlertCircle,
-  ArrowLeft,
-  Building2,
-  CheckCircle2,
-  Edit,
-  Plus,
-  UserCog,
-  Users,
-} from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
+import { AlertCircle, Building2, CheckCircle2, Edit, Plus, UserCog, Users } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
+import { TeamCard } from './team-card'
 
 export default function TeamsPage() {
   const params = useParams()
@@ -69,6 +63,65 @@ export default function TeamsPage() {
 
   const hasSingleTeam = teams.length === 1
   const myTeam = isManager && hasSingleTeam ? teams[0] : null
+
+  const columns = useMemo<ColumnDef<Team>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Nome',
+      },
+      {
+        accessorKey: 'description',
+        header: 'Descrição',
+        cell: ({ row }) => {
+          const description = row.getValue('description') as string | null | undefined
+          return description ? (
+            <span className="line-clamp-1 text-sm text-muted-foreground">{description}</span>
+          ) : (
+            <span className="text-sm text-muted-foreground">-</span>
+          )
+        },
+      },
+      {
+        id: 'actions',
+        header: () => <span className="sr-only">Ações</span>,
+        cell: ({ row }) => {
+          const team = row.original
+          return (
+            <div className="flex justify-end gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedTeam(team)
+                  setShowMembersDialog(true)
+                }}
+                className="h-8 gap-1 px-2"
+              >
+                <UserCog className="h-4 w-4" />
+                <span className="hidden sm:inline">Membros</span>
+              </Button>
+              {(isAdmin || (isManager && team.managerId === user?.id)) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingTeam(team)
+                    setError(null)
+                  }}
+                  className="h-8 gap-1 px-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  <span className="hidden sm:inline">Editar</span>
+                </Button>
+              )}
+            </div>
+          )
+        },
+      },
+    ],
+    [isAdmin, isManager, user?.id]
+  )
 
   const getErrorMessage = (err: unknown, defaultMessage: string): string => {
     if (err instanceof ApiError) {
@@ -148,19 +201,41 @@ export default function TeamsPage() {
     )
   }
 
+  const isEditingFlow = showCreateForm || !!editingTeam
+  const handleBackFromForm = () => {
+    setShowCreateForm(false)
+    setEditingTeam(null)
+    setError(null)
+  }
+
   return (
     <PageContainer maxWidth="7xl">
       <PageHeader
-        title={isManager ? (hasSingleTeam ? 'Minha Equipe' : 'Minhas Equipes') : 'Equipes'}
-        description={
-          isManager
-            ? hasSingleTeam
-              ? `Gerencie sua equipe${company ? ` em ${company.name}` : ''}`
-              : `Gerencie suas equipes${company ? ` em ${company.name}` : ''}`
-            : `Gerencie as equipes${company ? ` de ${company.name}` : ''}`
+        title={
+          isEditingFlow
+            ? editingTeam
+              ? 'Editar Equipe'
+              : 'Nova Equipe'
+            : isManager
+              ? hasSingleTeam
+                ? 'Minha Equipe'
+                : 'Minhas Equipes'
+              : 'Equipes'
         }
+        description={
+          isEditingFlow
+            ? editingTeam
+              ? `Atualize as informações da equipe${company ? ` em ${company.name}` : ''}`
+              : `Crie uma nova equipe${company ? ` em ${company.name}` : ''}`
+            : isManager
+              ? hasSingleTeam
+                ? `Gerencie sua equipe${company ? ` em ${company.name}` : ''}`
+                : `Gerencie suas equipes${company ? ` em ${company.name}` : ''}`
+              : `Gerencie as equipes${company ? ` de ${company.name}` : ''}`
+        }
+        backOnClick={isEditingFlow ? handleBackFromForm : undefined}
         action={
-          !showCreateForm &&
+          !isEditingFlow &&
           !isManager && (
             <Button
               onClick={() => setShowCreateForm(true)}
@@ -207,25 +282,6 @@ export default function TeamsPage() {
 
       {showCreateForm || editingTeam ? (
         <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setShowCreateForm(false)
-                setEditingTeam(null)
-                setError(null)
-              }}
-              className="gap-1.5 font-medium sm:gap-2"
-            >
-              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Voltar</span>
-            </Button>
-            <h2 className="text-xl font-semibold">
-              {editingTeam ? 'Editar Equipe' : 'Nova Equipe'}
-            </h2>
-          </div>
-
           {availableManagers.length === 0 ? (
             <Card>
               <CardHeader>
@@ -247,24 +303,6 @@ export default function TeamsPage() {
             </Card>
           ) : (
             <>
-              {isManager && !editingTeam && (
-                <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-                  <p className="text-sm text-foreground">
-                    <strong>Você está criando uma equipe como gestor.</strong> Você será
-                    automaticamente designado como gestor desta equipe e poderá adicionar executores
-                    para trabalhar com você.
-                  </p>
-                </div>
-              )}
-              {editingTeam && (
-                <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-                  <p className="text-sm text-foreground">
-                    <strong>Editando equipe:</strong> Você pode alterar o nome, descrição, contexto
-                    de IA e até substituir o gestor da equipe. Cada gestor só pode gerenciar uma
-                    equipe por vez na empresa.
-                  </p>
-                </div>
-              )}
               <TeamForm
                 companyId={companyId}
                 managers={availableManagers}
@@ -394,76 +432,26 @@ export default function TeamsPage() {
                 </Card>
               ) : (
                 // Layout em grid para múltiplas equipes
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {teams.map((team) => {
-                    const isMyTeam = isManager && team.managerId === user?.id
-                    return (
-                      <Card key={team.id} className="transition-shadow hover:shadow-md">
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <CardTitle className="text-lg">{team.name}</CardTitle>
-                                {isMyTeam && (
-                                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                                    Sua equipe
-                                  </span>
-                                )}
-                              </div>
-                              {team.description && (
-                                <CardDescription className="mt-2 line-clamp-2">
-                                  {team.description}
-                                </CardDescription>
-                              )}
-                            </div>
-                            <Building2 className="ml-2 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            {team.iaContext && (
-                              <div className="text-sm text-muted-foreground">
-                                <span className="font-medium">Contexto IA:</span>{' '}
-                                <span className="line-clamp-2">{team.iaContext}</span>
-                              </div>
-                            )}
-                            <div className="text-xs text-muted-foreground">
-                              Criada em {formatDate(team.createdAt)}
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-1 gap-2"
-                                onClick={() => {
-                                  setSelectedTeam(team)
-                                  setShowMembersDialog(true)
-                                }}
-                              >
-                                <UserCog className="h-4 w-4" />
-                                Membros
-                              </Button>
-                              {(isAdmin || (isManager && team.managerId === user?.id)) && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-2"
-                                  onClick={() => {
-                                    setEditingTeam(team)
-                                    setError(null)
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                  Editar
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
+                <ResponsiveDataTable
+                  data={teams}
+                  columns={columns}
+                  CardComponent={(props) => (
+                    <TeamCard
+                      {...props}
+                      onEdit={(team) => {
+                        setEditingTeam(team)
+                        setError(null)
+                      }}
+                      onManageMembers={(team) => {
+                        setSelectedTeam(team)
+                        setShowMembersDialog(true)
+                      }}
+                    />
+                  )}
+                  isLoading={false}
+                  emptyMessage="Nenhuma equipe encontrada"
+                  getRowId={(team) => team.id}
+                />
               )}
             </>
           )}
