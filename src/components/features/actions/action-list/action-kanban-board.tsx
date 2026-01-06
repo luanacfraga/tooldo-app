@@ -551,7 +551,7 @@ const ActionKanbanCard = memo(function ActionKanbanCard({
       className={cn(
         'kanban-card relative flex w-full flex-col gap-2 rounded-xl border bg-card p-3 shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]',
         isDragging && 'kanban-card-dragging z-50 scale-105 shadow-xl',
-        action.isBlocked && 'border-warning/30 bg-warning/5'
+        action.isBlocked && 'border-muted-foreground/20 bg-muted/40'
       )}
     >
       <div

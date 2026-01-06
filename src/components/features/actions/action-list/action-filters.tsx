@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
 import { ActionPriority, ActionStatus } from '@/lib/types/action'
+import { datePresets, getPresetById } from '@/lib/utils/date-presets'
 import { cn } from '@/lib/utils'
 import { getActionStatusUI } from '../shared/action-status-ui'
 import { getActionPriorityUI } from '../shared/action-priority-ui'
@@ -19,11 +20,9 @@ import {
   UserCircle2,
   X,
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 
 export function ActionFilters() {
   const filters = useActionFiltersStore()
-  const router = useRouter()
 
   const hasActiveFilters =
     filters.statuses.length > 0 ||
@@ -164,7 +163,10 @@ export function ActionFilters() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start text-xs font-normal"
+                  className={cn(
+                    'w-full justify-start text-xs font-normal',
+                    filters.statuses.length === 0 && 'bg-primary/10 text-primary'
+                  )}
                   onClick={() => filters.setFilter('statuses', [])}
                 >
                   Todos
@@ -199,9 +201,7 @@ export function ActionFilters() {
                   >
                     <span className={cn('mr-2 inline-block h-2 w-2 rounded-full', meta.dot)} />
                     <span>{option.label}</span>
-                    {isActive && (
-                      <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
-                    )}
+                    {isActive && <CheckCircle2 className="ml-auto h-3.5 w-3.5" />}
                   </Button>
                     )
                   })()
@@ -234,7 +234,10 @@ export function ActionFilters() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start text-xs font-normal"
+                  className={cn(
+                    'w-full justify-start text-xs font-normal',
+                    filters.priority === 'all' && 'bg-primary/10 text-primary'
+                  )}
                   onClick={() => filters.setFilter('priority', 'all')}
                 >
                   Todas
@@ -265,9 +268,7 @@ export function ActionFilters() {
                   >
                     <Flag className={cn('mr-2 h-3.5 w-3.5', meta.flagClass)} />
                     <span>{option.label}</span>
-                    {isActive && (
-                      <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
-                    )}
+                    {isActive && <CheckCircle2 className="ml-auto h-3.5 w-3.5" />}
                   </Button>
                     )
                   })()
@@ -300,7 +301,10 @@ export function ActionFilters() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start text-xs font-normal"
+                  className={cn(
+                    'w-full justify-start text-xs font-normal',
+                    filters.assignment === 'all' && 'bg-primary/10 text-primary'
+                  )}
                   onClick={() => filters.setFilter('assignment', 'all')}
                 >
                   Todas
@@ -345,7 +349,12 @@ export function ActionFilters() {
             >
               <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
               <span>Data</span>
-              {(filters.dateFrom || filters.dateTo) && (
+              {filters.datePreset && (
+                <span className="ml-1.5 inline-flex h-5 px-1.5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {getPresetById(filters.datePreset)?.label || 'Ativo'}
+                </span>
+              )}
+              {!filters.datePreset && (filters.dateFrom || filters.dateTo) && (
                 <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                   1
                 </span>
@@ -354,37 +363,68 @@ export function ActionFilters() {
           </PopoverTrigger>
           <PopoverContent className="w-[280px] p-0" align="start">
             <div className="p-3 space-y-3">
+              {/* Presets Section */}
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+                  Períodos Rápidos
+                </label>
+                <div className="space-y-1">
+                  {datePresets.map((preset) => (
+                    <Button
+                      key={preset.id}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        'w-full justify-start text-xs font-normal',
+                        filters.datePreset === preset.id && 'bg-primary/10 text-primary'
+                      )}
+                      onClick={() => {
+                        const range = preset.getRange()
+                        filters.setFilter('dateFrom', range.dateFrom)
+                        filters.setFilter('dateTo', range.dateTo)
+                        filters.setFilter('datePreset', preset.id)
+                      }}
+                    >
+                      {preset.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-muted" />
+
+              {/* Filter Type Selection */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground mb-2 block">
                   Filtrar por
                 </label>
-                <div className="space-y-1">
+                <div className="grid grid-cols-2 gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'w-full justify-start text-xs font-normal',
+                      'text-xs font-normal h-8 justify-between',
                       filters.dateFilterType === 'createdAt' && 'bg-primary/10 text-primary'
                     )}
                     onClick={() => filters.setFilter('dateFilterType', 'createdAt')}
                   >
-                    Data de Criação
+                    Criação
                     {filters.dateFilterType === 'createdAt' && (
-                      <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
+                      <CheckCircle2 className="ml-2 h-3.5 w-3.5" />
                     )}
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'w-full justify-start text-xs font-normal',
+                      'text-xs font-normal h-8 justify-between',
                       filters.dateFilterType === 'startDate' && 'bg-primary/10 text-primary'
                     )}
                     onClick={() => filters.setFilter('dateFilterType', 'startDate')}
                   >
-                    Data de Início
+                    Início
                     {filters.dateFilterType === 'startDate' && (
-                      <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
+                      <CheckCircle2 className="ml-2 h-3.5 w-3.5" />
                     )}
                   </Button>
                 </div>
@@ -392,9 +432,10 @@ export function ActionFilters() {
 
               <div className="h-px bg-muted" />
 
+              {/* Custom Date Range */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground mb-2 block">
-                  Período
+                  Personalizado
                 </label>
                 <div className="space-y-2">
                   <div>
@@ -403,8 +444,11 @@ export function ActionFilters() {
                       type="date"
                       value={filters.dateFrom ? filters.dateFrom.split('T')[0] : ''}
                       onChange={(e) => {
-                        const date = e.target.value ? new Date(e.target.value + 'T00:00:00').toISOString() : null
+                        const date = e.target.value
+                          ? new Date(e.target.value + 'T00:00:00').toISOString()
+                          : null
                         filters.setFilter('dateFrom', date)
+                        filters.setFilter('datePreset', null)
                       }}
                       className="h-8 text-xs"
                     />
@@ -415,8 +459,11 @@ export function ActionFilters() {
                       type="date"
                       value={filters.dateTo ? filters.dateTo.split('T')[0] : ''}
                       onChange={(e) => {
-                        const date = e.target.value ? new Date(e.target.value + 'T23:59:59').toISOString() : null
+                        const date = e.target.value
+                          ? new Date(e.target.value + 'T23:59:59').toISOString()
+                          : null
                         filters.setFilter('dateTo', date)
+                        filters.setFilter('datePreset', null)
                       }}
                       className="h-8 text-xs"
                     />
@@ -431,6 +478,7 @@ export function ActionFilters() {
                   onClick={() => {
                     filters.setFilter('dateFrom', null)
                     filters.setFilter('dateTo', null)
+                    filters.setFilter('datePreset', null)
                   }}
                   className="w-full h-7 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 >
