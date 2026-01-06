@@ -1,4 +1,5 @@
-import type { Action, ActionStatus } from '@/lib/types/action'
+import { useCallback, useState } from 'react'
+
 import {
   DragEndEvent,
   DragStartEvent,
@@ -8,8 +9,11 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+
+import { ActionStatus } from '@/lib/types/action'
+import type { Action } from '@/lib/types/action'
+
 import { useMoveAction } from './use-actions'
 
 export function useKanbanActions(actions: Action[]) {
@@ -17,16 +21,15 @@ export function useKanbanActions(actions: Action[]) {
   const [activeAction, setActiveAction] = useState<Action | null>(null)
   const moveAction = useMoveAction()
 
-  // Configure sensors with proper activation constraints
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Increased distance for better scrolling vs dragging distinction
+        distance: 8,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250, // Increased delay to distinguish tap vs drag
+        delay: 250,
         tolerance: 5,
       },
     }),
@@ -37,7 +40,6 @@ export function useKanbanActions(actions: Action[]) {
     })
   )
 
-  // Sort actions by position within column
   const getColumnActions = useCallback(
     (status: ActionStatus) => {
       return actions
@@ -54,14 +56,22 @@ export function useKanbanActions(actions: Action[]) {
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
       const { active } = event
-      setActiveId(active.id as string)
-      const draggedAction = actions.find((action) => action.id === active.id)
+      const activeActionId = String(active.id)
+      setActiveId(activeActionId)
+      const draggedAction = actions.find((action) => action.id === activeActionId)
       if (draggedAction) {
         setActiveAction(draggedAction)
       }
     },
     [actions]
   )
+
+  const parseActionStatus = useCallback((value: unknown): ActionStatus | null => {
+    if (value === ActionStatus.TODO) return ActionStatus.TODO
+    if (value === ActionStatus.IN_PROGRESS) return ActionStatus.IN_PROGRESS
+    if (value === ActionStatus.DONE) return ActionStatus.DONE
+    return null
+  }, [])
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -71,36 +81,27 @@ export function useKanbanActions(actions: Action[]) {
 
       if (!over) return
 
-      const activeAction = actions.find((action) => action.id === active.id)
-      if (!activeAction) return
+      const activeActionId = String(active.id)
+      const movedAction = actions.find((action) => action.id === activeActionId)
+      if (!movedAction) return
 
-      // Determine new status
-      const isColumn = ['TODO', 'IN_PROGRESS', 'DONE'].includes(over.id as string)
-      let newStatus: ActionStatus | undefined
+      const overActionId = String(over.id)
+      const columnStatus = parseActionStatus(over.id)
+      const overAction = actions.find((a) => a.id === overActionId)
+      const nextStatus = columnStatus ?? overAction?.status ?? null
+      if (!nextStatus) return
 
-      if (isColumn) {
-        newStatus = over.id as ActionStatus
-      } else {
-        // If dropped over another card, get that card's status
-        const overAction = actions.find((a) => a.id === over.id)
-        newStatus = overAction?.status
-      }
-
-      if (!newStatus) return
-
-      // Optimistic update handled by parent component now to avoid flicker
-      // We just call the mutation here
       try {
         await moveAction.mutateAsync({
-          id: activeAction.id,
-          data: { toStatus: newStatus }, // Let backend handle position for now to simplify
+          id: movedAction.id,
+          data: { toStatus: nextStatus },
         })
         toast.success('Ação movida com sucesso')
-      } catch (error) {
+      } catch {
         toast.error('Erro ao mover ação')
       }
     },
-    [actions, moveAction]
+    [actions, moveAction, parseActionStatus]
   )
 
   return {

@@ -1,9 +1,31 @@
 'use client'
 
+import { memo, useCallback, useMemo, useState } from 'react'
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  useDroppable,
+  type DragEndEvent,
+  type DragStartEvent,
+  type DraggableSyntheticListeners,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { useQuery } from '@tanstack/react-query'
+import { format } from 'date-fns'
+import { Calendar, UserCheck } from 'lucide-react'
+import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { PriorityBadge } from '@/components/ui/priority-badge'
 import { UserAvatar } from '@/components/ui/user-avatar'
+
 import { employeesApi } from '@/lib/api/endpoints/employees'
 import { useActions, useUpdateAction } from '@/lib/hooks/use-actions'
 import { useAuth } from '@/lib/hooks/use-auth'
@@ -13,28 +35,13 @@ import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
 import { ActionStatus, type Action, type ActionFilters } from '@/lib/types/action'
 import { cn } from '@/lib/utils'
 import { buildActionsApiFilters } from '@/lib/utils/build-actions-api-filters'
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  useDroppable,
-  type DraggableSyntheticListeners,
-} from '@dnd-kit/core'
-import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { useQuery } from '@tanstack/react-query'
-import { format } from 'date-fns'
-import { Calendar, UserCheck } from 'lucide-react'
-import { memo, useCallback, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+
 import { ActionDetailSheet } from '../action-detail-sheet'
 import { actionStatusUI } from '../shared/action-status-ui'
 import { BlockedBadge } from '../shared/blocked-badge'
 import { LateIndicator } from '../shared/late-indicator'
 import { ActionListEmpty } from './action-list-empty'
 import { ActionListSkeleton } from './action-list-skeleton'
-
-// Priority UI is centralized in getActionPriorityUI()
 
 const columns = [
   {
@@ -99,6 +106,31 @@ const kanbanStyles = `
   }
 `
 
+const EXECUTORS_STALE_TIME_MS = 1000 * 60 * 5
+
+const columnNames: Record<ActionStatus, string> = {
+  [ActionStatus.TODO]: 'Pendentes',
+  [ActionStatus.IN_PROGRESS]: 'Em Andamento',
+  [ActionStatus.DONE]: 'Concluídas',
+}
+
+function parseActionStatus(value: unknown): ActionStatus | null {
+  if (value === ActionStatus.TODO) return ActionStatus.TODO
+  if (value === ActionStatus.IN_PROGRESS) return ActionStatus.IN_PROGRESS
+  if (value === ActionStatus.DONE) return ActionStatus.DONE
+  return null
+}
+
+function getDraggedActionTitle(active: DragStartEvent['active']): string | null {
+  const current = active.data.current
+  if (!current || typeof current !== 'object') return null
+  if (!('action' in current)) return null
+  const action = (current as { action?: unknown }).action
+  if (!action || typeof action !== 'object') return null
+  const title = (action as { title?: unknown }).title
+  return typeof title === 'string' ? title : null
+}
+
 export function ActionKanbanBoard() {
   const { user } = useAuth()
   const { selectedCompany } = useCompany()
@@ -107,7 +139,6 @@ export function ActionKanbanBoard() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [announcement, setAnnouncement] = useState('')
 
-  // Build API filters from store - backend handles ALL filtering
   const apiFilters: ActionFilters = useMemo(() => {
     return buildActionsApiFilters({
       state: {
@@ -126,15 +157,14 @@ export function ActionKanbanBoard() {
       },
       userId: user?.id,
       selectedCompanyId: selectedCompany?.id,
-      page: 1, // Kanban always shows all data on one page
-      limit: 1000, // Large limit to get all actions
+      page: 1,
+      limit: 1000,
     })
   }, [filtersState, user, selectedCompany])
 
   const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.responsibleId)
   const { data, isLoading, isFetching, error } = useActions(apiFilters)
 
-  // Use data directly from React Query - no local state needed
   const actions = data?.data ?? []
 
   const {
@@ -145,30 +175,21 @@ export function ActionKanbanBoard() {
     activeAction,
   } = useKanbanActions(actions)
 
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: DragStartEvent) => {
     originalHandleDragStart(event)
-    const action = event.active?.data?.current?.action
-    if (action) {
-      setAnnouncement(`Movendo ação: ${action.title}`)
-    }
+    const title = getDraggedActionTitle(event.active)
+    if (title) setAnnouncement(`Movendo ação: ${title}`)
   }
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     originalHandleDragEnd(event)
-
-    const action = event.active?.data?.current?.action
-    const overColumn = event.over?.id
-
-    if (action && overColumn) {
-      const columnNames = {
-        [ActionStatus.TODO]: 'Pendentes',
-        [ActionStatus.IN_PROGRESS]: 'Em Andamento',
-        [ActionStatus.DONE]: 'Concluídas',
-      }
-      setAnnouncement(`Ação ${action.title} movida para ${columnNames[overColumn as ActionStatus]}`)
-    } else {
-      setAnnouncement('')
+    const title = getDraggedActionTitle(event.active)
+    const nextStatus = parseActionStatus(event.over?.id)
+    if (title && nextStatus) {
+      setAnnouncement(`Ação ${title} movida para ${columnNames[nextStatus]}`)
+      return
     }
+    setAnnouncement('')
   }
 
   const canCreate = user?.role === 'admin' || user?.role === 'manager'
@@ -187,7 +208,6 @@ export function ActionKanbanBoard() {
 
   if (!hasScope) return <ActionListSkeleton />
 
-  // Show skeleton during initial load OR when fetching with no previous data
   if (isLoading || (isFetching && actions.length === 0)) {
     return <ActionListSkeleton />
   }
@@ -215,12 +235,10 @@ export function ActionKanbanBoard() {
       <style jsx global>
         {kanbanStyles}
       </style>
-      {/* ARIA live region for screen reader announcements */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
       </div>
 
-      {/* Background loading indicator when fetching new data */}
       {isFetching && actions.length > 0 && (
         <div className="sticky top-0 left-0 right-0 h-1 bg-primary/20 z-50 mb-4">
           <div className="h-full bg-primary animate-pulse" />
@@ -242,7 +260,6 @@ export function ActionKanbanBoard() {
           aria-label="Quadro Kanban de ações"
         >
           {columns.map((column) => {
-            // Backend already filtered - just get actions for this column
             const columnActions = getColumnActions(column.status)
 
             return (
@@ -291,7 +308,6 @@ function KanbanColumn({ column, actions, onActionClick }: KanbanColumnProps) {
         className={`kanban-column flex w-[85vw] flex-shrink-0 flex-col rounded-xl border bg-card/50 shadow-sm backdrop-blur-sm transition-all duration-300 sm:w-[50vw] md:w-full md:flex-shrink ${containerClass} ${isOver ? 'kanban-column-drag-over' : ''}`}
         style={{ minHeight: '500px', maxHeight: 'calc(100vh - 220px)' }}
       >
-        {/* Column Header */}
         <div className="flex items-center gap-3 border-b border-border/40 px-4 py-3">
           <span className={`h-2.5 w-2.5 rounded-full ${barClass}`} />
           <h3 className={`text-sm font-semibold tracking-tight ${titleClass}`}>{column.title}</h3>
@@ -302,7 +318,6 @@ function KanbanColumn({ column, actions, onActionClick }: KanbanColumnProps) {
           </span>
         </div>
 
-        {/* Column Body */}
         <div
           className="scrollbar-thin flex flex-1 flex-col gap-3 overflow-y-auto p-3"
           role="list"
@@ -373,7 +388,7 @@ function ResponsibleSelector({ action, canEdit }: ResponsibleSelectorProps) {
         ? employeesApi.listExecutorsByCompany(selectedCompany.id)
         : Promise.resolve([]),
     enabled: !!selectedCompany?.id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: EXECUTORS_STALE_TIME_MS,
   })
 
   const handleChangeResponsible = async (newResponsibleId: string) => {
@@ -539,7 +554,6 @@ const ActionKanbanCard = memo(function ActionKanbanCard({
         action.isBlocked && 'border-warning/30 bg-warning/5'
       )}
     >
-      {/* Área superior - Clique para abrir drawer */}
       <div
         className="flex cursor-pointer flex-col gap-2"
         onClick={handleClick}
@@ -565,7 +579,6 @@ const ActionKanbanCard = memo(function ActionKanbanCard({
         </div>
       </div>
 
-      {/* Área inferior - Drag and drop */}
       <div {...dragListeners} className="cursor-grab active:cursor-grabbing">
         {action.description && (
           <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{action.description}</p>
