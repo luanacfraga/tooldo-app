@@ -33,8 +33,10 @@ export function ActionFilters() {
 
   const getButtonState = (isActive: boolean) => {
     return cn(
-      'h-8 text-xs font-medium border-border/60 bg-background/50 hover:bg-accent/60 hover:border-border/80',
-      isActive && 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15'
+      'h-9 text-xs font-medium transition-all',
+      'border-border/50 bg-background/80 hover:bg-accent/70 hover:border-border',
+      'shadow-sm',
+      isActive && 'border-primary/60 bg-primary/10 text-primary hover:bg-primary/15 shadow-primary/10'
     )
   }
 
@@ -77,33 +79,34 @@ export function ActionFilters() {
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border/50 bg-card/60 p-4 shadow-sm backdrop-blur-sm">
+    <div className="flex flex-col gap-3 rounded-xl border border-border/40 bg-gradient-to-br from-card to-card/80 p-4 shadow-sm backdrop-blur-sm">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         {/* Search Bar */}
-        <div className="relative w-full sm:max-w-xs">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="relative w-full sm:max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
           <Input
-            placeholder="Buscar por título ou descrição..."
+            placeholder="Buscar ações..."
             value={filters.searchQuery}
             onChange={(e) => filters.setFilter('searchQuery', e.target.value)}
-            className="h-9 bg-background/70 pl-9 border-border/60 focus-visible:border-primary/40 focus-visible:ring-primary/15"
+            className="h-10 bg-background/80 pl-10 pr-4 border-border/50 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
           />
         </div>
 
-        {/* View Toggles & Create Button */}
-        <div className="ml-auto flex w-full items-center gap-2 sm:w-auto">
-          <div className="flex items-center rounded-lg border border-border/60 bg-background/40 p-1 shadow-sm">
+        {/* View Toggles */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-lg border border-border/50 bg-background/60 p-0.5 shadow-sm">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => filters.setFilter('viewMode', 'list')}
               className={cn(
-                'h-7 w-7 p-0',
-                filters.viewMode === 'list' &&
-                  'bg-primary/15 text-primary shadow-sm hover:bg-primary/20 hover:text-primary'
+                'h-8 w-8 p-0 transition-all',
+                filters.viewMode === 'list'
+                  ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
+                  : 'hover:bg-accent/50'
               )}
-              title="Lista"
-              aria-label="Visualizar como lista"
+              title="Tabela"
+              aria-label="Visualizar como tabela"
               aria-pressed={filters.viewMode === 'list'}
             >
               <LayoutList className="h-4 w-4" />
@@ -113,9 +116,10 @@ export function ActionFilters() {
               size="sm"
               onClick={() => filters.setFilter('viewMode', 'kanban')}
               className={cn(
-                'h-7 w-7 p-0',
-                filters.viewMode === 'kanban' &&
-                  'bg-primary/15 text-primary shadow-sm hover:bg-primary/20 hover:text-primary'
+                'h-8 w-8 p-0 transition-all',
+                filters.viewMode === 'kanban'
+                  ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
+                  : 'hover:bg-accent/50'
               )}
               title="Kanban"
               aria-label="Visualizar como kanban"
@@ -124,16 +128,14 @@ export function ActionFilters() {
               <LayoutGrid className="h-4 w-4" />
             </Button>
           </div>
-
-          <div className="mx-1 hidden h-4 w-px bg-border/60 sm:block" />
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="mr-2 flex items-center text-sm font-medium text-muted-foreground">
-          <Filter className="mr-2 h-4 w-4" />
-          Filtros:
+      <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/30">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground/80 uppercase tracking-wide pr-2">
+          <Filter className="h-3.5 w-3.5" />
+          <span>Filtros</span>
         </div>
 
         {/* Status Popover */}
@@ -144,10 +146,10 @@ export function ActionFilters() {
               size="sm"
               className={getButtonState(filters.statuses.length > 0)}
             >
-              <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-              Status
+              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+              <span>Status</span>
               {filters.statuses.length > 0 && (
-                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary/15 px-1 text-[10px] font-semibold text-primary">
+                <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                   {filters.statuses.length}
                 </span>
               )}
@@ -214,10 +216,10 @@ export function ActionFilters() {
               size="sm"
               className={getButtonState(filters.priority !== 'all')}
             >
-              <Flag className="mr-2 h-3.5 w-3.5" />
-              Prioridade
+              <Flag className="mr-1.5 h-3.5 w-3.5" />
+              <span>Prioridade</span>
               {filters.priority !== 'all' && (
-                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary/15 px-1 text-[10px] font-semibold text-primary">
+                <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                   1
                 </span>
               )}
@@ -280,10 +282,10 @@ export function ActionFilters() {
               size="sm"
               className={getButtonState(filters.assignment !== 'all')}
             >
-              <UserCircle2 className="mr-2 h-3.5 w-3.5" />
-              Atribuição
+              <UserCircle2 className="mr-1.5 h-3.5 w-3.5" />
+              <span>Atribuição</span>
               {filters.assignment !== 'all' && (
-                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary/15 px-1 text-[10px] font-semibold text-primary">
+                <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                   1
                 </span>
               )}
@@ -330,7 +332,7 @@ export function ActionFilters() {
           </PopoverContent>
         </Popover>
 
-        <div className="mx-1 h-6 w-px bg-border/60" />
+        <div className="mx-0.5 h-5 w-px bg-border/40" />
 
         {/* Quick Toggles */}
         <Button
@@ -339,7 +341,7 @@ export function ActionFilters() {
           onClick={() => filters.setFilter('showBlockedOnly', !filters.showBlockedOnly)}
           className={getButtonState(filters.showBlockedOnly)}
         >
-          Bloqueadas
+          <span>Bloqueadas</span>
         </Button>
         <Button
           variant="outline"
@@ -347,20 +349,23 @@ export function ActionFilters() {
           onClick={() => filters.setFilter('showLateOnly', !filters.showLateOnly)}
           className={getButtonState(filters.showLateOnly)}
         >
-          Atrasadas
+          <span>Atrasadas</span>
         </Button>
 
         {/* Clear Filters */}
         {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={filters.resetFilters}
-            className="ml-auto h-8 px-2 text-xs text-muted-foreground hover:text-foreground sm:ml-0"
-          >
-            Limpar filtros
-            <X className="ml-2 h-3.5 w-3.5" />
-          </Button>
+          <>
+            <div className="mx-0.5 h-5 w-px bg-border/40" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={filters.resetFilters}
+              className="h-9 px-3 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+            >
+              <span>Limpar</span>
+              <X className="ml-1.5 h-3.5 w-3.5" />
+            </Button>
+          </>
         )}
       </div>
     </div>

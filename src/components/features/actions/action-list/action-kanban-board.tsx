@@ -24,8 +24,8 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { Calendar, Loader2, UserCheck } from 'lucide-react'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Calendar, UserCheck } from 'lucide-react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { ActionDetailSheet } from '../action-detail-sheet'
 import { actionStatusUI } from '../shared/action-status-ui'
@@ -107,11 +107,7 @@ export function ActionKanbanBoard() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [announcement, setAnnouncement] = useState('')
 
-  // Build API filters from store
-  const [page, setPage] = useState(1)
-  const [allActions, setAllActions] = useState<Action[]>([])
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
-
+  // Build API filters from store - backend handles ALL filtering
   const apiFilters: ActionFilters = useMemo(() => {
     return buildActionsApiFilters({
       state: {
@@ -126,10 +122,16 @@ export function ActionKanbanBoard() {
       },
       userId: user?.id,
       selectedCompanyId: selectedCompany?.id,
-      page,
-      limit: 30,
+      page: 1, // Kanban always shows all data on one page
+      limit: 1000, // Large limit to get all actions
     })
-  }, [filtersState, page, user, selectedCompany])
+  }, [filtersState, user, selectedCompany])
+
+  const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.responsibleId)
+  const { data, isLoading, isFetching, error } = useActions(apiFilters)
+
+  // Use data directly from React Query - no local state needed
+  const actions = data?.data ?? []
 
   const {
     getColumnActions,
@@ -137,65 +139,7 @@ export function ActionKanbanBoard() {
     handleDragStart: originalHandleDragStart,
     handleDragEnd: originalHandleDragEnd,
     activeAction,
-  } = useKanbanActions(allActions)
-
-  const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.responsibleId)
-  const { data, isLoading, isFetching, error } = useActions(apiFilters)
-
-  useEffect(() => {
-    if (!data?.data) return
-    // With keepPreviousData, React Query can temporarily expose the previous page's data.
-    // Guard to avoid appending/replacing with a response that doesn't match the current page.
-    if (data?.meta && data.meta.page !== page) return
-
-    // Ensure we are not creating duplicates
-    setAllActions((prev) => {
-      if (page === 1) return data.data
-
-      // Filter out any existing items to avoid duplicates
-      const newItems = data.data.filter(
-        (newItem) => !prev.some((existingItem) => existingItem.id === newItem.id)
-      )
-      return [...prev, ...newItems]
-    })
-  }, [data?.data, data?.meta, page])
-
-  // Reset pagination when filters change
-  useEffect(() => {
-    setPage(1)
-    setAllActions([])
-  }, [
-    filtersState.statuses,
-    filtersState.priority,
-    filtersState.assignment,
-    filtersState.showBlockedOnly,
-    filtersState.showLateOnly,
-    filtersState.companyId,
-    filtersState.teamId,
-    filtersState.searchQuery,
-  ])
-
-  // Infinite scroll sentinel
-  useEffect(() => {
-    const el = loadMoreRef.current
-    if (!el) return
-
-    const hasNext = data?.meta?.hasNextPage ?? (data?.meta ? page < data.meta.totalPages : false)
-
-    if (!hasNext) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && hasNext && !isFetching) {
-          setPage((p) => p + 1)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [data?.meta, isFetching, page])
+  } = useKanbanActions(actions)
 
   const handleDragStart = (event: any) => {
     originalHandleDragStart(event)
@@ -206,18 +150,10 @@ export function ActionKanbanBoard() {
   }
 
   const handleDragEnd = (event: any) => {
-    // Optimistic UI update immediately
+    originalHandleDragEnd(event)
+
     const action = event.active?.data?.current?.action
     const overColumn = event.over?.id
-
-    if (action && overColumn && action.status !== overColumn) {
-      // Optimistically update local state
-      setAllActions((prev) =>
-        prev.map((a) => (a.id === action.id ? { ...a, status: overColumn as ActionStatus } : a))
-      )
-    }
-
-    originalHandleDragEnd(event)
 
     if (action && overColumn) {
       const columnNames = {
@@ -230,30 +166,6 @@ export function ActionKanbanBoard() {
       setAnnouncement('')
     }
   }
-
-  const getFilteredColumnActions = useMemo(() => {
-    return (status: ActionStatus) => {
-      // Get actions for the column from the hook
-      let result = getColumnActions(status)
-
-      // Apply status filter if any
-      if (filtersState.statuses.length > 0 && !filtersState.statuses.includes(status)) {
-        return []
-      }
-
-      // Apply text search filter
-      if (filtersState.searchQuery) {
-        const query = filtersState.searchQuery.toLowerCase()
-        result = result.filter(
-          (action) =>
-            action.title.toLowerCase().includes(query) ||
-            action.description?.toLowerCase().includes(query)
-        )
-      }
-
-      return result
-    }
-  }, [getColumnActions, filtersState.statuses, filtersState.searchQuery])
 
   const canCreate = user?.role === 'admin' || user?.role === 'manager'
   const hasFilters =
@@ -270,10 +182,11 @@ export function ActionKanbanBoard() {
   }, [])
 
   if (!hasScope) return <ActionListSkeleton />
-  // When switching from table -> board, React Query can show placeholder data (keepPreviousData),
-  // which makes isLoading=false but isFetching=true while allActions is still empty.
-  // Treat that as an initial loading state to avoid flashing the empty state.
-  if ((isLoading || isFetching) && allActions.length === 0) return <ActionListSkeleton />
+
+  // Show skeleton during initial load OR when fetching with no previous data
+  if (isLoading || (isFetching && actions.length === 0)) {
+    return <ActionListSkeleton />
+  }
 
   if (error) {
     return (
@@ -283,7 +196,7 @@ export function ActionKanbanBoard() {
     )
   }
 
-  if (!isLoading && !isFetching && allActions.length === 0) {
+  if (actions.length === 0) {
     return (
       <ActionListEmpty
         hasFilters={hasFilters}
@@ -303,6 +216,13 @@ export function ActionKanbanBoard() {
         {announcement}
       </div>
 
+      {/* Background loading indicator when fetching new data */}
+      {isFetching && actions.length > 0 && (
+        <div className="sticky top-0 left-0 right-0 h-1 bg-primary/20 z-50 mb-4">
+          <div className="h-full bg-primary animate-pulse" />
+        </div>
+      )}
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -310,12 +230,16 @@ export function ActionKanbanBoard() {
         onDragEnd={handleDragEnd}
       >
         <div
-          className="kanban-board-container scrollbar-thin flex gap-4 overflow-x-auto px-4 pb-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-x-visible md:px-0"
+          className={cn(
+            'kanban-board-container scrollbar-thin flex gap-4 overflow-x-auto px-4 pb-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-x-visible md:px-0',
+            isFetching && actions.length > 0 && 'opacity-70 transition-opacity'
+          )}
           role="region"
           aria-label="Quadro Kanban de ações"
         >
           {columns.map((column) => {
-            const columnActions = getFilteredColumnActions(column.status)
+            // Backend already filtered - just get actions for this column
+            const columnActions = getColumnActions(column.status)
 
             return (
               <KanbanColumn
@@ -327,15 +251,6 @@ export function ActionKanbanBoard() {
             )
           })}
         </div>
-
-        {/* Infinite scroll sentinel */}
-        <div ref={loadMoreRef} className="h-6" />
-
-        {isFetching && page > 1 && (
-          <div className="flex justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          </div>
-        )}
 
         <DragOverlay>
           {activeAction && <ActionKanbanCard action={activeAction} isDragging />}

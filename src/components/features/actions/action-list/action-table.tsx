@@ -68,7 +68,7 @@ export function ActionTable() {
   }, [filtersState, user, selectedCompany]);
 
   const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.responsibleId);
-  const { data, isLoading, error } = useActions(apiFilters);
+  const { data, isLoading, isFetching, error } = useActions(apiFilters);
   const actions = data?.data ?? EMPTY_ACTIONS;
   const meta = data?.meta;
 
@@ -101,7 +101,12 @@ export function ActionTable() {
     !!filtersState.searchQuery;
 
   if (!hasScope) return <ActionListSkeleton />;
-  if (isLoading && !data) return <ActionListSkeleton />;
+
+  // Show skeleton during initial load OR when fetching with no previous data
+  // This handles view transitions (kanban → table) properly with keepPreviousData
+  if (isLoading || (isFetching && actions.length === 0)) {
+    return <ActionListSkeleton />;
+  }
 
   if (error) {
     return (
@@ -136,8 +141,8 @@ export function ActionTable() {
                 { label: '', className: 'w-[50px]' },
             ]}
             CardComponent={(props) => (
-                <ActionCard 
-                    data={props.data} 
+                <ActionCard
+                    data={props.data}
                     onView={() => {
                         const canEdit =
                             user?.role === 'admin' ||
@@ -150,6 +155,7 @@ export function ActionTable() {
                 />
             )}
             emptyMessage="Nenhuma ação encontrada com os filtros atuais."
+            isLoading={isFetching && actions.length > 0}
         >
             {(action) => {
             const canEdit =

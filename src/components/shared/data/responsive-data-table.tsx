@@ -34,8 +34,8 @@ export function ResponsiveDataTable<T>({
   const hasContent = !isLoading && data && data.length > 0;
   const showEmpty = !isLoading && (!data || data.length === 0);
 
-  if (isLoading) {
-    // Shared loading state
+  if (isLoading && (!data || data.length === 0)) {
+    // Initial loading state (no data yet)
     return (
       <Card className={cn('w-full', className)}>
         <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
@@ -59,20 +59,34 @@ export function ResponsiveDataTable<T>({
   // Mobile View: Cards Stack
   if (isMobile) {
     return (
-      <div className={cn('space-y-4', className)}>
-        {data.map((item, index) => (
-          <div key={index}>
-            <CardComponent data={item} />
+      <div className={cn('space-y-4 relative', className)}>
+        {/* Background loading indicator when fetching new data */}
+        {isLoading && data.length > 0 && (
+          <div className="sticky top-0 left-0 right-0 h-1 bg-primary/20 z-10 mb-4">
+            <div className="h-full bg-primary animate-pulse" />
           </div>
-        ))}
+        )}
+        <div className={cn(isLoading && 'opacity-70 transition-opacity')}>
+          {data.map((item, idx) => (
+            <div key={idx}>
+              <CardComponent data={item} />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   // Desktop View: Table
   return (
-    <Card className={cn('w-full overflow-hidden', className)}>
-      <div className="overflow-x-auto">
+    <Card className={cn('w-full overflow-hidden relative', className)}>
+      {/* Background loading indicator when fetching new data */}
+      {isLoading && data.length > 0 && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-primary/20 z-10">
+          <div className="h-full bg-primary animate-pulse" />
+        </div>
+      )}
+      <div className={cn('overflow-x-auto', isLoading && 'opacity-70 transition-opacity')}>
         <table className="w-full text-sm">
           <thead className="bg-muted/50 border-b">
             <tr>
