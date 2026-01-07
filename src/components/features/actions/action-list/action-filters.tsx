@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useAuth } from '@/lib/hooks/use-auth'
+import { useCompany } from '@/lib/hooks/use-company'
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
+import { useObjectivesStore } from '@/lib/stores/objectives-store'
 import { ActionPriority, ActionStatus } from '@/lib/types/action'
 import { datePresets, getPresetById } from '@/lib/utils/date-presets'
 import { cn } from '@/lib/utils'
@@ -22,11 +24,13 @@ import {
   UserCircle2,
   X,
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
 export function ActionFilters() {
   const { user } = useAuth()
+  const { selectedCompany } = useCompany()
   const filters = useActionFiltersStore()
+  const objectivesStore = useObjectivesStore()
 
   // Executors should always see only their assigned actions
   useEffect(() => {
@@ -45,6 +49,13 @@ export function ActionFilters() {
     filters.showBlockedOnly ||
     filters.showLateOnly ||
     !!filters.objective?.trim()
+
+  const companyId = filters.companyId || selectedCompany?.id || ''
+  const teamId = filters.teamId || ''
+  const teamObjectives = useMemo(() => {
+    if (!companyId || !teamId) return []
+    return objectivesStore.listByTeam(companyId, teamId)
+  }, [objectivesStore, companyId, teamId])
 
   const getButtonState = (isActive: boolean) => {
     return cn(
@@ -317,6 +328,35 @@ export function ActionFilters() {
                 placeholder="Ex.: reduzir churn"
                 className="h-9 text-sm"
               />
+
+              <div className="rounded-lg border border-border/40 bg-muted/20 p-2">
+                {!teamId ? (
+                  <div className="text-xs text-muted-foreground">
+                    Selecione uma equipe para escolher objetivos cadastrados.
+                  </div>
+                ) : teamObjectives.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {teamObjectives.slice(0, 10).map((o) => (
+                      <Button
+                        key={o.id}
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => filters.setFilter('objective', o.title)}
+                        title={o.dueDate ? `Prazo: ${o.dueDate}` : undefined}
+                      >
+                        {o.title}
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground">
+                    Nenhum objetivo cadastrado para esta equipe.
+                  </div>
+                )}
+              </div>
+
               <div className="flex items-center justify-end gap-2 pt-1">
                 <Button
                   type="button"

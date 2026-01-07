@@ -1,5 +1,6 @@
 export type ObjectiveMeta = {
   objective?: string
+  objectiveId?: string
   objectiveDue?: string // YYYY-MM-DD
 }
 
@@ -39,6 +40,7 @@ export function parseObjectiveMeta(description: string): {
   const inside = raw.slice(startIdx + START.length, endIdx).trim()
 
   let objective: string | undefined
+  let objectiveId: string | undefined
   let objectiveDue: string | undefined
 
   inside.split('\n').forEach((line) => {
@@ -49,6 +51,7 @@ export function parseObjectiveMeta(description: string): {
     const value = rest.join(':').trim()
     if (!key || !value) return
     if (key === 'objective') objective = normalizeObjective(value)
+    if (key === 'objectiveid') objectiveId = value.trim()
     if (key === 'objectivedue') objectiveDue = normalizeObjectiveDue(value)
   })
 
@@ -56,6 +59,7 @@ export function parseObjectiveMeta(description: string): {
     cleanDescription: before,
     meta: {
       ...(objective ? { objective } : {}),
+      ...(objectiveId ? { objectiveId } : {}),
       ...(objectiveDue ? { objectiveDue } : {}),
     },
   }
@@ -66,13 +70,15 @@ export function mergeObjectiveMeta(
   meta: ObjectiveMeta
 ): string {
   const objective = normalizeObjective(meta.objective)
+  const objectiveId = meta.objectiveId?.trim() || undefined
   const objectiveDue = normalizeObjectiveDue(meta.objectiveDue)
 
   const base = (cleanDescription ?? '').trimEnd()
-  if (!objective && !objectiveDue) return base
+  if (!objective && !objectiveDue && !objectiveId) return base
 
   const lines: string[] = []
   lines.push(START)
+  if (objectiveId) lines.push(`objectiveId: ${objectiveId}`)
   if (objective) lines.push(`objective: ${objective}`)
   if (objectiveDue) lines.push(`objectiveDue: ${objectiveDue}`)
   lines.push(END)

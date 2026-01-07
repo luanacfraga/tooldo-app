@@ -19,6 +19,7 @@ const baseActionSchema = z.object({
     .min(1, 'Descrição é obrigatória')
     .min(10, 'Descrição deve ter no mínimo 10 caracteres'),
   objective: z.string().optional(),
+  objectiveId: z.string().optional(),
   objectiveDue: z.string().optional(),
   estimatedStartDate: z.string().min(1, 'Data de início é obrigatória'),
   estimatedEndDate: z.string().min(1, 'Data de término é obrigatória'),

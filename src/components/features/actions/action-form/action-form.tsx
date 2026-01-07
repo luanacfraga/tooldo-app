@@ -41,6 +41,8 @@ import { useEmployeesByCompany } from '@/lib/services/queries/use-employees';
 import { ActionPriority, type Action } from '@/lib/types/action';
 import { getActionPriorityUI } from '../shared/action-priority-ui';
 import { mergeObjectiveMeta, parseObjectiveMeta } from '@/lib/utils/objective-meta';
+import { useObjectivesStore } from '@/lib/stores/objectives-store';
+import Link from 'next/link';
 
 interface ActionFormProps {
   action?: Action;
@@ -88,6 +90,7 @@ export function ActionForm({
   const router = useRouter();
   const { user, currentRole } = useUserContext();
   const { companies } = useCompany();
+  const { listByTeam } = useObjectivesStore()
   const createAction = useCreateAction();
   const updateAction = useUpdateAction();
   const blockAction = useBlockAction();
@@ -108,6 +111,7 @@ export function ActionForm({
       title: action?.title || initialData?.title || '',
       description: parsedDescription.cleanDescription || '',
       objective: parsedDescription.meta.objective || '',
+      objectiveId: parsedDescription.meta.objectiveId || '',
       objectiveDue: parsedDescription.meta.objectiveDue || '',
       estimatedStartDate: action?.estimatedStartDate?.split('T')[0] || initialData?.estimatedStartDate || '',
       estimatedEndDate: action?.estimatedEndDate?.split('T')[0] || initialData?.estimatedEndDate || '',
@@ -120,6 +124,9 @@ export function ActionForm({
   });
 
   const selectedCompanyId = form.watch('companyId');
+  const selectedTeamId = form.watch('teamId');
+  const objectives =
+    selectedCompanyId && selectedTeamId ? listByTeam(selectedCompanyId, selectedTeamId) : []
 
   // Keep isBlocked in sync when action updates (e.g. after block/unblock)
   useEffect(() => {
@@ -151,12 +158,14 @@ export function ActionForm({
         const {
           isBlocked: _isBlocked,
           objective,
+          objectiveId,
           objectiveDue,
           ...payload
         } = data;
         await createAction.mutateAsync({
           ...payload,
           description: mergeObjectiveMeta(payload.description, {
+            objectiveId,
             objective,
             objectiveDue,
           }),
@@ -173,7 +182,9 @@ export function ActionForm({
         const {
           isBlocked: _isBlocked,
           objective,
+          objectiveId,
           objectiveDue,
+          companyId: _companyId, // não é permitido no UpdateActionDto da API
           ...payload
         } = data;
         await updateAction.mutateAsync({
@@ -181,6 +192,7 @@ export function ActionForm({
           data: {
             ...payload,
             description: mergeObjectiveMeta(payload.description ?? '', {
+              objectiveId,
               objective,
               objectiveDue,
             }),
@@ -300,7 +312,101 @@ export function ActionForm({
             )}
           />
 
-          {/* Objective + Due */}
+          {/* Company */}
+          <FormField
+            control={form.control}
+            name="companyId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm">Empresa</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Selecione a empresa" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id} className="text-sm">
+                        <Building2 className="mr-2 h-3.5 w-3.5 text-primary" />
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          {/* Team + Responsible (antes do objetivo) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Team (Optional) */}
+            <FormField
+              control={form.control}
+              name="teamId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Equipe (Opcional)</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={!selectedCompanyId || teams.length === 0}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Selecione a equipe" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {teams.map((team) => (
+                        <SelectItem key={team.id} value={team.id} className="text-sm">
+                          <Users className="mr-2 h-3.5 w-3.5 text-secondary" />
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+
+            {/* Responsible */}
+            <FormField
+              control={form.control}
+              name="responsibleId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Responsável</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={!selectedCompanyId || employees.length === 0}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Selecione o responsável" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.userId} className="text-sm">
+                          <User className="mr-2 h-3.5 w-3.5 text-info" />
+                          {employee.user
+                            ? `${employee.user.firstName} ${employee.user.lastName}`
+                            : employee.userId}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Objective + Due (depois de equipe e responsável) */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -309,14 +415,75 @@ export function ActionForm({
                 <FormItem>
                   <FormLabel className="text-sm">Objetivo (opcional)</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Target className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
-                      <Input
-                        placeholder="Ex.: reduzir churn, fechar contrato..."
-                        {...field}
-                        value={field.value ?? ''}
-                        className="h-9 pl-9 text-sm"
-                      />
+                    <div className="space-y-2">
+                      {objectives.length ? (
+                        <>
+                          <Select
+                            value={field.value ?? ''}
+                            onValueChange={(value) => {
+                              // value é o título do objetivo selecionado
+                              field.onChange(value);
+                              const selected = objectives.find((o) => o.title === value);
+                              form.setValue('objectiveId', selected?.id ?? '');
+                              form.setValue('objectiveDue', selected?.dueDate ?? '');
+                            }}
+                            disabled={!selectedTeamId || objectives.length === 0}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-9 text-sm">
+                                <SelectValue placeholder="Selecione o objetivo" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {objectives.map((o) => (
+                                <SelectItem key={o.id} value={o.title} className="text-sm">
+                                  <div className="flex flex-col">
+                                    <span className="flex items-center gap-2">
+                                      <Target className="h-3.5 w-3.5 text-primary" />
+                                      <span>{o.title}</span>
+                                    </span>
+                                    {o.dueDate ? (
+                                      <span className="pl-5 text-[11px] text-muted-foreground">
+                                        Prazo: {o.dueDate}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          {field.value && (
+                            <button
+                              type="button"
+                              className="text-[11px] text-muted-foreground underline underline-offset-4"
+                              onClick={() => {
+                                form.setValue('objective', '');
+                                form.setValue('objectiveId', '');
+                                form.setValue('objectiveDue', '');
+                              }}
+                            >
+                              Remover objetivo
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-xs text-muted-foreground">
+                          {selectedTeamId
+                            ? 'Sem objetivos cadastrados para esta equipe.'
+                            : 'Selecione uma equipe para ver os objetivos.'}{' '}
+                          <Link
+                            href={
+                              selectedCompanyId
+                                ? `/companies/${selectedCompanyId}/objectives`
+                                : '/companies'
+                            }
+                            className="text-primary underline underline-offset-4"
+                          >
+                            Gerenciar objetivos
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   </FormControl>
                   <FormMessage className="text-xs" />
@@ -344,7 +511,6 @@ export function ActionForm({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Priority */}
           <FormField
             control={form.control}
@@ -379,130 +545,37 @@ export function ActionForm({
             )}
           />
 
-          {/* Company */}
-          <FormField
-            control={form.control}
-            name="companyId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Empresa</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Selecione a empresa" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {companies.map((company) => (
-                      <SelectItem key={company.id} value={company.id} className="text-sm">
-                        <Building2 className="mr-2 h-3.5 w-3.5 text-primary" />
-                        {company.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-          </div>
-
+          {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Start Date */}
-          <FormField
-            control={form.control}
-            name="estimatedStartDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Data de Início</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} className="h-9 text-sm" />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-
-          {/* End Date */}
-          <FormField
-            control={form.control}
-            name="estimatedEndDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Data de Término</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} className="h-9 text-sm" />
-                </FormControl>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Team (Optional) */}
-          <FormField
-            control={form.control}
-            name="teamId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Equipe (Opcional)</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!selectedCompanyId || teams.length === 0}
-                >
+            {/* Start Date */}
+            <FormField
+              control={form.control}
+              name="estimatedStartDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Data de Início</FormLabel>
                   <FormControl>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Selecione a equipe" />
-                    </SelectTrigger>
+                    <Input type="date" {...field} className="h-9 text-sm" />
                   </FormControl>
-                  <SelectContent>
-                    {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id} className="text-sm">
-                        <Users className="mr-2 h-3.5 w-3.5 text-secondary" />
-                        {team.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
 
-          {/* Responsible */}
-          <FormField
-            control={form.control}
-            name="responsibleId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Responsável</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!selectedCompanyId || employees.length === 0}
-                >
+            {/* End Date */}
+            <FormField
+              control={form.control}
+              name="estimatedEndDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Data de Término</FormLabel>
                   <FormControl>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Selecione o responsável" />
-                    </SelectTrigger>
+                    <Input type="date" {...field} className="h-9 text-sm" />
                   </FormControl>
-                  <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.userId} className="text-sm">
-                        <User className="mr-2 h-3.5 w-3.5 text-info" />
-                        {employee.user
-                          ? `${employee.user.firstName} ${employee.user.lastName}`
-                          : employee.userId}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage className="text-xs" />
-              </FormItem>
-            )}
-          />
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
           </div>
 
         </fieldset>
