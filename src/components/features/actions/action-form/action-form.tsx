@@ -427,7 +427,7 @@ export function ActionForm({
                               form.setValue('objectiveId', selected?.id ?? '');
                               form.setValue('objectiveDue', selected?.dueDate ?? '');
                             }}
-                            disabled={!selectedTeamId || objectives.length === 0}
+                            disabled={!selectedTeamId}
                           >
                             <FormControl>
                               <SelectTrigger className="h-9 text-sm">
@@ -468,21 +468,29 @@ export function ActionForm({
                           )}
                         </>
                       ) : (
-                        <div className="text-xs text-muted-foreground">
-                          {selectedTeamId
-                            ? 'Sem objetivos cadastrados para esta equipe.'
-                            : 'Selecione uma equipe para ver os objetivos.'}{' '}
-                          <Link
-                            href={
-                              selectedCompanyId
-                                ? `/companies/${selectedCompanyId}/objectives`
-                                : '/companies'
-                            }
-                            className="text-primary underline underline-offset-4"
-                          >
-                            Gerenciar objetivos
-                          </Link>
-                        </div>
+                        <>
+                          <Input
+                            placeholder="Digite o objetivo (opcional)"
+                            {...field}
+                            value={field.value ?? ''}
+                            className="h-9 text-sm"
+                          />
+                          <div className="text-xs text-muted-foreground">
+                            {selectedTeamId
+                              ? 'Sem objetivos cadastrados para esta equipe.'
+                              : 'Selecione uma equipe para ver os objetivos.'}{' '}
+                            <Link
+                              href={
+                                selectedCompanyId
+                                  ? `/companies/${selectedCompanyId}/objectives`
+                                  : '/companies'
+                              }
+                              className="text-primary underline underline-offset-4"
+                            >
+                              Gerenciar objetivos
+                            </Link>
+                          </div>
+                        </>
                       )}
                     </div>
                   </FormControl>
