@@ -1,3 +1,60 @@
+import type { ActionPriority, ActionStatus } from '@/lib/types/action'
+
+export type ExecutorDashboardDoneTrendPoint = {
+  date: string // YYYY-MM-DD
+  done: number
+}
+
+export type ExecutorDashboardNextAction = {
+  id: string
+  title: string
+  status: ActionStatus
+  priority: ActionPriority
+  isLate: boolean
+  isBlocked: boolean
+  estimatedEndDate: string
+}
+
+export type ExecutorDashboardTeamContext = {
+  teamId: string
+  rank: number
+  totalMembers: number
+  myDone: number
+  averageDone: number
+  percentDiffFromAverage: number
+}
+
+export type ExecutorDashboardResponse = {
+  companyId: string
+  userId: string
+  period: {
+    from: string
+    to: string
+    previousFrom: string
+    previousTo: string
+  }
+  totals: {
+    total: number
+    todo: number
+    inProgress: number
+    done: number
+    late: number
+    blocked: number
+  }
+  completionRate: number
+  doneInPeriod: {
+    current: number
+    previous: number
+    delta: number
+  }
+  doneTrend: {
+    current: ExecutorDashboardDoneTrendPoint[]
+    previous: ExecutorDashboardDoneTrendPoint[]
+  }
+  nextActions: ExecutorDashboardNextAction[]
+  team: ExecutorDashboardTeamContext | null
+}
+
 import { ActionPriority, ActionStatus } from './action'
 
 /**

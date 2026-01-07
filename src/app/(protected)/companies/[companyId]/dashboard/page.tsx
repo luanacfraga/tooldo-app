@@ -1,5 +1,6 @@
 'use client'
 
+import { ExecutorDashboard } from '@/components/features/dashboard/executor/executor-dashboard'
 import { ProgressBar } from '@/components/shared/data/progress-bar'
 import { StatCard } from '@/components/shared/data/stat-card'
 import { ActivityItem } from '@/components/shared/feedback/activity-item'
@@ -8,6 +9,7 @@ import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { USER_ROLES } from '@/lib/constants'
 import { useUserContext } from '@/lib/contexts/user-context'
 import { useActions } from '@/lib/hooks/use-actions'
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
@@ -80,17 +82,30 @@ function getMotivationCopy(input: {
 
 export default function CompanyDashboardPage() {
   const params = useParams()
-  const { user, setCurrentCompanyId } = useUserContext()
+  const { currentRole, setCurrentCompanyId } = useUserContext()
   const companyId = params.companyId as string
-  const filters = useActionFiltersStore()
-
-  const company = user?.companies.find((c) => c.id === companyId)
 
   // Keep global company selection in sync with route
   useEffect(() => {
     if (!companyId) return
     setCurrentCompanyId(companyId)
   }, [companyId, setCurrentCompanyId])
+
+  if (currentRole === USER_ROLES.EXECUTOR) {
+    return (
+      <PageContainer>
+        <ExecutorDashboard companyId={companyId} />
+      </PageContainer>
+    )
+  }
+
+  return <ManagerCompanyDashboard companyId={companyId} />
+}
+
+function ManagerCompanyDashboard({ companyId }: { companyId: string }) {
+  const { user } = useUserContext()
+  const filters = useActionFiltersStore()
+  const company = user?.companies.find((c) => c.id === companyId)
 
   const totalFilters = useMemo(() => ({ companyId, page: 1, limit: 1 }), [companyId])
   const todoFilters = useMemo(
