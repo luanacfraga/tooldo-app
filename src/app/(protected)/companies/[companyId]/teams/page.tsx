@@ -187,12 +187,16 @@ export default function TeamsPage() {
     try {
       setError(null)
 
+      const unifiedContext = data.iaContext?.trim() || undefined
+
       await createTeam({
         name: data.name,
         companyId: data.companyId,
         managerId: data.managerId,
-        description: data.description?.trim() || undefined,
-        iaContext: data.iaContext?.trim() || undefined,
+        // Usamos um único campo no formulário e reaproveitamos o valor
+        // tanto como descrição quanto como contexto de IA
+        description: unifiedContext,
+        iaContext: unifiedContext,
       })
 
       setSuccess(true)
@@ -211,13 +215,15 @@ export default function TeamsPage() {
     try {
       setError(null)
 
+      const unifiedContext = data.iaContext?.trim() || undefined
+
       await updateTeam({
         id: editingTeam.id,
         data: {
           name: data.name,
           managerId: data.managerId,
-          description: data.description?.trim() || undefined,
-          iaContext: data.iaContext?.trim() || undefined,
+          description: unifiedContext,
+          iaContext: unifiedContext,
         },
       })
 
@@ -359,8 +365,7 @@ export default function TeamsPage() {
                     ? {
                         name: editingTeam.name,
                         managerId: editingTeam.managerId,
-                        description: editingTeam.description || '',
-                        iaContext: editingTeam.iaContext || '',
+                        iaContext: editingTeam.iaContext || editingTeam.description || '',
                       }
                     : undefined
                 }
