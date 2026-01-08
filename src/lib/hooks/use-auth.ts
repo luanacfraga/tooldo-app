@@ -21,6 +21,8 @@ export function useAuth() {
         email: response.user.email,
         name: `${response.user.firstName} ${response.user.lastName}`,
         role: response.user.role,
+        initials: response.user.initials ?? null,
+        avatarColor: response.user.avatarColor ?? null,
       }
 
       setAuth(userForStore, response.access_token)

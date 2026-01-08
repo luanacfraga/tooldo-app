@@ -36,11 +36,13 @@ import { cn } from '@/lib/utils'
 import { actionFormSchema, actionPriorities, type ActionFormData } from '@/lib/validators/action'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Building2, Flag, Loader2, Lock, User, Users } from 'lucide-react'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { getActionPriorityUI } from '../shared/action-priority-ui'
+import { useAuthStore } from '@/lib/stores/auth-store'
 
 interface ActionFormProps {
   action?: Action
@@ -86,6 +88,7 @@ export function ActionForm({
   readOnly = false,
 }: ActionFormProps) {
   const router = useRouter()
+  const authUser = useAuthStore((s) => s.user)
   const { user, currentRole, currentCompanyId } = useUserContext()
   const { companies } = useCompany()
   const createAction = useCreateAction()
@@ -342,33 +345,90 @@ export function ActionForm({
             <FormField
               control={form.control}
               name="responsibleId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm">Responsável</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={!selectedCompanyId || responsibleOptions.length === 0}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Selecione o responsável" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {responsibleOptions.map((employee) => (
-                        <SelectItem key={employee.id} value={employee.userId} className="text-sm">
-                          <User className="mr-2 h-3.5 w-3.5 text-info" />
-                          {employee.user
-                            ? `${employee.user.firstName} ${employee.user.lastName}`
-                            : employee.userId}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedEmployee = responsibleOptions.find(
+                  (emp) => emp.userId === field.value
+                )
+                const selectedInitials =
+                  (authUser &&
+                    selectedEmployee?.userId === authUser.id &&
+                    authUser.initials) ??
+                  selectedEmployee?.user?.initials ??
+                  null
+                const selectedAvatarColor =
+                  (authUser &&
+                    selectedEmployee?.userId === authUser.id &&
+                    authUser.avatarColor) ??
+                  selectedEmployee?.user?.avatarColor ??
+                  null
+                return (
+                  <FormItem>
+                    <FormLabel className="text-sm">Responsável</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!selectedCompanyId || responsibleOptions.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-9 text-sm">
+                          {selectedEmployee && selectedEmployee.user ? (
+                            <div className="flex items-center gap-2">
+                              <UserAvatar
+                                firstName={selectedEmployee.user.firstName}
+                                lastName={selectedEmployee.user.lastName}
+                                initials={selectedInitials}
+                                avatarColor={selectedAvatarColor}
+                                size="sm"
+                                className="h-5 w-5 text-[9px]"
+                              />
+                              <span>
+                                {selectedEmployee.user.firstName}{' '}
+                                {selectedEmployee.user.lastName}
+                              </span>
+                            </div>
+                          ) : (
+                            <SelectValue placeholder="Selecione o responsável" />
+                          )}
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {responsibleOptions.map((employee) => (
+                          <SelectItem key={employee.id} value={employee.userId} className="text-sm">
+                            <div className="flex items-center gap-2">
+                              <UserAvatar
+                                firstName={employee.user?.firstName}
+                                lastName={employee.user?.lastName}
+                                initials={
+                                  (authUser &&
+                                    employee.userId === authUser.id &&
+                                    authUser.initials) ??
+                                  employee.user?.initials ??
+                                  null
+                                }
+                                avatarColor={
+                                  (authUser &&
+                                    employee.userId === authUser.id &&
+                                    authUser.avatarColor) ??
+                                  employee.user?.avatarColor ??
+                                  null
+                                }
+                                size="sm"
+                                className="h-5 w-5 text-[9px]"
+                              />
+                              <span>
+                                {employee.user
+                                  ? `${employee.user.firstName} ${employee.user.lastName}`
+                                  : employee.userId}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )
+              }}
             />
           </div>
 

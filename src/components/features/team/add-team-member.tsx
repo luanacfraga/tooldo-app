@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { Loader2, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { ApiError } from '@/lib/api/api-client'
@@ -19,6 +20,8 @@ export interface AvailableExecutor {
   user?: {
     firstName: string
     lastName: string
+    initials?: string | null
+    avatarColor?: string | null
   }
   position?: string | null
 }
@@ -80,11 +83,23 @@ export function AddTeamMember({
             ) : (
               availableExecutors.map((executor) => (
                 <SelectItem key={executor.id} value={executor.userId}>
-                  {executor.user
-                    ? `${executor.user.firstName} ${executor.user.lastName}${
-                        executor.position ? ` - ${executor.position}` : ''
-                      }`
-                    : executor.userId}
+                  <div className="flex items-center gap-2">
+                    <UserAvatar
+                      firstName={executor.user?.firstName}
+                      lastName={executor.user?.lastName}
+                      initials={executor.user?.initials ?? null}
+                      avatarColor={executor.user?.avatarColor ?? null}
+                      size="sm"
+                      className="h-5 w-5 text-[9px]"
+                    />
+                    <span>
+                      {executor.user
+                        ? `${executor.user.firstName} ${executor.user.lastName}${
+                            executor.position ? ` - ${executor.position}` : ''
+                          }`
+                        : executor.userId}
+                    </span>
+                  </div>
                 </SelectItem>
               ))
             )}

@@ -384,6 +384,7 @@ interface ResponsibleSelectorProps {
 }
 
 function ResponsibleSelector({ action, canEdit }: ResponsibleSelectorProps) {
+  const { user: authUser } = useAuth()
   const { selectedCompany } = useCompany()
   const updateAction = useUpdateAction()
   const [open, setOpen] = useState(false)
@@ -420,8 +421,14 @@ function ResponsibleSelector({ action, canEdit }: ResponsibleSelectorProps) {
   const responsibleName = responsibleUser
     ? `${responsibleUser.firstName} ${responsibleUser.lastName}`
     : '—'
-  const responsibleInitials = currentResponsible?.user?.initials ?? null
-  const responsibleAvatarColor = currentResponsible?.user?.avatarColor ?? null
+  const responsibleInitials =
+    (authUser && action.responsibleId === authUser.id && authUser.initials) ??
+    currentResponsible?.user?.initials ??
+    null
+  const responsibleAvatarColor =
+    (authUser && action.responsibleId === authUser.id && authUser.avatarColor) ??
+    currentResponsible?.user?.avatarColor ??
+    null
 
   if (!canEdit) {
     return (
@@ -476,6 +483,15 @@ function ResponsibleSelector({ action, canEdit }: ResponsibleSelectorProps) {
               executors.map((executor) => {
                 const execUser = executor.user
 
+                const execInitials =
+                  (authUser && executor.userId === authUser.id && authUser.initials) ??
+                  execUser?.initials ??
+                  null
+                const execAvatarColor =
+                  (authUser && executor.userId === authUser.id && authUser.avatarColor) ??
+                  execUser?.avatarColor ??
+                  null
+
                 return (
                   <Button
                     key={executor.id}
@@ -489,8 +505,8 @@ function ResponsibleSelector({ action, canEdit }: ResponsibleSelectorProps) {
                       id={executor.userId}
                       firstName={execUser?.firstName}
                       lastName={execUser?.lastName}
-                      initials={execUser?.initials ?? null}
-                      avatarColor={execUser?.avatarColor ?? null}
+                      initials={execInitials}
+                      avatarColor={execAvatarColor}
                       size="sm"
                       className="h-5 w-5 text-[9px]"
                     />
