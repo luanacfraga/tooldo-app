@@ -139,9 +139,6 @@ export function ActionForm({
 
   const selectedCompanyId = form.watch('companyId')
   const selectedTeamId = form.watch('teamId')
-  const objectives =
-    selectedCompanyId && selectedTeamId ? listByTeam(selectedCompanyId, selectedTeamId) : []
-
   // Garante que a empresa seja preenchida assim que o contexto/carregamento estiver disponível
   useEffect(() => {
     if (selectedCompanyId) return
@@ -179,6 +176,9 @@ export function ActionForm({
   const { data: companyResponsibles = [] } = useCompanyResponsibles(selectedCompanyId || '')
 
   const responsibleOptions = selectedTeamId ? teamResponsibles : companyResponsibles
+
+  const objectives =
+    selectedCompanyId && selectedTeamId ? listByTeam(selectedCompanyId, selectedTeamId) : []
 
   // Reset team and responsible when company changes
   useEffect(() => {
@@ -465,29 +465,21 @@ export function ActionForm({
                           )}
                         </>
                       ) : (
-                        <>
-                          <Input
-                            placeholder="Digite o objetivo (opcional)"
-                            {...field}
-                            value={field.value ?? ''}
-                            className="h-9 text-sm"
-                          />
-                          <div className="text-xs text-muted-foreground">
-                            {selectedTeamId
-                              ? 'Sem objetivos cadastrados para esta equipe.'
-                              : 'Selecione uma equipe para ver os objetivos.'}{' '}
-                            <Link
-                              href={
-                                selectedCompanyId
-                                  ? `/companies/${selectedCompanyId}/objectives`
-                                  : '/companies'
-                              }
-                              className="text-primary underline underline-offset-4"
-                            >
-                              Gerenciar objetivos
-                            </Link>
-                          </div>
-                        </>
+                        <div className="text-xs text-muted-foreground">
+                          {selectedTeamId
+                            ? 'Sem objetivos cadastrados para esta equipe.'
+                            : 'Selecione uma equipe para ver os objetivos.'}{' '}
+                          <Link
+                            href={
+                              selectedCompanyId
+                                ? `/companies/${selectedCompanyId}/objectives`
+                                : '/companies'
+                            }
+                            className="text-primary underline underline-offset-4"
+                          >
+                            Gerenciar objetivos
+                          </Link>
+                        </div>
                       )}
                     </div>
                   </FormControl>
