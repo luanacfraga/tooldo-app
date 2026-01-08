@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { useUserContext } from '@/lib/contexts/user-context'
 import {
   useBlockAction,
@@ -31,18 +32,17 @@ import {
 import { useCompany } from '@/lib/hooks/use-company'
 import { useCompanyResponsibles } from '@/lib/services/queries/use-companies'
 import { useTeamResponsibles, useTeamsByCompany } from '@/lib/services/queries/use-teams'
+import { useAuthStore } from '@/lib/stores/auth-store'
 import { ActionPriority, type Action } from '@/lib/types/action'
 import { cn } from '@/lib/utils'
 import { actionFormSchema, actionPriorities, type ActionFormData } from '@/lib/validators/action'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Building2, Flag, Loader2, Lock, User, Users } from 'lucide-react'
-import { UserAvatar } from '@/components/ui/user-avatar'
+import { Building2, Flag, Loader2, Lock, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { getActionPriorityUI } from '../shared/action-priority-ui'
-import { useAuthStore } from '@/lib/stores/auth-store'
 
 interface ActionFormProps {
   action?: Action
@@ -350,17 +350,13 @@ export function ActionForm({
                   (emp) => emp.userId === field.value
                 )
                 const selectedInitials =
-                  (authUser &&
-                    selectedEmployee?.userId === authUser.id &&
-                    authUser.initials) ??
-                  selectedEmployee?.user?.initials ??
-                  null
+                  authUser && selectedEmployee?.userId === authUser.id
+                    ? (authUser.initials ?? null)
+                    : (selectedEmployee?.user?.initials ?? null)
                 const selectedAvatarColor =
-                  (authUser &&
-                    selectedEmployee?.userId === authUser.id &&
-                    authUser.avatarColor) ??
-                  selectedEmployee?.user?.avatarColor ??
-                  null
+                  authUser && selectedEmployee?.userId === authUser.id
+                    ? (authUser.avatarColor ?? null)
+                    : (selectedEmployee?.user?.avatarColor ?? null)
                 return (
                   <FormItem>
                     <FormLabel className="text-sm">Responsável</FormLabel>
@@ -382,8 +378,7 @@ export function ActionForm({
                                 className="h-5 w-5 text-[9px]"
                               />
                               <span>
-                                {selectedEmployee.user.firstName}{' '}
-                                {selectedEmployee.user.lastName}
+                                {selectedEmployee.user.firstName} {selectedEmployee.user.lastName}
                               </span>
                             </div>
                           ) : (
@@ -399,18 +394,14 @@ export function ActionForm({
                                 firstName={employee.user?.firstName}
                                 lastName={employee.user?.lastName}
                                 initials={
-                                  (authUser &&
-                                    employee.userId === authUser.id &&
-                                    authUser.initials) ??
-                                  employee.user?.initials ??
-                                  null
+                                  authUser && employee.userId === authUser.id
+                                    ? (authUser.initials ?? null)
+                                    : (employee.user?.initials ?? null)
                                 }
                                 avatarColor={
-                                  (authUser &&
-                                    employee.userId === authUser.id &&
-                                    authUser.avatarColor) ??
-                                  employee.user?.avatarColor ??
-                                  null
+                                  authUser && employee.userId === authUser.id
+                                    ? (authUser.avatarColor ?? null)
+                                    : (employee.user?.avatarColor ?? null)
                                 }
                                 size="sm"
                                 className="h-5 w-5 text-[9px]"
@@ -478,7 +469,12 @@ export function ActionForm({
                 <FormItem>
                   <FormLabel className="text-sm">Data de Início</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} className="h-9 text-sm" />
+                    <Input
+                      type="date"
+                      {...field}
+                      className="h-9 text-sm"
+                      max={form.watch('estimatedEndDate') ?? undefined}
+                    />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
@@ -493,7 +489,12 @@ export function ActionForm({
                 <FormItem>
                   <FormLabel className="text-sm">Data de Término</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} className="h-9 text-sm" />
+                    <Input
+                      type="date"
+                      {...field}
+                      className="h-9 text-sm"
+                      min={form.watch('estimatedStartDate') ?? undefined}
+                    />
                   </FormControl>
                   <FormMessage className="text-xs" />
                 </FormItem>
