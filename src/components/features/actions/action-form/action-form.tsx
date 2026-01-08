@@ -30,8 +30,8 @@ import {
 } from '@/lib/hooks/use-actions'
 import { useCompany } from '@/lib/hooks/use-company'
 import { useCompanyResponsibles } from '@/lib/services/queries/use-companies'
+import { useObjectivesByTeam } from '@/lib/services/queries/use-objectives'
 import { useTeamResponsibles, useTeamsByCompany } from '@/lib/services/queries/use-teams'
-import { useObjectivesStore } from '@/lib/stores/objectives-store'
 import { ActionPriority, type Action } from '@/lib/types/action'
 import { cn } from '@/lib/utils'
 import { mergeObjectiveMeta, parseObjectiveMeta } from '@/lib/utils/objective-meta'
@@ -95,7 +95,6 @@ export function ActionForm({
   const router = useRouter()
   const { user, currentRole, currentCompanyId } = useUserContext()
   const { companies } = useCompany()
-  const { listByTeam } = useObjectivesStore()
   const createAction = useCreateAction()
   const updateAction = useUpdateAction()
   const blockAction = useBlockAction()
@@ -177,8 +176,10 @@ export function ActionForm({
 
   const responsibleOptions = selectedTeamId ? teamResponsibles : companyResponsibles
 
-  const objectives =
-    selectedCompanyId && selectedTeamId ? listByTeam(selectedCompanyId, selectedTeamId) : []
+  const { data: objectives = [] } = useObjectivesByTeam(
+    selectedCompanyId || '',
+    selectedTeamId || ''
+  )
 
   // Reset team and responsible when company changes
   useEffect(() => {

@@ -13,10 +13,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import type { Objective } from '@/lib/api/endpoints/objectives'
 import { USER_ROLES } from '@/lib/constants'
 import { useUserContext } from '@/lib/contexts/user-context'
+import {
+  useCreateObjective,
+  useDeleteObjective,
+  useObjectivesByTeam,
+  useUpdateObjective,
+} from '@/lib/services/queries/use-objectives'
 import { useTeamsByCompany } from '@/lib/services/queries/use-teams'
-import { useObjectivesStore, type Objective } from '@/lib/stores/objectives-store'
 import { cn } from '@/lib/utils'
 import { Plus, Target, Trash2, Users } from 'lucide-react'
 import { useParams } from 'next/navigation'
@@ -27,7 +33,6 @@ export default function ObjectivesPage() {
   const params = useParams()
   const companyId = params.companyId as string
 
-  const store = useObjectivesStore()
   const { user, currentRole } = useUserContext()
   const { data: teamsData } = useTeamsByCompany(companyId)
   const teams = useMemo(() => teamsData?.data ?? [], [teamsData])
@@ -53,10 +58,7 @@ export default function ObjectivesPage() {
     }
   }, [teamId, teams, currentRole, user])
 
-  const objectives = useMemo(() => {
-    if (!teamId) return []
-    return store.listByTeam(companyId, teamId)
-  }, [store, companyId, teamId])
+  const { data: objectives = [] } = useObjectivesByTeam(companyId, teamId)
 
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Objective | null>(null)
@@ -85,7 +87,11 @@ export default function ObjectivesPage() {
     setOpen(true)
   }
 
-  const onSave = () => {
+  const { mutateAsync: createObjective } = useCreateObjective()
+  const { mutateAsync: updateObjective } = useUpdateObjective()
+  const { mutateAsync: deleteObjective } = useDeleteObjective()
+
+  const onSave = async () => {
     const t = title.trim()
     if (!t) {
       toast.error('Informe um título para o objetivo')
@@ -98,10 +104,18 @@ export default function ObjectivesPage() {
 
     try {
       if (editing) {
-        store.update(editing.id, { title: t, dueDate: dueDate || undefined })
+        await updateObjective({
+          id: editing.id,
+          data: { title: t, dueDate: dueDate || undefined },
+        })
         toast.success('Objetivo atualizado')
       } else {
-        store.create({ companyId, teamId, title: t, dueDate: dueDate || undefined })
+        await createObjective({
+          companyId,
+          teamId,
+          title: t,
+          dueDate: dueDate || undefined,
+        })
         toast.success('Objetivo criado')
       }
       setOpen(false)
@@ -111,9 +125,9 @@ export default function ObjectivesPage() {
     }
   }
 
-  const onDelete = (o: Objective) => {
+  const onDelete = async (o: { id: string }) => {
     if (!confirm('Excluir este objetivo?')) return
-    store.remove(o.id)
+    await deleteObjective(o.id)
     toast.success('Objetivo excluído')
   }
 
