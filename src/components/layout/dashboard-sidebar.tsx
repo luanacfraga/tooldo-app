@@ -71,7 +71,6 @@ export function DashboardSidebar() {
           icon: ClipboardList,
           subItems: [
             { name: 'Lista de Ações', href: '/actions' },
-            ...(canCreateActions ? [{ name: 'Nova Ação', href: '/actions/new' }] : []),
           ],
         },
         {
