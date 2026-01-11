@@ -1,11 +1,9 @@
 'use client'
 
-import { ActionChecklist } from '@/components/features/actions/action-form/action-checklist'
 import { ActionForm } from '@/components/features/actions/action-form/action-form'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAction } from '@/lib/hooks/use-actions'
 import Link from 'next/link'
@@ -51,7 +49,7 @@ export default function EditActionPage({ params }: EditActionPageProps) {
     <PageContainer maxWidth="4xl">
       <PageHeader title="Editar Ação" description={action.title} backHref="/actions" />
 
-      <div className="space-y-8 rounded-lg border bg-card p-6">
+      <div className="rounded-lg border bg-card p-6">
         <ActionForm
           mode="edit"
           action={action}
@@ -59,10 +57,6 @@ export default function EditActionPage({ params }: EditActionPageProps) {
           onCancel={() => router.push('/actions')}
           onSuccess={() => router.push('/actions')}
         />
-
-        <Separator />
-
-        <ActionChecklist action={action} readOnly={readOnly} />
       </div>
     </PageContainer>
   )

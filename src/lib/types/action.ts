@@ -54,6 +54,12 @@ export interface ChecklistItem {
   order: number
 }
 
+export interface UpsertChecklistItemInput {
+  description: string
+  isCompleted?: boolean
+  order?: number
+}
+
 export interface CreateActionDto {
   title: string
   description: string
@@ -64,6 +70,7 @@ export interface CreateActionDto {
   teamId?: string
   responsibleId: string
   isBlocked?: boolean
+  checklistItems?: UpsertChecklistItemInput[]
 }
 
 export interface UpdateActionDto {
@@ -77,6 +84,7 @@ export interface UpdateActionDto {
   isBlocked?: boolean
   actualStartDate?: string | null
   actualEndDate?: string | null
+  checklistItems?: UpsertChecklistItemInput[]
 }
 
 export interface ActionFilters {

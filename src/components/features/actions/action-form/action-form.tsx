@@ -34,17 +34,18 @@ import { useCompany } from '@/lib/hooks/use-company'
 import { useCompanyResponsibles } from '@/lib/services/queries/use-companies'
 import { useTeamResponsibles, useTeamsByCompany } from '@/lib/services/queries/use-teams'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { ActionPriority, type Action } from '@/lib/types/action'
+import { ActionPriority, type Action, type UpsertChecklistItemInput } from '@/lib/types/action'
 import type { Employee } from '@/lib/types/api'
 import { cn } from '@/lib/utils'
 import { actionFormSchema, actionPriorities, type ActionFormData } from '@/lib/validators/action'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Building2, Flag, Loader2, Lock, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { getActionPriorityUI } from '../shared/action-priority-ui'
+import { ActionFormChecklist } from './action-form-checklist'
 
 interface ActionFormProps {
   action?: Action
@@ -130,6 +131,35 @@ export function ActionForm({
         action?.actualEndDate?.split('T')[0] || initialData?.actualEndDate || undefined,
     },
   })
+
+  // Checklist gerenciada junto com o formulário (enviada na mesma request de criar/editar).
+  const [checklistItems, setChecklistItems] = useState<UpsertChecklistItemInput[]>(() =>
+    action?.checklistItems
+      ? action.checklistItems.map((item) => ({
+          description: item.description,
+          isCompleted: item.isCompleted,
+          order: item.order,
+        }))
+      : []
+  )
+
+  // Quando estamos editando, garante que o checklist seja sincronizado
+  // com o que veio da API assim que a ação for carregada/atualizada.
+  useEffect(() => {
+    if (!isEditing || !action) return
+
+    // Se o formulário ainda não tem itens carregados, sincroniza a partir da ação da API.
+    // Isso evita sobrescrever alterações locais caso o react-query refaça o fetch depois.
+    if (checklistItems.length === 0 && action.checklistItems && action.checklistItems.length > 0) {
+      setChecklistItems(
+        action.checklistItems.map((item) => ({
+          description: item.description,
+          isCompleted: item.isCompleted,
+          order: item.order,
+        })),
+      )
+    }
+  }, [isEditing, action, checklistItems.length])
 
   const selectedCompanyId = form.watch('companyId')
   const selectedTeamId = form.watch('teamId')
@@ -246,6 +276,11 @@ export function ActionForm({
         await createAction.mutateAsync({
           ...payload,
           teamId: payload.teamId || undefined,
+          checklistItems: checklistItems.map((item, index) => ({
+            description: item.description,
+            isCompleted: item.isCompleted ?? false,
+            order: item.order ?? index,
+          })),
         })
 
         toast.success('Ação criada com sucesso!')
@@ -272,6 +307,11 @@ export function ActionForm({
             actualEndDate: payload.actualEndDate
               ? new Date(payload.actualEndDate).toISOString()
               : undefined,
+            checklistItems: checklistItems.map((item, index) => ({
+              description: item.description,
+              isCompleted: item.isCompleted ?? false,
+              order: item.order ?? index,
+            })),
           },
         })
 
@@ -626,6 +666,12 @@ export function ActionForm({
               </div>
             )}
           </div>
+
+          <ActionFormChecklist
+            items={checklistItems}
+            onItemsChange={setChecklistItems}
+            readOnly={readOnly}
+          />
         </fieldset>
 
         {/* Actions */}

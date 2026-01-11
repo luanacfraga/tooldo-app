@@ -1,5 +1,6 @@
 'use client'
 
+import { PriorityBadge } from '@/components/ui/priority-badge'
 import { Separator } from '@/components/ui/separator'
 import {
   Sheet,
@@ -8,7 +9,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { PriorityBadge } from '@/components/ui/priority-badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useAction } from '@/lib/hooks/use-actions'
 import { Loader2 } from 'lucide-react'
@@ -55,8 +55,8 @@ export function ActionDetailSheet({
           <SheetHeader className="gap-2">
             <div className="flex items-center justify-between">
               <SheetTitle className="text-lg font-semibold leading-none tracking-tight">
-              {readOnly ? 'Detalhes da Ação' : 'Editar Ação'}
-            </SheetTitle>
+                {readOnly ? 'Detalhes da Ação' : 'Editar Ação'}
+              </SheetTitle>
               <div className="flex items-center gap-2">
                 <StatusBadge status={action.status} />
                 <PriorityBadge priority={action.priority} showLabel={false} />
@@ -72,7 +72,7 @@ export function ActionDetailSheet({
           <div className="space-y-8">
             {/* Form */}
             <section>
-              <h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              <h3 className="mb-4 text-sm font-medium uppercase tracking-wider text-muted-foreground">
                 Informações Gerais
               </h3>
               <ActionForm
