@@ -127,6 +127,7 @@ export default function CompanyDashboardPage() {
 
 function AdminCompanyDashboard({ companyId }: { companyId: string }) {
   const { user } = useUserContext()
+  const filters = useActionFiltersStore()
   const [preset, setPreset] = useState<DatePreset>('esta-semana')
   const { metrics, trendData, isLoading, error } = useCompanyPerformance({
     companyId,
@@ -174,8 +175,27 @@ function AdminCompanyDashboard({ companyId }: { companyId: string }) {
     <>
       <PageHeader
         title={company ? `Visão geral • ${company.name}` : 'Visão geral da empresa'}
-        description="Acompanhe o desempenho das equipes desta empresa por entregas e atrasos, sem chamadas para ação."
-        action={<PeriodFilter selected={preset} onChange={setPreset} />}
+        description="Acompanhe o desempenho das equipes desta empresa por entregas e atrasos, e navegue para as ações quando quiser se aprofundar."
+        action={
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                filters.resetFilters()
+                filters.setFilter('companyId', companyId)
+                filters.setFilter('viewMode', 'kanban')
+              }}
+              asChild
+            >
+              <Link href="/actions">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Ver ações da empresa
+              </Link>
+            </Button>
+            <PeriodFilter selected={preset} onChange={setPreset} />
+          </div>
+        }
       />
 
       <PeriodIndicator preset={preset} className="mb-4" />

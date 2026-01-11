@@ -122,11 +122,28 @@ export function DashboardSidebar() {
     }
 
     if (isMaster) {
-      items.push({
-        name: 'Planos',
-        href: '/plans',
-        icon: Settings,
-      })
+      items.push(
+        {
+          name: 'Planos',
+          href: '/plans',
+          icon: Settings,
+        },
+        {
+          name: 'Usuários Master',
+          href: '/masters',
+          icon: UsersRound,
+          subItems: [
+            {
+              name: 'Lista de Usuários Master',
+              href: '/masters',
+            },
+            {
+              name: 'Novo Usuário Master',
+              href: '/masters/new',
+            },
+          ],
+        }
+      )
     }
 
     if (isAdmin && !isMaster) {

@@ -15,7 +15,6 @@ import { CSS } from '@dnd-kit/utilities'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { Calendar, UserCheck } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -29,6 +28,7 @@ import { useActions, useUpdateAction } from '@/lib/hooks/use-actions'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useCompany } from '@/lib/hooks/use-company'
 import { useKanbanActions } from '@/lib/hooks/use-kanban-actions'
+import { useActionDialogStore } from '@/lib/stores/action-dialog-store'
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
 import { ActionStatus, type Action, type ActionFilters } from '@/lib/types/action'
 import { cn } from '@/lib/utils'
@@ -132,8 +132,8 @@ export function ActionKanbanBoard() {
   const { user } = useAuth()
   const { selectedCompany } = useCompany()
   const filtersState = useActionFiltersStore()
+  const { openEdit } = useActionDialogStore()
   const [announcement, setAnnouncement] = useState('')
-  const router = useRouter()
 
   // Gestores devem iniciar o Kanban com atribuição "todas"
   useEffect(() => {
@@ -209,9 +209,9 @@ export function ActionKanbanBoard() {
 
   const handleActionClick = useCallback(
     (actionId: string) => {
-      router.push(`/actions/${actionId}/edit`)
+      openEdit(actionId)
     },
-    [router]
+    [openEdit]
   )
 
   if (!hasScope) return <ActionListSkeleton />
