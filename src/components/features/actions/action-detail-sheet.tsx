@@ -76,6 +76,7 @@ export function ActionDetailSheet({
                 Informações Gerais
               </h3>
               <ActionForm
+                key={action.id}
                 mode="edit"
                 action={action}
                 readOnly={readOnly}

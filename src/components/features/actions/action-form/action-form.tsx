@@ -99,7 +99,6 @@ export function ActionForm({
   const blockAction = useBlockAction()
   const unblockAction = useUnblockAction()
 
-  // Check if user can block/unblock actions
   const role = currentRole ?? user?.globalRole
   const canBlock = !!role && ['manager', 'executor', 'admin', 'master'].includes(role)
   const isEditing = mode === 'edit'
@@ -132,38 +131,38 @@ export function ActionForm({
     },
   })
 
-  // Checklist gerenciada junto com o formulário (enviada na mesma request de criar/editar).
-  const [checklistItems, setChecklistItems] = useState<UpsertChecklistItemInput[]>(() =>
-    action?.checklistItems
+  const [checklistItems, setChecklistItems] = useState<UpsertChecklistItemInput[]>([])
+
+  useEffect(() => {
+    if (!action) return
+
+    const itemsFromAction = action.checklistItems
       ? action.checklistItems.map((item) => ({
           description: item.description,
           isCompleted: item.isCompleted,
           order: item.order,
         }))
       : []
-  )
 
-  // Quando estamos editando, garante que o checklist seja sincronizado
-  // com o que veio da API assim que a ação for carregada/atualizada.
-  useEffect(() => {
-    if (!isEditing || !action) return
-
-    // Se o formulário ainda não tem itens carregados, sincroniza a partir da ação da API.
-    // Isso evita sobrescrever alterações locais caso o react-query refaça o fetch depois.
-    if (checklistItems.length === 0 && action.checklistItems && action.checklistItems.length > 0) {
-      setChecklistItems(
-        action.checklistItems.map((item) => ({
-          description: item.description,
-          isCompleted: item.isCompleted,
-          order: item.order,
-        })),
-      )
+    if (itemsFromAction.length === 0 && checklistItems.length > 0) {
+      console.log('[ActionForm] Ignoring empty checklist from action to preserve local state', {
+        actionId: action.id,
+        currentLocalItems: checklistItems.length,
+      })
+      return
     }
-  }, [isEditing, action, checklistItems.length])
+
+    console.log('[ActionForm] Syncing checklist from action:', {
+      actionId: action.id,
+      itemsFromAction: itemsFromAction.length,
+      items: itemsFromAction,
+    })
+
+    setChecklistItems(itemsFromAction)
+  }, [action, checklistItems.length])
 
   const selectedCompanyId = form.watch('companyId')
   const selectedTeamId = form.watch('teamId')
-  // Garante que a empresa seja preenchida assim que o contexto/carregamento estiver disponível
   useEffect(() => {
     if (selectedCompanyId) return
 
@@ -182,27 +181,20 @@ export function ActionForm({
     form,
   ])
 
-  // Keep isBlocked in sync when action updates (e.g. after block/unblock)
   useEffect(() => {
     if (isEditing && action) {
       form.setValue('isBlocked', action.isBlocked)
     }
   }, [action, form, isEditing])
 
-  // Fetch teams for selected company
   const { data: teamsData } = useTeamsByCompany(selectedCompanyId || '')
   const teams = teamsData?.data || []
 
-  // Responsáveis por equipe (quando houver equipe definida)
   const { data: teamResponsibles = [] } = useTeamResponsibles(selectedTeamId || '')
 
-  // Responsáveis em nível de empresa (backend aplica regras por papel)
   const { data: companyResponsibles = [] } = useCompanyResponsibles(selectedCompanyId || '')
   const baseResponsibleOptions: Employee[] = selectedTeamId ? teamResponsibles : companyResponsibles
 
-  // Quando não há executores/ responsáveis retornados pelo backend,
-  // permitimos que o próprio gestor/admin se selecione como responsável,
-  // para que ele consiga criar ações mesmo sendo o único usuário associado.
   const shouldInjectCurrentUserAsResponsible =
     !selectedTeamId &&
     baseResponsibleOptions.length === 0 &&
@@ -251,8 +243,6 @@ export function ActionForm({
     return [...baseResponsibleOptions, injectedCurrentUserAsEmployee]
   })()
 
-  // Se existir exatamente um responsável disponível e nenhum selecionado ainda,
-  // preenche automaticamente para evitar bloqueio na criação.
   useEffect(() => {
     const currentResponsibleId = form.getValues('responsibleId')
     if (!currentResponsibleId && responsibleOptions.length === 1) {
@@ -260,7 +250,6 @@ export function ActionForm({
     }
   }, [form, responsibleOptions])
 
-  // Reset team and responsible when company changes
   useEffect(() => {
     if (mode === 'create' && !initialData) {
       form.setValue('teamId', undefined)
@@ -295,24 +284,38 @@ export function ActionForm({
           companyId: _companyId, // não é permitido no UpdateActionDto da API
           ...payload
         } = data
-        await updateAction.mutateAsync({
+
+        const checklistPayload = checklistItems.map((item, index) => ({
+          description: item.description,
+          isCompleted: item.isCompleted ?? false,
+          order: item.order ?? index,
+        }))
+
+        console.log('[ActionForm] Updating action with checklist:', {
+          actionId: action.id,
+          checklistItemsCount: checklistItems.length,
+          checklistItems: checklistPayload,
+        })
+
+        const result = await updateAction.mutateAsync({
           id: action.id,
           data: {
             ...payload,
             teamId: payload.teamId || undefined,
-            // Datas reais são opcionais; quando presentes, convertemos para ISO preservando apenas a parte de data.
             actualStartDate: payload.actualStartDate
               ? new Date(payload.actualStartDate).toISOString()
               : undefined,
             actualEndDate: payload.actualEndDate
               ? new Date(payload.actualEndDate).toISOString()
               : undefined,
-            checklistItems: checklistItems.map((item, index) => ({
-              description: item.description,
-              isCompleted: item.isCompleted ?? false,
-              order: item.order ?? index,
-            })),
+            checklistItems: checklistPayload,
           },
+        })
+
+        console.log('[ActionForm] Update result:', {
+          actionId: result.id,
+          checklistItemsCount: result.checklistItems?.length || 0,
+          checklistItems: result.checklistItems,
         })
 
         toast.success('Ação atualizada com sucesso!')
@@ -344,12 +347,10 @@ export function ActionForm({
   const handleToggleBlocked = async (checked: boolean) => {
     if (!action || !isEditing || !canBlock) return
 
-    // optimistic UI
     form.setValue('isBlocked', checked)
 
     try {
       if (checked) {
-        // Backend/domain requires a non-empty reason when blocking; we set a default
         await blockAction.mutateAsync({ id: action.id, data: { reason: 'Bloqueado' } })
         toast.success('Ação bloqueada')
       } else {

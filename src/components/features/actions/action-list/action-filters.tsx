@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useCompany } from '@/lib/hooks/use-company'
+import { useCompanyResponsibles } from '@/lib/services/queries/use-companies'
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
 import { ActionPriority, ActionStatus } from '@/lib/types/action'
 import { cn } from '@/lib/utils'
@@ -28,8 +29,9 @@ export function ActionFilters() {
   const { user } = useAuth()
   const { selectedCompany } = useCompany()
   const filters = useActionFiltersStore()
+  const { data: companyResponsibles = [], isLoading: isLoadingResponsibles } =
+    useCompanyResponsibles(selectedCompany?.id || '')
 
-  // Executors should always see only their assigned actions
   useEffect(() => {
     if (user?.role !== 'executor') return
     if (filters.assignment !== 'assigned-to-me') {
@@ -41,6 +43,7 @@ export function ActionFilters() {
     filters.statuses.length > 0 ||
     filters.priority !== 'all' ||
     filters.assignment !== 'all' ||
+    !!filters.responsibleId ||
     !!filters.dateFrom ||
     !!filters.dateTo ||
     filters.showBlockedOnly ||
@@ -296,65 +299,142 @@ export function ActionFilters() {
 
         {/* Assignment Popover (hidden for executors; they are always "assigned-to-me") */}
         {user?.role !== 'executor' ? (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className={getButtonState(filters.assignment !== 'all')}
-              >
-                <UserCircle2 className="mr-1.5 h-3.5 w-3.5" />
-                <span>Atribuição</span>
-                {filters.assignment !== 'all' && (
-                  <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-                    1
-                  </span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0" align="start">
-              <div className="p-2">
-                <div className="space-y-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      'w-full justify-start text-xs font-normal',
-                      filters.assignment === 'all' && 'bg-primary/10 text-primary'
-                    )}
-                    onClick={() => filters.setFilter('assignment', 'all')}
-                  >
-                    Todas
-                    {filters.assignment === 'all' && (
-                      <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
-                    )}
-                  </Button>
-                  <div className="my-1 h-px bg-muted" />
-                  {[
-                    { label: 'Atribuídas a Mim', value: 'assigned-to-me' as const },
-                    { label: 'Criadas por Mim', value: 'created-by-me' as const },
-                    { label: 'Minhas Equipes', value: 'my-teams' as const },
-                  ].map((option) => (
+          <>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={getButtonState(filters.assignment !== 'all')}
+                >
+                  <UserCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                  <span>Atribuição</span>
+                  {filters.assignment !== 'all' && (
+                    <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                      1
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0" align="start">
+                <div className="p-2">
+                  <div className="space-y-1">
                     <Button
-                      key={option.value}
                       variant="ghost"
                       size="sm"
                       className={cn(
                         'w-full justify-start text-xs font-normal',
-                        filters.assignment === option.value && 'bg-primary/10 text-primary'
+                        filters.assignment === 'all' && 'bg-primary/10 text-primary'
                       )}
-                      onClick={() => filters.setFilter('assignment', option.value)}
+                      onClick={() => filters.setFilter('assignment', 'all')}
                     >
-                      {option.label}
-                      {filters.assignment === option.value && (
-                        <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
+                      Todas
+                      {filters.assignment === 'all' && (
+                        <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
                       )}
                     </Button>
-                  ))}
+                    <div className="my-1 h-px bg-muted" />
+                    {[
+                      { label: 'Atribuídas a Mim', value: 'assigned-to-me' as const },
+                      { label: 'Criadas por Mim', value: 'created-by-me' as const },
+                      { label: 'Minhas Equipes', value: 'my-teams' as const },
+                    ].map((option) => (
+                      <Button
+                        key={option.value}
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          'w-full justify-start text-xs font-normal',
+                          filters.assignment === option.value && 'bg-primary/10 text-primary'
+                        )}
+                        onClick={() => filters.setFilter('assignment', option.value)}
+                      >
+                        {option.label}
+                        {filters.assignment === option.value && (
+                          <CheckCircle2 className="ml-auto h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
+
+            {/* Responsible selector for managers/admins: filtra por responsável específico */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={getButtonState(!!filters.responsibleId)}
+                  disabled={!selectedCompany || isLoadingResponsibles}
+                >
+                  <UserCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                  <span>Responsável</span>
+                  {filters.responsibleId && (
+                    <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                      1
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[240px] p-0" align="start">
+                <div className="p-2">
+                  <div className="space-y-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        'w-full justify-start text-xs font-normal',
+                        !filters.responsibleId && 'bg-primary/10 text-primary'
+                      )}
+                      onClick={() => filters.setFilter('responsibleId', null)}
+                    >
+                      Todos os responsáveis
+                      {!filters.responsibleId && (
+                        <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
+                      )}
+                    </Button>
+                    <div className="my-1 h-px bg-muted" />
+                    {isLoadingResponsibles ? (
+                      <div className="px-2 py-3 text-xs text-muted-foreground">
+                        Carregando responsáveis...
+                      </div>
+                    ) : companyResponsibles && companyResponsibles.length > 0 ? (
+                      companyResponsibles.map((employee) => {
+                        const isActive = filters.responsibleId === employee.userId
+                        const fullName = employee.user
+                          ? `${employee.user.firstName} ${employee.user.lastName}`
+                          : employee.userId
+                        return (
+                          <Button
+                            key={employee.id}
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              'w-full justify-start text-xs font-normal',
+                              isActive && 'bg-primary/10 text-primary'
+                            )}
+                            onClick={() => {
+                              filters.setFilter('assignment', 'all')
+                              filters.setFilter('responsibleId', employee.userId)
+                            }}
+                          >
+                            <span className="truncate">{fullName}</span>
+                            {isActive && <CheckCircle2 className="ml-auto h-3.5 w-3.5" />}
+                          </Button>
+                        )
+                      })
+                    ) : (
+                      <div className="px-2 py-3 text-xs text-muted-foreground">
+                        Nenhum responsável disponível nesta empresa.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </>
         ) : null}
 
         {/* Date Range Popover */}

@@ -14,6 +14,7 @@ export type ActionFiltersUIState = {
   datePreset: DatePreset | null
   companyId: string | null
   teamId: string | null
+  responsibleId: string | null
   showBlockedOnly: boolean
   showLateOnly: boolean
   searchQuery: string
@@ -60,6 +61,12 @@ export function buildActionsApiFilters({
     filters.creatorId = userId
   }
 
+  // Filtro explícito por responsável sempre tem precedência sobre "assignment"
+  if (state.responsibleId) {
+    filters.responsibleId = state.responsibleId
+    delete filters.creatorId
+  }
+
   if (forceResponsibleId) {
     filters.responsibleId = forceResponsibleId
     delete filters.creatorId
@@ -88,5 +95,3 @@ export function buildActionsApiFilters({
 
   return filters
 }
-
-
