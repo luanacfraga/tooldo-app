@@ -71,8 +71,8 @@ export function useCreateAction(): UseMutationResult<Action, Error, CreateAction
   return useMutation({
     mutationFn: actionsApi.create,
     onSuccess: () => {
-      // Invalidate all action lists
-      queryClient.invalidateQueries({ queryKey: actionKeys.lists() })
+      // Refetch all action lists to ensure immediate UI update
+      queryClient.refetchQueries({ queryKey: actionKeys.lists() })
     },
   })
 }
