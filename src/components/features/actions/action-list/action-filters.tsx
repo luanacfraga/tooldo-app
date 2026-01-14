@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useCompany } from '@/lib/hooks/use-company'
 import { useCompanyResponsibles } from '@/lib/services/queries/use-companies'
@@ -373,11 +374,6 @@ export function ActionFilters() {
                 >
                   <UserCircle2 className="mr-1.5 h-3.5 w-3.5" />
                   <span>Responsável</span>
-                  {filters.responsibleId && (
-                    <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-                      1
-                    </span>
-                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[240px] p-0" align="start">
@@ -422,7 +418,17 @@ export function ActionFilters() {
                               filters.setFilter('responsibleId', employee.userId)
                             }}
                           >
-                            <span className="truncate">{fullName}</span>
+                            <div className="flex items-center gap-2">
+                              <UserAvatar
+                                firstName={employee.user?.firstName}
+                                lastName={employee.user?.lastName}
+                                initials={employee.user?.initials ?? null}
+                                avatarColor={employee.user?.avatarColor ?? null}
+                                size="sm"
+                                className="h-5 w-5 text-[9px]"
+                              />
+                              <span className="truncate">{fullName}</span>
+                            </div>
                             {isActive && <CheckCircle2 className="ml-auto h-3.5 w-3.5" />}
                           </Button>
                         )

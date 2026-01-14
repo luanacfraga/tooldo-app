@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Calendar, UserCircle2 } from 'lucide-react'
 import { BlockedBadge } from '../shared/blocked-badge'
-import { LateIndicator } from '../shared/late-indicator'
 
 interface ActionCardProps {
   data: Action
@@ -46,7 +45,7 @@ export function ActionCard({ data, onView }: ActionCardProps) {
         {/* Status + Indicators row */}
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={data.status} />
-          <LateIndicator isLate={data.isLate} />
+          {/* <LateIndicator isLate={data.isLate} /> */}
           <BlockedBadge isBlocked={data.isBlocked} reason={data.blockedReason} />
         </div>
 
