@@ -34,10 +34,9 @@ import { ActionStatus, type Action, type ActionFilters } from '@/lib/types/actio
 import { cn } from '@/lib/utils'
 import { buildActionsApiFilters } from '@/lib/utils/build-actions-api-filters'
 
-import { actionStatusUI } from '../shared/action-status-ui'
 import { ActionLateStatusBadge } from '../shared/action-late-status-badge'
+import { actionStatusUI } from '../shared/action-status-ui'
 import { BlockedBadge } from '../shared/blocked-badge'
-import { LateIndicator } from '../shared/late-indicator'
 import { ActionListEmpty } from './action-list-empty'
 import { ActionListSkeleton } from './action-list-skeleton'
 
@@ -600,7 +599,7 @@ const ActionKanbanCard = memo(function ActionKanbanCard({
           {action.isBlocked && (
             <BlockedBadge isBlocked={action.isBlocked} reason={action.blockedReason} />
           )}
-          <LateIndicator isLate={action.isLate} />
+          {/* <LateIndicator isLate={action.isLate} /> */}
           <ActionLateStatusBadge lateStatus={action.lateStatus} size="sm" />
         </div>
       </div>
