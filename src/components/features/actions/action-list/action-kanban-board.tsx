@@ -604,6 +604,12 @@ const ActionKanbanCard = memo(function ActionKanbanCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
+          {action.status === ActionStatus.DONE && (
+            <StatusBadge
+              status={ActionStatus.DONE}
+              className="border-0 bg-transparent px-0 text-[10px] shadow-none"
+            />
+          )}
           {action.isBlocked && (
             <BlockedBadge isBlocked={action.isBlocked} reason={action.blockedReason} />
           )}
