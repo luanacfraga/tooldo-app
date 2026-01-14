@@ -23,6 +23,7 @@ import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
 import { ActionStatus } from '@/lib/types/action'
 import type { DatePreset } from '@/lib/utils/date-presets'
 import { createMetricComparison } from '@/lib/utils/metrics-calculator'
+import { getPresetRange } from '@/lib/utils/period-comparator'
 import {
   AlertTriangle,
   BarChart3,
@@ -217,7 +218,18 @@ function AdminCompanyDashboard({ companyId }: { companyId: string }) {
           }
         />
         <div className="flex items-center justify-between gap-4">
-          <PeriodFilter selected={preset} onChange={setPreset} />
+          <PeriodFilter
+            selected={preset}
+            onChange={(newPreset) => {
+              setPreset(newPreset)
+
+              // Mantém o período do dashboard em sincronia com os filtros globais de ações
+              const range = getPresetRange(newPreset)
+              filters.setFilter('dateFrom', range.dateFrom)
+              filters.setFilter('dateTo', range.dateTo)
+              filters.setFilter('dateFilterType', 'createdAt')
+            }}
+          />
           <PeriodIndicator preset={preset} />
         </div>
       </div>

@@ -6,11 +6,8 @@ import { useActions } from '@/lib/hooks/use-actions'
 import type { Action } from '@/lib/types/action'
 import type { TeamMetrics } from '@/lib/types/dashboard'
 import type { DatePreset } from '@/lib/utils/date-presets'
+import { calculateTeamMetrics, groupDeliveriesByDay } from '@/lib/utils/metrics-calculator'
 import { getPresetRange, getPreviousPeriod } from '@/lib/utils/period-comparator'
-import {
-  calculateTeamMetrics,
-  groupDeliveriesByDay,
-} from '@/lib/utils/metrics-calculator'
 
 interface UseCompanyPerformanceParams {
   companyId: string
@@ -121,5 +118,3 @@ export function useCompanyPerformance({
     error: currentQuery.error || previousQuery.error,
   }
 }
-
-
