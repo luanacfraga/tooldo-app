@@ -1,6 +1,7 @@
+import { Suspense } from 'react'
 import { ResetPasswordForm } from '@/components/auth/reset-password/reset-password-form'
 
-export default function ResetPasswordPage() {
+function ResetPasswordFormWrapper() {
   return (
     <>
       <div className="mb-8 animate-fade-in text-center lg:hidden">
@@ -17,5 +18,13 @@ export default function ResetPasswordPage() {
       </div>
       <ResetPasswordForm />
     </>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <ResetPasswordFormWrapper />
+    </Suspense>
   )
 }
