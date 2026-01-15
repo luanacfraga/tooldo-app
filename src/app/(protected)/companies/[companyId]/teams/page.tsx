@@ -1,8 +1,10 @@
 'use client'
 
 import { AddTeamMember, AvailableExecutor } from '@/components/features/team/add-team-member'
+import { EditTeamModal } from '@/components/features/team/edit-team-modal'
 import { TeamForm } from '@/components/features/team/team-form'
 import { TeamMember, TeamMembersList } from '@/components/features/team/team-members-list'
+import { TeamMembersModal } from '@/components/features/team/team-members-modal'
 import { EmptyState } from '@/components/shared/feedback/empty-state'
 import { ErrorState } from '@/components/shared/feedback/error-state'
 import { LoadingScreen } from '@/components/shared/feedback/loading-screen'
@@ -27,7 +29,7 @@ import {
 } from '@/lib/services/queries/use-teams'
 import { type TeamFormData } from '@/lib/validators/team'
 import type { ColumnDef } from '@tanstack/react-table'
-import { AlertCircle, Building2, CheckCircle2, Plus, UserCog, Users } from 'lucide-react'
+import { AlertCircle, Building2, CheckCircle2, Edit, Plus, UserCog, Users } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import { TeamCard } from './team-card'
@@ -39,6 +41,8 @@ export default function TeamsPage() {
   const { user } = useUserContext()
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingTeam, setEditingTeam] = useState<Team | null>(null)
+  const [teamToEdit, setTeamToEdit] = useState<Team | null>(null)
+  const [teamToViewMembers, setTeamToViewMembers] = useState<Team | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
@@ -169,16 +173,20 @@ export default function TeamsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  // Abre fluxo de edição com módulo de membros inline
-                  setShowCreateForm(false)
-                  setEditingTeam(team)
-                  setError(null)
-                }}
+                onClick={() => setTeamToViewMembers(team)}
                 className="h-8 gap-1 px-3"
               >
-                <UserCog className="h-4 w-4" />
-                <span className="hidden sm:inline">Gerenciar</span>
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Membros</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setTeamToEdit(team)}
+                className="h-8 gap-1 px-3"
+              >
+                <Edit className="h-4 w-4" />
+                <span className="hidden sm:inline">Editar</span>
               </Button>
             </div>
           )
@@ -200,15 +208,19 @@ export default function TeamsPage() {
     if (!managers.length || !allTeams.length) return managers
 
     const managerIdsInTeams = allTeams
-      .filter((team) => !editingTeam || team.id !== editingTeam.id)
+      .filter(
+        (team) =>
+          (!editingTeam || team.id !== editingTeam.id) && (!teamToEdit || team.id !== teamToEdit.id)
+      )
       .map((team) => team.managerId)
 
     return managers.filter(
       (manager) =>
         !managerIdsInTeams.includes(manager.userId) ||
-        (editingTeam && manager.userId === editingTeam.managerId)
+        (editingTeam && manager.userId === editingTeam.managerId) ||
+        (teamToEdit && manager.userId === teamToEdit.managerId)
     )
-  }, [managers, allTeams, editingTeam])
+  }, [managers, allTeams, editingTeam, teamToEdit])
 
   const handleCreateTeam = async (data: TeamFormData) => {
     try {
@@ -546,6 +558,8 @@ export default function TeamsPage() {
                     <TeamCard
                       {...props}
                       managerName={getManagerLabel(props.item)}
+                      onViewMembers={(team) => setTeamToViewMembers(team)}
+                      onEditTeam={(team) => setTeamToEdit(team)}
                       onEdit={(team) => {
                         setEditingTeam(team)
                         setError(null)
@@ -560,6 +574,36 @@ export default function TeamsPage() {
             </>
           )}
         </>
+      )}
+
+      {teamToViewMembers && (
+        <TeamMembersModal
+          team={teamToViewMembers}
+          companyId={companyId}
+          open={!!teamToViewMembers}
+          onOpenChange={(open) => {
+            if (!open) setTeamToViewMembers(null)
+          }}
+          onSuccess={() => {
+            refetch()
+          }}
+        />
+      )}
+
+      {teamToEdit && (
+        <EditTeamModal
+          team={teamToEdit}
+          companyId={companyId}
+          managers={availableManagers}
+          open={!!teamToEdit}
+          onOpenChange={(open) => {
+            if (!open) setTeamToEdit(null)
+          }}
+          onSuccess={() => {
+            refetch()
+            setTeamToEdit(null)
+          }}
+        />
       )}
     </PageContainer>
   )

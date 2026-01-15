@@ -1,16 +1,17 @@
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import type { Team } from '@/lib/api/endpoints/teams'
-import { Pencil, Users } from 'lucide-react'
+import { Edit, Pencil, Users } from 'lucide-react'
 
 interface TeamCardProps {
   item: Team
   managerName?: string
   onEdit?: (team: Team) => void
-  onManageMembers?: (team: Team) => void
+  onViewMembers?: (team: Team) => void
+  onEditTeam?: (team: Team) => void
 }
 
-export function TeamCard({ item, managerName, onEdit }: TeamCardProps) {
+export function TeamCard({ item, managerName, onEdit, onViewMembers, onEditTeam }: TeamCardProps) {
   return (
     <Card className="group/card relative overflow-hidden border border-border/60 bg-card/95 p-4 shadow-sm backdrop-blur-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:border-border/80 hover:bg-card hover:shadow-md">
       <div className="space-y-3">
@@ -21,6 +22,28 @@ export function TeamCard({ item, managerName, onEdit }: TeamCardProps) {
             <h3 className="text-base font-semibold">{item.name}</h3>
           </div>
           <div className="flex gap-1 opacity-0 transition-opacity group-hover/card:opacity-100">
+            {onViewMembers && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onViewMembers(item)}
+                title="Ver membros"
+              >
+                <Users className="h-4 w-4" />
+              </Button>
+            )}
+            {onEditTeam && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onEditTeam(item)}
+                title="Editar equipe"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
             {onEdit && (
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(item)}>
                 <Pencil className="h-4 w-4" />
