@@ -1,6 +1,5 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -146,9 +145,8 @@ export function EditEmployeeModal({
         data: {
           firstName: data.firstName,
           lastName: data.lastName,
-          phone: data.phone ? unmaskPhone(data.phone) : undefined,
-          document: data.document ? unmaskCPF(data.document) : undefined,
-          // Só envia role se o funcionário não estiver ativo
+          phone: isActive ? undefined : data.phone ? unmaskPhone(data.phone) : undefined,
+          document: isActive ? undefined : data.document ? unmaskCPF(data.document) : undefined,
           role: isActive ? undefined : data.role,
           position: data.position || undefined,
           notes: data.notes || undefined,
@@ -171,29 +169,34 @@ export function EditEmployeeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-[600px]">
+        <DialogHeader className="border-b px-6 pb-4 pt-6">
           <DialogTitle>Editar Funcionário</DialogTitle>
           <DialogDescription>
-            Atualize as informações de <span className="font-medium text-foreground">{fullName}</span>
+            Atualize as informações de{' '}
+            <span className="font-medium text-foreground">{fullName}</span>
           </DialogDescription>
         </DialogHeader>
 
-        {error && (
-          <div className="mb-4 animate-fade-in rounded-lg border border-danger-light bg-danger-lightest p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 flex-shrink-0 text-danger-base" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-danger-dark">Erro ao atualizar</h3>
-                <p className="mt-1 text-sm text-danger-base">{error}</p>
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          {error && (
+            <div className="mb-4 animate-fade-in rounded-lg border border-danger-light bg-danger-lightest p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 text-danger-base" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-danger-dark">Erro ao atualizar</h3>
+                  <p className="mt-1 text-sm text-danger-base">{error}</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="rounded-xl border bg-card shadow-sm p-6">
+          <Form {...form}>
+            <form
+              id="edit-employee-form"
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
+            >
               <fieldset disabled={isPending} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <FormField
@@ -276,8 +279,14 @@ export function EditEmployeeModal({
                               form.trigger('phone')
                             }}
                             className="h-9 text-sm"
+                            disabled={isActive || isPending}
                           />
                         </FormControl>
+                        {isActive && (
+                          <FormDescription className="text-xs text-muted-foreground">
+                            O telefone não pode ser alterado para funcionários ativos.
+                          </FormDescription>
+                        )}
                         <FormMessage className="text-xs" />
                       </FormItem>
                     )}
@@ -302,11 +311,18 @@ export function EditEmployeeModal({
                               form.trigger('document')
                             }}
                             className="h-9 text-sm"
+                            disabled={isActive || isPending}
                           />
                         </FormControl>
-                        <FormDescription className="text-xs">
-                          O usuário precisará informar este CPF ao criar a senha.
-                        </FormDescription>
+                        {isActive ? (
+                          <FormDescription className="text-xs text-muted-foreground">
+                            O CPF não pode ser alterado para funcionários ativos.
+                          </FormDescription>
+                        ) : (
+                          <FormDescription className="text-xs">
+                            O usuário precisará informar este CPF ao criar a senha.
+                          </FormDescription>
+                        )}
                         <FormMessage className="text-xs" />
                       </FormItem>
                     )}
@@ -394,33 +410,32 @@ export function EditEmployeeModal({
                   )}
                 />
               </fieldset>
+            </form>
+          </Form>
+        </div>
 
-              <div className="mt-6 flex justify-end gap-2 border-t pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  disabled={isPending}
-                  size="sm"
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isPending} size="sm">
-                  {isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    'Salvar alterações'
-                  )}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </Form>
+        <div className="flex justify-end gap-2 border-t bg-background px-6 py-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+            size="sm"
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" form="edit-employee-form" disabled={isPending} size="sm">
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              'Salvar alterações'
+            )}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )
 }
-

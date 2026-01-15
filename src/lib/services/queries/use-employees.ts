@@ -35,6 +35,7 @@ export function useInviteEmployee() {
   return useMutation({
     mutationFn: (data: InviteEmployeeRequest) => employeesApi.invite(data),
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: EMPLOYEES_KEY })
       queryClient.invalidateQueries({
         queryKey: [...EMPLOYEES_KEY, 'company', variables.companyId],
       })

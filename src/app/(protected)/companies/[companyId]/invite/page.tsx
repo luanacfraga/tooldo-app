@@ -24,9 +24,9 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { ApiError } from '@/lib/api/api-client'
-import { employeesApi } from '@/lib/api/endpoints/employees'
 import { useUserContext } from '@/lib/contexts/user-context'
 import { usePermissions } from '@/lib/hooks/use-permissions'
+import { useInviteEmployee } from '@/lib/services/queries/use-employees'
 import { maskCPF, maskPhone, unmaskCPF, unmaskPhone } from '@/lib/utils/masks'
 import { inviteEmployeeSchema, type InviteEmployeeFormData } from '@/lib/validators/employee'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -42,6 +42,7 @@ export default function CompanyInvitePage() {
   const companyId = params.companyId as string
   const { user } = useUserContext()
   const { canInviteEmployee, isManager } = usePermissions()
+  const { mutateAsync: inviteEmployee, isPending } = useInviteEmployee()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
@@ -86,7 +87,7 @@ export default function CompanyInvitePage() {
     try {
       setError(null)
 
-      await employeesApi.invite({
+      await inviteEmployee({
         companyId: data.companyId,
         email: data.email,
         firstName: data.firstName,
@@ -187,7 +188,7 @@ export default function CompanyInvitePage() {
             </div>
 
             <div className="p-6">
-              <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
+              <fieldset disabled={isPending || form.formState.isSubmitting} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -374,13 +375,13 @@ export default function CompanyInvitePage() {
                   type="button"
                   variant="outline"
                   onClick={() => router.push(`/companies/${companyId}/members`)}
-                  disabled={form.formState.isSubmitting}
+                  disabled={isPending || form.formState.isSubmitting}
                   size="sm"
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting} size="sm">
-                  {form.formState.isSubmitting ? (
+                <Button type="submit" disabled={isPending || form.formState.isSubmitting} size="sm">
+                  {isPending || form.formState.isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Enviando...
