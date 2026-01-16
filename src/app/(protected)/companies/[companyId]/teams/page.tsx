@@ -471,25 +471,25 @@ export default function TeamsPage() {
           )}
 
           {!teamsError && teams.length > 0 && (
-            <ResponsiveDataTable
-              data={teams}
-              columns={columns}
-              CardComponent={(props) => (
-                <TeamCard
-                  {...props}
-                  managerName={getManagerLabel(props.item)}
-                  onViewMembers={(team) => setTeamToViewMembers(team)}
-                  onEditTeam={(team) => setTeamToEdit(team)}
-                  onEdit={(team) => {
-                    setEditingTeam(team)
-                    setError(null)
-                  }}
+                <ResponsiveDataTable
+                  data={teams}
+                  columns={columns}
+                  CardComponent={(props) => (
+                    <TeamCard
+                      {...props}
+                      managerName={getManagerLabel(props.item)}
+                      onViewMembers={(team) => setTeamToViewMembers(team)}
+                      onEditTeam={(team) => setTeamToEdit(team)}
+                      onEdit={(team) => {
+                        setEditingTeam(team)
+                        setError(null)
+                      }}
+                    />
+                  )}
+                  isLoading={false}
+                  emptyMessage="Nenhuma equipe encontrada"
+                  getRowId={(team) => team.id}
                 />
-              )}
-              isLoading={false}
-              emptyMessage="Nenhuma equipe encontrada"
-              getRowId={(team) => team.id}
-            />
           )}
         </>
       )}

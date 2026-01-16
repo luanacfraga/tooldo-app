@@ -52,8 +52,14 @@ export const registerSchema = z
       ),
     document: z
       .string()
-      .min(1, 'CNPJ é obrigatório')
-      .regex(/^\d{14}$/, 'CNPJ deve conter 14 dígitos'),
+      .optional()
+      .refine(
+        (val) => {
+          if (!val || val.trim() === '') return true // Campo opcional
+          return /^\d{14}$/.test(val)
+        },
+        { message: 'CNPJ deve conter 14 dígitos' }
+      ),
     companyName: z
       .string()
       .min(1, 'Nome da empresa é obrigatório')

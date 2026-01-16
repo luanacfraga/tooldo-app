@@ -1,28 +1,28 @@
 'use client'
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { ErrorAlert } from '@/components/auth/login/error-alert'
 import { AuthLink } from '@/components/auth/register/auth-link'
 import { RegisterHeader } from '@/components/auth/register/register-header'
 import { StepHeader } from '@/components/auth/register/step-header'
 import { StepNavigationButtons } from '@/components/auth/register/step-navigation-buttons'
-import { Steps } from '@/components/ui/steps'
+import { useRegisterForm } from '@/components/register/hooks/use-register-form'
 import { CompanyStep } from '@/components/register/steps/company-step'
 import { DocumentStep } from '@/components/register/steps/document-step'
 import { PersonalDataStep } from '@/components/register/steps/personal-data-step'
 import { SecurityStep } from '@/components/register/steps/security-step'
-import { useRegisterForm } from '@/components/register/hooks/use-register-form'
-import { useStepNavigation } from '@/lib/hooks/ui/use-step-navigation'
-import { useFormMask } from '@/lib/hooks/ui/use-form-mask'
+import { Steps } from '@/components/ui/steps'
 import { ApiError } from '@/lib/api/api-client'
+import { useFormMask } from '@/lib/hooks/ui/use-form-mask'
+import { useStepNavigation } from '@/lib/hooks/ui/use-step-navigation'
 import { maskCNPJ, maskPhone, unmaskCNPJ, unmaskPhone } from '@/lib/utils/masks'
 import { registerSchema, type RegisterFormData } from '@/lib/validators/auth'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 const STEPS = [
   { id: 1, title: 'Dados Pessoais', description: 'Informações básicas' },
-  { id: 2, title: 'CNPJ', description: 'Documento da empresa' },
+  { id: 2, title: 'CNPJ', description: 'Documento da empresa (opcional)' },
   { id: 3, title: 'Segurança', description: 'Crie sua senha' },
   { id: 4, title: 'Empresa', description: 'Dados da empresa' },
 ]
@@ -90,12 +90,19 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
   const validateCurrentStep = async (): Promise<boolean> => {
     const fieldsByStep: Record<number, (keyof RegisterFormData)[]> = {
       0: ['firstName', 'lastName', 'email', 'phone'],
-      1: ['document'],
+      1: ['document'], // Campo opcional, mas valida se preenchido
       2: ['password', 'confirmPassword'],
       3: ['companyName', 'companyDescription'],
     }
 
     const fields = fieldsByStep[currentStep] || []
+    // Para o step do documento (1), se o campo estiver vazio, permite avançar
+    if (currentStep === 1) {
+      const documentValue = watch('document')
+      if (!documentValue || documentValue.trim() === '') {
+        return true // Permite avançar sem preencher CNPJ
+      }
+    }
     return await trigger(fields)
   }
 
@@ -115,14 +122,15 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError(null)
+      const documentValue = data.document ? unmaskCNPJ(data.document) : undefined
       await registerUser({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
         phone: unmaskPhone(data.phone),
-        document: unmaskCNPJ(data.document),
-        documentType: 'CNPJ',
+        document: documentValue,
+        documentType: documentValue ? 'CNPJ' : undefined,
         company: {
           name: data.companyName,
           description: data.companyDescription,
@@ -172,7 +180,7 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
         <Steps steps={STEPS} currentStep={currentStep} />
       </div>
 
-      <div className="animate-fade-in relative rounded-3xl border border-border/60 bg-card/95 p-6 shadow-2xl backdrop-blur-xl transition-all sm:p-8 lg:rounded-2xl lg:bg-card lg:shadow-lg">
+      <div className="relative animate-fade-in rounded-3xl border border-border/60 bg-card/95 p-6 shadow-2xl backdrop-blur-xl transition-all sm:p-8 lg:rounded-2xl lg:bg-card lg:shadow-lg">
         <StepHeader title={STEPS[currentStep].title} description={STEPS[currentStep].description} />
 
         <form

@@ -20,7 +20,7 @@ import { SecurityStep } from './steps/security-step'
 
 const STEPS = [
   { id: 1, title: 'Dados Pessoais', description: 'Informações básicas' },
-  { id: 2, title: 'CNPJ', description: 'Documento da empresa' },
+  { id: 2, title: 'CNPJ', description: 'Documento da empresa (opcional)' },
   { id: 3, title: 'Segurança', description: 'Crie sua senha' },
   { id: 4, title: 'Empresa', description: 'Dados da empresa' },
 ]
@@ -93,6 +93,11 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
         fields = ['firstName', 'lastName', 'email', 'phone']
         break
       case 1:
+        // Para o step do documento, se o campo estiver vazio, permite avançar
+        const documentValue = watch('document')
+        if (!documentValue || documentValue.trim() === '') {
+          return true // Permite avançar sem preencher CNPJ
+        }
         fields = ['document']
         break
       case 2:
@@ -129,14 +134,15 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError(null)
+      const documentValue = data.document ? unmaskCNPJ(data.document) : undefined
       await registerUser({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
         phone: unmaskPhone(data.phone),
-        document: unmaskCNPJ(data.document),
-        documentType: 'CNPJ',
+        document: documentValue,
+        documentType: documentValue ? 'CNPJ' : undefined,
         company: {
           name: data.companyName,
           description: data.companyDescription,

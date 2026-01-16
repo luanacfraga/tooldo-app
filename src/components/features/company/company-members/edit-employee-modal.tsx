@@ -243,11 +243,6 @@ export function EditEmployeeModal({
                           disabled={isActive || isPending}
                         />
                       </FormControl>
-                      {isActive && (
-                        <FormDescription className="text-xs text-muted-foreground">
-                          O email não pode ser alterado para funcionários ativos.
-                        </FormDescription>
-                      )}
                       {!isActive && (
                         <FormDescription className="text-xs">
                           O convite será enviado para este email.
@@ -282,11 +277,6 @@ export function EditEmployeeModal({
                             disabled={isActive || isPending}
                           />
                         </FormControl>
-                        {isActive && (
-                          <FormDescription className="text-xs text-muted-foreground">
-                            O telefone não pode ser alterado para funcionários ativos.
-                          </FormDescription>
-                        )}
                         <FormMessage className="text-xs" />
                       </FormItem>
                     )}
@@ -315,9 +305,7 @@ export function EditEmployeeModal({
                           />
                         </FormControl>
                         {isActive ? (
-                          <FormDescription className="text-xs text-muted-foreground">
-                            O CPF não pode ser alterado para funcionários ativos.
-                          </FormDescription>
+                          <FormDescription className="text-xs text-muted-foreground"></FormDescription>
                         ) : (
                           <FormDescription className="text-xs">
                             O usuário precisará informar este CPF ao criar a senha.
@@ -352,11 +340,6 @@ export function EditEmployeeModal({
                             <SelectItem value="consultant">Consultor</SelectItem>
                           </SelectContent>
                         </Select>
-                        {isActive && (
-                          <FormDescription className="text-xs text-muted-foreground">
-                            O cargo não pode ser alterado para funcionários ativos.
-                          </FormDescription>
-                        )}
                         {!isActive && (
                           <FormDescription className="text-xs">
                             Define as permissões do usuário.

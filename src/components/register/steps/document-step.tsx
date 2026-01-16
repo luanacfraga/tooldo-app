@@ -27,19 +27,18 @@ export function DocumentStep({
         label="CNPJ da Empresa"
         htmlFor="document"
         error={errors.document?.message}
-        required
       >
         <Input
           id="document"
           type="text"
-          placeholder="00.000.000/0001-00"
+          placeholder="00.000.000/0001-00 (opcional)"
           maxLength={18}
           value={cnpjValue}
           onChange={(e) => {
             const unmasked = unmaskCNPJ(e.target.value)
             const masked = maskCNPJ(unmasked)
             setCnpjValue(masked)
-            setValue('document', unmasked, { shouldValidate: true })
+            setValue('document', unmasked || '', { shouldValidate: true })
           }}
           onBlur={register('document').onBlur}
           className={`h-12 text-base transition-all ${
@@ -49,7 +48,7 @@ export function DocumentStep({
           }`}
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          Digite o CNPJ completo da sua empresa (14 dígitos)
+          Digite o CNPJ completo da sua empresa (14 dígitos) - opcional
         </p>
       </FormFieldWrapper>
     </div>
