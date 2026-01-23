@@ -56,7 +56,7 @@ export function shouldInjectCurrentUser(
   return ['manager', 'admin'].includes(role)
 }
 
-export function isAdminRole(role: UserRoleType | null): boolean {
+export function isAdminRole(role: UserRoleType | null | undefined): boolean {
   if (!role) return false
   return ADMIN_ROLES.includes(role)
 }
