@@ -1,6 +1,6 @@
 import type { User } from '@/lib/stores/auth-store'
 import type { Employee } from '@/lib/types/api'
-import type { Team } from '@/lib/types/team'
+import type { Team } from '@/lib/api/endpoints/teams'
 import { ADMIN_ROLES, type UserRoleType } from './action-form.constants'
 
 interface CreateInjectedEmployeeParams {
