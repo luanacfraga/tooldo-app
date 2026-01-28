@@ -1,8 +1,5 @@
 import { ActionStatus } from './action'
 
-/**
- * Métricas de um membro da equipe
- */
 export interface TeamMemberMetrics {
   userId: string
   name: string
@@ -19,9 +16,6 @@ export interface TeamMemberMetrics {
   completionRateChange: number
 }
 
-/**
- * Métricas agregadas da equipe
- */
 export interface TeamMetrics {
   totalDeliveries: number
   avgCompletionRate: number
@@ -37,18 +31,12 @@ export interface TeamMetrics {
   completionRateChange: number
 }
 
-/**
- * Ponto de dados para gráfico de tendência
- */
 export interface DeliveryTrendDataPoint {
   date: string
   deliveries: number
   label: string
 }
 
-/**
- * Dados de comparação de métricas
- */
 export interface MetricComparison {
   absolute: number
   percent: number

@@ -35,10 +35,6 @@ function hashString(str: string): number {
   return Math.abs(hash)
 }
 
-/**
- * Deterministic brand-ish avatar color.
- * Keeps hue in purple range to match the app identity.
- */
 export function getAvatarColor(seed?: string | null): string {
   const s = (seed ?? '').trim()
   if (!s) return 'hsl(var(--primary))'

@@ -11,9 +11,6 @@ export interface DatePresetOption {
   getRange: () => DateRange
 }
 
-/**
- * Get Monday of current week at 00:00:00
- */
 function getMonday(): Date {
   const today = new Date()
   const day = today.getDay()
@@ -24,9 +21,6 @@ function getMonday(): Date {
   return monday
 }
 
-/**
- * Get Sunday of current week at 23:59:59
- */
 function getSunday(): Date {
   const monday = getMonday()
   const sunday = new Date(monday)
@@ -35,9 +29,6 @@ function getSunday(): Date {
   return sunday
 }
 
-/**
- * Esta Semana: Segunda-feira até Domingo da semana atual
- */
 export function getThisWeekRange(): DateRange {
   return {
     dateFrom: getMonday().toISOString(),
@@ -45,9 +36,6 @@ export function getThisWeekRange(): DateRange {
   }
 }
 
-/**
- * Últimas 2 Semanas: 14 dias atrás até hoje
- */
 export function getLastTwoWeeksRange(): DateRange {
   const today = new Date()
   today.setHours(23, 59, 59, 999)
@@ -62,9 +50,6 @@ export function getLastTwoWeeksRange(): DateRange {
   }
 }
 
-/**
- * Este Mês: Dia 1 até último dia do mês atual
- */
 export function getThisMonthRange(): DateRange {
   const today = new Date()
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -79,9 +64,6 @@ export function getThisMonthRange(): DateRange {
   }
 }
 
-/**
- * Últimos 30 Dias: 30 dias atrás até hoje
- */
 export function getLastThirtyDaysRange(): DateRange {
   const today = new Date()
   today.setHours(23, 59, 59, 999)
@@ -96,9 +78,6 @@ export function getLastThirtyDaysRange(): DateRange {
   }
 }
 
-/**
- * All available date presets
- */
 export const datePresets: DatePresetOption[] = [
   {
     id: 'esta-semana',
@@ -122,9 +101,6 @@ export const datePresets: DatePresetOption[] = [
   },
 ]
 
-/**
- * Get preset by ID
- */
 export function getPresetById(id: DatePreset): DatePresetOption | undefined {
   return datePresets.find(p => p.id === id)
 }

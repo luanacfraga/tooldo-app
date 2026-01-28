@@ -27,9 +27,6 @@ export const actionKeys = {
   detail: (id: string) => [...actionKeys.details(), id] as const,
 }
 
-/**
- * Hook to fetch actions with filters
- */
 export function useActions(
   filters: ActionFilters = {}
 ): UseQueryResult<PaginatedResponse<Action>, Error> {
@@ -43,12 +40,6 @@ export function useActions(
   })
 }
 
-/**
- * Hook to fetch single action by ID.
- *
- * Note: backend currently does not expose GET /actions/:id, so we resolve the action
- * by listing actions (scoped to selected company when available) and finding by id.
- */
 export function useAction(id: string): UseQueryResult<Action, Error> {
   return useQuery({
     queryKey: actionKeys.detail(id),
@@ -59,9 +50,6 @@ export function useAction(id: string): UseQueryResult<Action, Error> {
   })
 }
 
-/**
- * Hook to create action
- */
 export function useCreateAction(): UseMutationResult<Action, Error, CreateActionDto> {
   const queryClient = useQueryClient()
 
@@ -73,9 +61,6 @@ export function useCreateAction(): UseMutationResult<Action, Error, CreateAction
   })
 }
 
-/**
- * Hook to update action
- */
 export function useUpdateAction(): UseMutationResult<
   Action,
   Error,
@@ -93,9 +78,6 @@ export function useUpdateAction(): UseMutationResult<
   })
 }
 
-/**
- * Hook to delete action
- */
 export function useDeleteAction(): UseMutationResult<Action, Error, string> {
   const queryClient = useQueryClient()
 
@@ -108,9 +90,6 @@ export function useDeleteAction(): UseMutationResult<Action, Error, string> {
   })
 }
 
-/**
- * Hook to move action status
- */
 export function useMoveAction(): UseMutationResult<
   Action,
   Error,
@@ -187,9 +166,6 @@ export function useMoveAction(): UseMutationResult<
   })
 }
 
-/**
- * Hook to block action
- */
 export function useBlockAction(): UseMutationResult<
   Action,
   Error,
@@ -206,9 +182,6 @@ export function useBlockAction(): UseMutationResult<
   })
 }
 
-/**
- * Hook to unblock action
- */
 export function useUnblockAction(): UseMutationResult<Action, Error, string> {
   const queryClient = useQueryClient()
 
@@ -221,9 +194,6 @@ export function useUnblockAction(): UseMutationResult<Action, Error, string> {
   })
 }
 
-/**
- * Hook to generate action plan suggestions (IA)
- */
 export function useGenerateActionPlan(): UseMutationResult<
   ActionSuggestion[],
   Error,

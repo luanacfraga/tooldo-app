@@ -14,9 +14,6 @@ interface User {
   avatar?: string
 }
 
-/**
- * Calcula métricas individuais de cada membro da equipe
- */
 export function calculateTeamMemberMetrics(
   currentPeriodActions: Action[],
   previousPeriodActions: Action[],
@@ -76,9 +73,6 @@ export function calculateTeamMemberMetrics(
   })
 }
 
-/**
- * Calcula métricas agregadas da equipe inteira
- */
 export function calculateTeamMetrics(
   currentPeriodActions: Action[],
   previousPeriodActions: Action[],
@@ -131,9 +125,6 @@ export function calculateTeamMetrics(
   }
 }
 
-/**
- * Cria objeto de comparação para exibição em cards
- */
 export function createMetricComparison(
   currentValue: number,
   previousValue: number,
@@ -161,9 +152,6 @@ export function createMetricComparison(
   }
 }
 
-/**
- * Agrupa entregas por dia para gráfico de tendência
- */
 export function groupDeliveriesByDay(actions: Action[]): DeliveryTrendDataPoint[] {
   const deliveriesByDate = new Map<string, number>()
 
@@ -188,9 +176,6 @@ export function groupDeliveriesByDay(actions: Action[]): DeliveryTrendDataPoint[
   return dataPoints
 }
 
-/**
- * Formata data para label do gráfico
- */
 function formatDateLabel(dateString: string): string {
   const date = new Date(dateString)
   const day = date.getDate()

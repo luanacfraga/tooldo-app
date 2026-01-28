@@ -11,14 +11,6 @@ export interface DateRange {
   dateTo: string
 }
 
-/**
- * Retorna o período anterior equivalente ao período dado
- *
- * @example
- *
- *
- * getPreviousPeriod('esta-semana')
- */
 export function getPreviousPeriod(preset: DatePreset): DateRange {
   const currentRange = getPresetRange(preset)
 
@@ -37,9 +29,6 @@ export function getPreviousPeriod(preset: DatePreset): DateRange {
   }
 }
 
-/**
- * Retorna o range de datas para um preset
- */
 export function getPresetRange(preset: DatePreset): DateRange {
   switch (preset) {
     case 'esta-semana':
@@ -55,13 +44,6 @@ export function getPresetRange(preset: DatePreset): DateRange {
   }
 }
 
-/**
- * Formata um range de datas para exibição
- *
- * @example
- * formatPeriodRange({ dateFrom: '2026-01-05', dateTo: '2026-01-11' })
- *
- */
 export function formatPeriodRange(range: DateRange): string {
   const start = new Date(range.dateFrom)
   const end = new Date(range.dateTo)
@@ -83,13 +65,6 @@ export function formatPeriodRange(range: DateRange): string {
   return `${startDay} de ${startMonth} a ${endDay} de ${month}`
 }
 
-/**
- * Retorna label descritivo para comparação de períodos
- *
- * @example
- * getPeriodComparisonLabel('esta-semana')
- *
- */
 export function getPeriodComparisonLabel(preset: DatePreset): string {
   switch (preset) {
     case 'esta-semana':
