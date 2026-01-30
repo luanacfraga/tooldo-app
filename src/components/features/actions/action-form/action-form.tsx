@@ -442,6 +442,7 @@ export function ActionForm({
 
   const userIsInTeam = !!finalUserTeam
   const requiresTeam = mode === 'create' && !userIsInTeam && role !== 'admin' && role !== 'master'
+  const companyIdForTeams = selectedCompanyId || currentCompanyId
 
   return (
     <Form {...form}>
@@ -449,13 +450,28 @@ export function ActionForm({
         {requiresTeam && (
           <Alert
             variant="destructive"
-            className="flex items-start gap-2 [&>svg+div]:translate-y-0 [&>svg]:static [&>svg~*]:pl-0"
+            className="flex flex-col gap-3 [&>svg+div]:translate-y-0 [&>svg]:static [&>svg~*]:pl-0"
           >
-            <Lock className="mt-0.5 h-4 w-4" />
-            <AlertDescription className="leading-relaxed">
-              Você precisa estar vinculado a uma equipe para criar ações. Entre em contato com o
-              administrador da empresa.
-            </AlertDescription>
+            <div className="flex items-start gap-2">
+              <Lock className="mt-0.5 h-4 w-4 shrink-0" />
+              <AlertDescription className="leading-relaxed">
+                {role === 'manager'
+                  ? 'Você precisa estar vinculado a uma equipe para criar ações. Crie ou gerencie suas equipes para continuar.'
+                  : 'Você precisa estar vinculado a uma equipe para criar ações. Entre em contato com o administrador da empresa.'}
+              </AlertDescription>
+            </div>
+            {role === 'manager' && companyIdForTeams && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-fit border-destructive/50 bg-destructive/5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => router.push(`/companies/${companyIdForTeams}/teams`)}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Cadastrar equipe
+              </Button>
+            )}
           </Alert>
         )}
 
