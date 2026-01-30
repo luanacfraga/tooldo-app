@@ -1,10 +1,12 @@
-import { useState } from 'react'
 import { apiClient } from '@/lib/api/api-client'
 import type {
+  AILimitExceededError,
   GenerateActionPlanRequest,
   GenerateActionPlanResponse,
-  AILimitExceededError,
 } from '@/lib/types/ai'
+import { generateActionPlanResponseSchema } from '@/lib/validators/action'
+import { useState } from 'react'
+import { ZodError } from 'zod'
 
 interface UseGenerateActionPlanResult {
   generatePlan: (request: GenerateActionPlanRequest) => Promise<GenerateActionPlanResponse>
@@ -28,16 +30,26 @@ export function useGenerateActionPlan(): UseGenerateActionPlanResult {
         '/actions/generate',
         request
       )
-      return response
+
+      try {
+        const validatedResponse = generateActionPlanResponseSchema.parse(response)
+        return validatedResponse
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const errorMessage = validationError.errors
+            .map(e => `${e.path.join('.')}: ${e.message}`)
+            .join(', ')
+          throw new Error(`Resposta da IA inválida: ${errorMessage}`)
+        }
+        throw validationError
+      }
     } catch (err: any) {
-      // Trata erro 402 (limite excedido) de forma especial
       if (err.status === 402 && err.data) {
         const limitError: AILimitExceededError = err.data
         setError(limitError)
         throw limitError
       }
 
-      // Outros erros
       const genericError = new Error(
         err.message || 'Erro ao gerar plano de ação com IA'
       )

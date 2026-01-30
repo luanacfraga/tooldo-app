@@ -3,13 +3,13 @@ import type { PaginatedResponse } from '@/lib/api/types'
 import type {
   Action,
   ActionFilters,
-  ActionSuggestion,
   BlockActionDto,
   CreateActionDto,
   GenerateActionPlanDto,
   MoveActionDto,
   UpdateActionDto,
 } from '@/lib/types/action'
+import type { GenerateActionPlanResponse } from '@/lib/types/ai'
 import {
   keepPreviousData,
   useMutation,
@@ -195,7 +195,7 @@ export function useUnblockAction(): UseMutationResult<Action, Error, string> {
 }
 
 export function useGenerateActionPlan(): UseMutationResult<
-  ActionSuggestion[],
+  GenerateActionPlanResponse,
   Error,
   GenerateActionPlanDto
 > {

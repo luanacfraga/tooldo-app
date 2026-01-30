@@ -73,3 +73,30 @@ export const updateActionFormSchema = baseActionSchema
 
 export type ActionFormData = z.infer<typeof actionFormSchema>
 export type UpdateActionFormData = z.infer<typeof updateActionFormSchema>
+
+export const actionSuggestionSchema = z.object({
+  rootCause: z.string().min(1, 'Causa fundamental é obrigatória'),
+  title: z.string().min(1, 'Título é obrigatório'),
+  description: z.string().min(1, 'Descrição é obrigatória'),
+  priority: z.enum(actionPriorities, {
+    errorMap: () => ({ message: 'Selecione uma prioridade válida' }),
+  }),
+  estimatedStartDays: z.number().min(0, 'Dias até o início devem ser maior ou igual a zero'),
+  estimatedDurationDays: z.number().min(1, 'Duração estimada deve ser de pelo menos 1 dia'),
+  checklistItems: z.array(z.string()).default([]),
+})
+
+export const usageStatsSchema = z.object({
+  used: z.number(),
+  limit: z.number(),
+  remaining: z.number(),
+})
+
+export const generateActionPlanResponseSchema = z.object({
+  suggestions: z.array(actionSuggestionSchema),
+  usage: usageStatsSchema,
+})
+
+export type ActionSuggestionValidated = z.infer<typeof actionSuggestionSchema>
+export type UsageStatsValidated = z.infer<typeof usageStatsSchema>
+export type GenerateActionPlanResponseValidated = z.infer<typeof generateActionPlanResponseSchema>

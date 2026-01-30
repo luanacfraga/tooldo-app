@@ -9,17 +9,22 @@ import { PenLine, Sparkles } from 'lucide-react'
 import { ActionForm } from './action-form/action-form'
 import { AIActionForm } from './action-form/ai-action-form'
 import { ActionFormData } from '@/lib/validators/action'
+import type { UpsertChecklistItemInput } from '@/lib/types/action'
 import { useState } from 'react'
+
+type ActionFormDataWithChecklist = Partial<ActionFormData> & {
+  checklistItems?: UpsertChecklistItemInput[]
+}
 
 export function ActionDialog() {
   const { open, actionId, mode, close, setMode } = useActionDialogStore()
   const { data: action, isLoading } = useAction(actionId || '')
-  const [suggestedData, setSuggestedData] = useState<Partial<ActionFormData> | undefined>()
+  const [suggestedData, setSuggestedData] = useState<ActionFormDataWithChecklist | undefined>()
 
   const isEditMode = !!actionId
   const readOnly = action?.isBlocked || false
 
-  const handleSuggestion = (data: Partial<ActionFormData>) => {
+  const handleSuggestion = (data: ActionFormDataWithChecklist) => {
     setSuggestedData(data)
     setMode('manual')
   }

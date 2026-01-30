@@ -1,4 +1,4 @@
-export type ActionPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+import type { ActionPriority } from './action'
 
 export interface ActionSuggestion {
   rootCause: string

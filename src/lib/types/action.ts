@@ -156,11 +156,3 @@ export interface GenerateActionPlanDto {
   teamId?: string
   goal: string
 }
-
-export interface ActionSuggestion {
-  title: string
-  description: string
-  priority: ActionPriority
-  estimatedDurationDays: number
-  checklistItems: string[]
-}

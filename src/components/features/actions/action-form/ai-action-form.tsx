@@ -1,12 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { Building2, Loader2, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -16,7 +9,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -24,10 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useGenerateActionPlan } from '@/lib/hooks/use-actions';
 import { useCompany } from '@/lib/hooks/use-company';
+import { UpsertChecklistItemInput } from '@/lib/types/action';
 import { ActionFormData } from '@/lib/validators/action';
-import { ActionPriority } from '@/lib/types/action';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Building2, Loader2, Sparkles } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 const aiFormSchema = z.object({
   goal: z.string().min(10, 'Descreva seu objetivo com pelo menos 10 caracteres'),
@@ -36,8 +34,12 @@ const aiFormSchema = z.object({
 
 type AIFormData = z.infer<typeof aiFormSchema>;
 
+type ActionFormDataWithChecklist = Partial<ActionFormData> & {
+  checklistItems?: UpsertChecklistItemInput[]
+}
+
 interface AIActionFormProps {
-  onSuggestion: (data: Partial<ActionFormData>) => void;
+  onSuggestion: (data: ActionFormDataWithChecklist) => void;
   onCancel: () => void;
 }
 
@@ -55,25 +57,35 @@ export function AIActionForm({ onSuggestion, onCancel }: AIActionFormProps) {
 
   const onSubmit = async (data: AIFormData) => {
     try {
-      const suggestions = await generateActionPlan.mutateAsync({
+      const response = await generateActionPlan.mutateAsync({
         goal: data.goal,
         companyId: data.companyId,
       });
 
-      if (suggestions && suggestions.length > 0) {
-        const suggestion = suggestions[0];
-        
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(startDate.getDate() + (suggestion.estimatedDurationDays || 7));
+      if (response?.suggestions && response.suggestions.length > 0) {
+        const suggestion = response.suggestions[0];
 
-        const formData: Partial<ActionFormData> = {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() + (suggestion.estimatedStartDays || 0));
+
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + (suggestion.estimatedStartDays || 0) + (suggestion.estimatedDurationDays || 7));
+
+        const checklistItems = suggestion.checklistItems?.map((item, index) => ({
+          description: item,
+          isCompleted: false,
+          order: index,
+        })) || [];
+
+        const formData: ActionFormDataWithChecklist = {
+          rootCause: suggestion.rootCause,
           title: suggestion.title,
           description: suggestion.description,
           priority: suggestion.priority,
           companyId: data.companyId,
           estimatedStartDate: startDate.toISOString().split('T')[0],
           estimatedEndDate: endDate.toISOString().split('T')[0],
+          checklistItems,
         };
 
         onSuggestion(formData);

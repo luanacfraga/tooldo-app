@@ -52,7 +52,9 @@ import { ActionFormChecklist } from './action-form-checklist'
 
 interface ActionFormProps {
   action?: Action
-  initialData?: Partial<ActionFormData>
+  initialData?: Partial<ActionFormData> & {
+    checklistItems?: UpsertChecklistItemInput[]
+  }
   mode: 'create' | 'edit'
   onSuccess?: () => void
   onCancel?: () => void
@@ -145,24 +147,30 @@ export function ActionForm({
   const [checklistItems, setChecklistItems] = useState<UpsertChecklistItemInput[]>([])
 
   useEffect(() => {
-    if (!action) return
+    if (action) {
+      const itemsFromAction = action.checklistItems
+        ? action.checklistItems.map((item) => ({
+            description: item.description,
+            isCompleted: item.isCompleted,
+            order: item.order,
+          }))
+        : []
 
-    const itemsFromAction = action.checklistItems
-      ? action.checklistItems.map((item) => ({
-          description: item.description,
-          isCompleted: item.isCompleted,
-          order: item.order,
-        }))
-      : []
+      console.log('[ActionForm] Syncing checklist from action:', {
+        actionId: action.id,
+        itemsFromAction: itemsFromAction.length,
+        items: itemsFromAction,
+      })
 
-    console.log('[ActionForm] Syncing checklist from action:', {
-      actionId: action.id,
-      itemsFromAction: itemsFromAction.length,
-      items: itemsFromAction,
-    })
-
-    setChecklistItems(itemsFromAction)
-  }, [action?.id, action?.checklistItems])
+      setChecklistItems(itemsFromAction)
+    } else if (initialData?.checklistItems) {
+      console.log('[ActionForm] Syncing checklist from initialData (AI suggestion):', {
+        itemsCount: initialData.checklistItems.length,
+        items: initialData.checklistItems,
+      })
+      setChecklistItems(initialData.checklistItems)
+    }
+  }, [action?.id, action?.checklistItems, initialData?.checklistItems])
 
   const selectedCompanyId = form.watch('companyId')
   const selectedTeamId = form.watch('teamId')

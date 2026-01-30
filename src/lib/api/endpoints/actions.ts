@@ -8,10 +8,10 @@ import type {
   ChecklistItem,
   CreateActionDto,
   GenerateActionPlanDto,
-  ActionSuggestion,
   MoveActionDto,
   UpdateActionDto,
 } from '@/lib/types/action';
+import type { GenerateActionPlanResponse } from '@/lib/types/ai';
 
 function buildQueryString(filters: ActionFilters): string {
   const params = new URLSearchParams();
@@ -109,8 +109,8 @@ export const actionsApi = {
     );
   },
 
-  generate: (data: GenerateActionPlanDto): Promise<ActionSuggestion[]> => {
-    return apiClient.post<ActionSuggestion[]>('/api/v1/actions/generate', data);
+  generate: (data: GenerateActionPlanDto): Promise<GenerateActionPlanResponse> => {
+    return apiClient.post<GenerateActionPlanResponse>('/api/v1/actions/generate', data);
   },
 };
 
@@ -122,7 +122,6 @@ export type {
   ChecklistItem,
   CreateActionDto,
   GenerateActionPlanDto,
-  ActionSuggestion,
   MoveActionDto,
   UpdateActionDto,
 };
