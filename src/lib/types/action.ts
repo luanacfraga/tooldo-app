@@ -38,10 +38,10 @@ export enum DateFilterType {
 }
 
 export enum ActionScopeFilter {
-  ENTIRE_COMPANY = 'entire_company',
-  NO_TEAM = 'no_team',
-  ALL_MY_TEAMS = 'all_my_teams',
-  SPECIFIC_TEAM = 'specific_team',
+  ENTIRE_COMPANY = 'entire-company',
+  NO_TEAM = 'no-team',
+  ALL_MY_TEAMS = 'all-my-teams',
+  SPECIFIC_TEAM = 'specific-team',
 }
 
 export interface KanbanOrder {
