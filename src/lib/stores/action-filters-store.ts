@@ -3,7 +3,7 @@ import type {
   ActionPriority,
   ActionStatus,
 } from '@/lib/types/action'
-import { AssignmentFilter, DateFilterType, ViewMode } from '@/lib/types/action'
+import { ActionScopeFilter, AssignmentFilter, DateFilterType, ViewMode } from '@/lib/types/action'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -26,8 +26,14 @@ interface ActionFiltersState {
   sortOrder: 'asc' | 'desc'
   page: number
   pageSize: number
+
+  // New hierarchical filter fields
+  scopeType: ActionScopeFilter | null
+  selectedTeamId: string | null
+
   setFilter: <K extends keyof ActionFiltersState>(key: K, value: ActionFiltersState[K]) => void
   resetFilters: () => void
+  resetToRoleDefaults: (role: string) => void  // New method
 }
 
 const initialState = {
@@ -49,6 +55,10 @@ const initialState = {
   sortOrder: 'asc' as const,
   page: 1,
   pageSize: 20,
+
+  // New fields
+  scopeType: null,
+  selectedTeamId: null,
 }
 
 export const useActionFiltersStore = create<ActionFiltersState>()(
