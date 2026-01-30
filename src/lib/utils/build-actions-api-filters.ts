@@ -4,6 +4,7 @@ import type {
   ActionPriority,
   ActionStatus,
 } from '@/lib/types/action'
+import { TEAM_FILTER_NONE } from '@/lib/types/action'
 import { AssignmentFilter, DateFilterType } from '@/lib/types/action'
 
 export type ActionFiltersUIState = {
@@ -82,7 +83,11 @@ export function buildActionsApiFilters({
     filters.companyId = selectedCompanyId
   }
 
-  if (state.teamId) filters.teamId = state.teamId
+  if (state.teamId === TEAM_FILTER_NONE) {
+    filters.noTeam = true
+  } else if (state.teamId) {
+    filters.teamId = state.teamId
+  }
 
   if (state.dateFrom) filters.dateFrom = state.dateFrom
   if (state.dateTo) filters.dateTo = state.dateTo

@@ -265,11 +265,10 @@ export function ActionForm({
 
   const shouldInjectCurrentUserAsResponsible =
     !selectedTeamId &&
-    baseResponsibleOptions.length === 0 &&
     !!selectedCompanyId &&
     !!authUser &&
     !!role &&
-    ['manager', 'admin'].includes(role)
+    ['master', 'admin'].includes(role)
 
   const injectedCurrentUserAsEmployee: Employee | null = shouldInjectCurrentUserAsResponsible
     ? {
@@ -441,9 +440,25 @@ export function ActionForm({
     }
   }
 
+  const userIsInTeam = !!finalUserTeam
+  const requiresTeam = mode === 'create' && !userIsInTeam && role !== 'admin' && role !== 'master'
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {requiresTeam && (
+          <Alert
+            variant="destructive"
+            className="flex items-start gap-2 [&>svg+div]:translate-y-0 [&>svg]:static [&>svg~*]:pl-0"
+          >
+            <Lock className="mt-0.5 h-4 w-4" />
+            <AlertDescription className="leading-relaxed">
+              Você precisa estar vinculado a uma equipe para criar ações. Entre em contato com o
+              administrador da empresa.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {readOnly && (
           <Alert
             variant="warning"
@@ -832,7 +847,7 @@ export function ActionForm({
             {readOnly ? 'Fechar' : 'Cancelar'}
           </Button>
           {!readOnly && (
-            <Button type="submit" disabled={isSubmitting} size="sm">
+            <Button type="submit" disabled={isSubmitting || requiresTeam} size="sm">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {mode === 'create' ? 'Criar Ação' : 'Salvar Alterações'}
             </Button>

@@ -53,7 +53,7 @@ export function ActionTable() {
     })
   }, [filtersState, user, selectedCompany])
 
-  const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.responsibleId)
+  const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.noTeam || apiFilters.responsibleId)
   const { data, isLoading, isFetching, error } = useActions(apiFilters)
   const actions = data?.data ?? EMPTY_ACTIONS
   const meta = data?.meta

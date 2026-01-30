@@ -9,9 +9,17 @@ import { useAuth } from '@/lib/hooks/use-auth'
 import { useCompany } from '@/lib/hooks/use-company'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useCompanyResponsibles } from '@/lib/services/queries/use-companies'
-import { useTeamsByCompany } from '@/lib/services/queries/use-teams'
+import { useTeamResponsibles, useTeamsByCompany } from '@/lib/services/queries/use-teams'
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
-import { ActionLateStatus, ActionPriority, ActionStatus, AssignmentFilter, DateFilterType, ViewMode } from '@/lib/types/action'
+import {
+  ActionLateStatus,
+  ActionPriority,
+  ActionStatus,
+  AssignmentFilter,
+  DateFilterType,
+  TEAM_FILTER_NONE,
+  ViewMode,
+} from '@/lib/types/action'
 import { cn, getPriorityExclamation } from '@/lib/utils'
 import {
   Calendar as CalendarIcon,
@@ -26,7 +34,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ActionLateStatusBadge } from '../shared/action-late-status-badge'
 import { getActionPriorityUI } from '../shared/action-priority-ui'
 import { getActionStatusUI } from '../shared/action-status-ui'
@@ -36,9 +44,19 @@ export function ActionFilters() {
   const { selectedCompany } = useCompany()
   const { isManager } = usePermissions()
   const filters = useActionFiltersStore()
-  const { data: companyResponsibles = [], isLoading: isLoadingResponsibles } =
+  const { data: companyResponsibles = [], isLoading: isLoadingCompanyResponsibles } =
     useCompanyResponsibles(selectedCompany?.id || '')
-  
+
+  const teamIdForResponsibles =
+    filters.teamId && filters.teamId !== TEAM_FILTER_NONE ? filters.teamId : ''
+  const { data: teamResponsibles = [], isLoading: isLoadingTeamResponsibles } =
+    useTeamResponsibles(teamIdForResponsibles)
+
+  const availableResponsibles = teamIdForResponsibles ? teamResponsibles : companyResponsibles
+  const isLoadingResponsibles = teamIdForResponsibles
+    ? isLoadingTeamResponsibles
+    : isLoadingCompanyResponsibles
+
   const { data: teamsData } = useTeamsByCompany(selectedCompany?.id || '')
   const allTeams = teamsData?.data || []
 
@@ -53,6 +71,17 @@ export function ActionFilters() {
   const hasSingleTeam = availableTeams.length === 1
   const managerTeam = isManager && hasSingleTeam ? availableTeams[0] : null
 
+  const [teamPopoverOpen, setTeamPopoverOpen] = useState(false)
+  const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false)
+
+  const selectedTeam =
+    filters.teamId && filters.teamId !== TEAM_FILTER_NONE
+      ? (availableTeams.find((t) => t.id === filters.teamId) ?? null)
+      : null
+  const selectedResponsible = filters.responsibleId
+    ? availableResponsibles.find((e) => e.userId === filters.responsibleId)
+    : null
+
   useEffect(() => {
     if (user?.role !== 'executor') return
     if (filters.assignment !== AssignmentFilter.ASSIGNED_TO_ME) {
@@ -61,7 +90,13 @@ export function ActionFilters() {
   }, [user?.role, filters])
 
   useEffect(() => {
-    if (isManager && hasSingleTeam && managerTeam && filters.teamId !== managerTeam.id) {
+    if (
+      isManager &&
+      hasSingleTeam &&
+      managerTeam &&
+      filters.teamId !== managerTeam.id &&
+      filters.teamId !== TEAM_FILTER_NONE
+    ) {
       filters.setFilter('teamId', managerTeam.id)
     }
   }, [isManager, hasSingleTeam, managerTeam, filters])
@@ -345,17 +380,19 @@ export function ActionFilters() {
                 <span className="truncate">{managerTeam.name}</span>
               </div>
             ) : (
-              <Popover>
+              <Popover open={teamPopoverOpen} onOpenChange={setTeamPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={getButtonState(!!filters.teamId)}
-                  >
-                    <Users className="mr-1.5 h-3.5 w-3.5" />
-                    <span>Equipe</span>
+                  <Button variant="outline" size="sm" className={getButtonState(!!filters.teamId)}>
+                    <Users className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">
+                      {filters.teamId === TEAM_FILTER_NONE
+                        ? 'Sem equipe'
+                        : selectedTeam
+                          ? selectedTeam.name
+                          : 'Equipe'}
+                    </span>
                     {filters.teamId && (
-                      <span className="ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                      <span className="ml-1.5 inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                         1
                       </span>
                     )}
@@ -371,10 +408,32 @@ export function ActionFilters() {
                           'w-full justify-start text-xs font-normal',
                           !filters.teamId && 'bg-primary/10 text-primary'
                         )}
-                        onClick={() => filters.setFilter('teamId', null)}
+                        onClick={() => {
+                          filters.setFilter('teamId', null)
+                          filters.setFilter('responsibleId', null)
+                          setTeamPopoverOpen(false)
+                        }}
                       >
                         Todas as equipes
                         {!filters.teamId && (
+                          <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          'w-full justify-start text-xs font-normal',
+                          filters.teamId === TEAM_FILTER_NONE && 'bg-primary/10 text-primary'
+                        )}
+                        onClick={() => {
+                          filters.setFilter('teamId', TEAM_FILTER_NONE)
+                          filters.setFilter('responsibleId', null)
+                          setTeamPopoverOpen(false)
+                        }}
+                      >
+                        Sem equipe
+                        {filters.teamId === TEAM_FILTER_NONE && (
                           <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
                         )}
                       </Button>
@@ -392,10 +451,12 @@ export function ActionFilters() {
                             )}
                             onClick={() => {
                               filters.setFilter('teamId', team.id)
+                              filters.setFilter('responsibleId', null)
+                              setTeamPopoverOpen(false)
                             }}
                           >
                             <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <Users className="h-4 w-4 shrink-0 text-muted-foreground" />
                               <span className="truncate">{team.name}</span>
                             </div>
                             {isActive && <CheckCircle2 className="ml-auto h-3.5 w-3.5" />}
@@ -412,7 +473,7 @@ export function ActionFilters() {
 
         {user?.role !== 'executor' ? (
           <>
-            <Popover>
+            <Popover open={responsiblePopoverOpen} onOpenChange={setResponsiblePopoverOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -420,8 +481,17 @@ export function ActionFilters() {
                   className={getButtonState(!!filters.responsibleId)}
                   disabled={!selectedCompany || isLoadingResponsibles}
                 >
-                  <UserCircle2 className="mr-1.5 h-3.5 w-3.5" />
-                  <span>Responsável</span>
+                  <UserCircle2 className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">
+                    {selectedResponsible?.user
+                      ? `${selectedResponsible.user.firstName} ${selectedResponsible.user.lastName}`
+                      : 'Responsável'}
+                  </span>
+                  {filters.responsibleId && (
+                    <span className="ml-1.5 inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                      1
+                    </span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[240px] p-0" align="start">
@@ -434,7 +504,10 @@ export function ActionFilters() {
                         'w-full justify-start text-xs font-normal',
                         !filters.responsibleId && 'bg-primary/10 text-primary'
                       )}
-                      onClick={() => filters.setFilter('responsibleId', null)}
+                      onClick={() => {
+                        filters.setFilter('responsibleId', null)
+                        setResponsiblePopoverOpen(false)
+                      }}
                     >
                       Todos os responsáveis
                       {!filters.responsibleId && (
@@ -446,8 +519,8 @@ export function ActionFilters() {
                       <div className="px-2 py-3 text-xs text-muted-foreground">
                         Carregando responsáveis...
                       </div>
-                    ) : companyResponsibles && companyResponsibles.length > 0 ? (
-                      companyResponsibles.map((employee) => {
+                    ) : availableResponsibles && availableResponsibles.length > 0 ? (
+                      availableResponsibles.map((employee) => {
                         const isActive = filters.responsibleId === employee.userId
                         const execUser = employee.user
 
@@ -477,6 +550,7 @@ export function ActionFilters() {
                             onClick={() => {
                               filters.setFilter('assignment', AssignmentFilter.ALL)
                               filters.setFilter('responsibleId', employee.userId)
+                              setResponsiblePopoverOpen(false)
                             }}
                           >
                             <div className="flex items-center gap-2">
@@ -537,7 +611,9 @@ export function ActionFilters() {
                       filters.dateFilterType === DateFilterType.ESTIMATED_START_DATE &&
                         'bg-primary/10 text-primary shadow-sm'
                     )}
-                    onClick={() => filters.setFilter('dateFilterType', DateFilterType.ESTIMATED_START_DATE)}
+                    onClick={() =>
+                      filters.setFilter('dateFilterType', DateFilterType.ESTIMATED_START_DATE)
+                    }
                   >
                     <span>Início Previsto</span>
                     {filters.dateFilterType === DateFilterType.ESTIMATED_START_DATE && (
@@ -552,7 +628,9 @@ export function ActionFilters() {
                       filters.dateFilterType === DateFilterType.ACTUAL_START_DATE &&
                         'bg-primary/10 text-primary shadow-sm'
                     )}
-                    onClick={() => filters.setFilter('dateFilterType', DateFilterType.ACTUAL_START_DATE)}
+                    onClick={() =>
+                      filters.setFilter('dateFilterType', DateFilterType.ACTUAL_START_DATE)
+                    }
                   >
                     <span>Início Real</span>
                     {filters.dateFilterType === DateFilterType.ACTUAL_START_DATE && (
@@ -567,7 +645,9 @@ export function ActionFilters() {
                       filters.dateFilterType === DateFilterType.ESTIMATED_END_DATE &&
                         'bg-primary/10 text-primary shadow-sm'
                     )}
-                    onClick={() => filters.setFilter('dateFilterType', DateFilterType.ESTIMATED_END_DATE)}
+                    onClick={() =>
+                      filters.setFilter('dateFilterType', DateFilterType.ESTIMATED_END_DATE)
+                    }
                   >
                     <span>Término Previsto</span>
                     {filters.dateFilterType === DateFilterType.ESTIMATED_END_DATE && (
@@ -582,7 +662,9 @@ export function ActionFilters() {
                       filters.dateFilterType === DateFilterType.ACTUAL_END_DATE &&
                         'bg-primary/10 text-primary shadow-sm'
                     )}
-                    onClick={() => filters.setFilter('dateFilterType', DateFilterType.ACTUAL_END_DATE)}
+                    onClick={() =>
+                      filters.setFilter('dateFilterType', DateFilterType.ACTUAL_END_DATE)
+                    }
                   >
                     <span>Término Real</span>
                     {filters.dateFilterType === DateFilterType.ACTUAL_END_DATE && (

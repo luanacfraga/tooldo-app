@@ -19,6 +19,7 @@ function buildQueryString(filters: ActionFilters): string {
   const supportedKeys: (keyof ActionFilters)[] = [
     'companyId',
     'teamId',
+    'noTeam',
     'responsibleId',
     'creatorId',
     'status',

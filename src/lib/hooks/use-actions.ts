@@ -30,7 +30,7 @@ export const actionKeys = {
 export function useActions(
   filters: ActionFilters = {}
 ): UseQueryResult<PaginatedResponse<Action>, Error> {
-  const hasScope = !!(filters.companyId || filters.teamId || filters.responsibleId)
+  const hasScope = !!(filters.companyId || filters.teamId || filters.noTeam || filters.responsibleId)
   return useQuery({
     queryKey: actionKeys.list(filters),
     queryFn: () => actionsApi.getAll(filters),

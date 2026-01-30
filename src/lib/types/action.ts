@@ -117,6 +117,8 @@ export interface UpdateActionDto {
   checklistItems?: UpsertChecklistItemInput[]
 }
 
+export const TEAM_FILTER_NONE = '__no_team__' as const
+
 export interface ActionFilters {
   status?: ActionStatus
   statuses?: ActionStatus[]
@@ -125,6 +127,7 @@ export interface ActionFilters {
   creatorId?: string
   companyId?: string
   teamId?: string
+  noTeam?: boolean
   isLate?: boolean
   isBlocked?: boolean
   lateStatus?: ActionLateStatus | ActionLateStatus[]

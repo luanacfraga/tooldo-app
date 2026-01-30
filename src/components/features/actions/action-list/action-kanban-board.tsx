@@ -31,6 +31,7 @@ import { useCompany } from '@/lib/hooks/use-company'
 import { useKanbanActions } from '@/lib/hooks/use-kanban-actions'
 import { useActionDialogStore } from '@/lib/stores/action-dialog-store'
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
+import { useTeamResponsibles } from '@/lib/services/queries/use-teams'
 import { ActionStatus, AssignmentFilter, ViewMode, type Action, type ActionFilters } from '@/lib/types/action'
 import { cn } from '@/lib/utils'
 import { buildActionsApiFilters } from '@/lib/utils/build-actions-api-filters'
@@ -172,7 +173,7 @@ export function ActionKanbanBoard() {
     })
   }, [filtersState, user, selectedCompany])
 
-  const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.responsibleId)
+  const hasScope = !!(apiFilters.companyId || apiFilters.teamId || apiFilters.noTeam || apiFilters.responsibleId)
   const { data, isLoading, isFetching, error } = useActions(apiFilters)
 
   const actions = data?.data ?? []
@@ -388,18 +389,26 @@ interface ResponsibleSelectorProps {
 function ResponsibleSelector({ action, canEdit }: ResponsibleSelectorProps) {
   const { user: authUser } = useAuth()
   const { selectedCompany } = useCompany()
+  const filtersState = useActionFiltersStore()
   const updateAction = useUpdateAction()
   const [open, setOpen] = useState(false)
 
-  const { data: executors, isLoading } = useQuery({
+  const teamId = filtersState.teamId ?? ''
+
+  const { data: companyExecutors, isLoading: isLoadingCompany } = useQuery({
     queryKey: ['executors', selectedCompany?.id],
     queryFn: () =>
       selectedCompany?.id
         ? employeesApi.listExecutorsByCompany(selectedCompany.id)
         : Promise.resolve([]),
-    enabled: !!selectedCompany?.id,
+    enabled: !!selectedCompany?.id && !teamId,
     staleTime: EXECUTORS_STALE_TIME_MS,
   })
+
+  const { data: teamResponsibles, isLoading: isLoadingTeam } = useTeamResponsibles(teamId)
+
+  const executors = teamId ? (teamResponsibles ?? []) : (companyExecutors ?? [])
+  const isLoading = teamId ? isLoadingTeam : isLoadingCompany
 
   const handleChangeResponsible = async (newResponsibleId: string) => {
     try {
