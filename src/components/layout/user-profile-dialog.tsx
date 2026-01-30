@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RoleBadge } from '@/components/ui/role-badge'
 import { Separator } from '@/components/ui/separator'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { usersApi } from '@/lib/api/endpoints/users'
@@ -26,8 +27,7 @@ import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Mail, Phone, Shield, User } from 'lucide-react'
-import { RoleBadge } from '@/components/ui/role-badge'
+import { Loader2, Mail, Shield, User } from 'lucide-react'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -192,7 +192,6 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
-            
             <div className="flex items-start gap-4">
               <UserAvatar
                 id={user.id}
@@ -221,7 +220,6 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
 
             <Separator />
 
-            
             <div className="space-y-3">
               <div>
                 <p className="mb-2 text-sm font-medium">Cor do Avatar</p>
@@ -245,7 +243,6 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
 
             <Separator />
 
-            
             <div className="space-y-4">
               <p className="text-sm font-medium">Informações Pessoais</p>
 
@@ -283,24 +280,6 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-1 text-xs">
-                      <Phone className="h-3 w-3" />
-                      Telefone
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} type="tel" className="h-9 text-sm" />
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-              
               {formattedDocument && (
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-muted-foreground">
@@ -315,7 +294,6 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
 
             <Separator />
 
-            
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Fechar
