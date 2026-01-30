@@ -11,15 +11,13 @@ export const planSchema = z.object({
       invalid_type_error: 'Deve ser um número inteiro',
     })
     .int('Deve ser um número inteiro')
-    .positive('Deve ser um número positivo')
-    .min(1, 'Deve permitir pelo menos 1 empresa'),
+    .min(0, 'Deve ser maior ou igual a 0'),
   maxManagers: z
     .number({
       required_error: 'Número máximo de gerentes é obrigatório',
       invalid_type_error: 'Deve ser um número inteiro',
     })
     .int('Deve ser um número inteiro')
-    .positive('Deve ser um número positivo')
     .min(0, 'Não pode ser negativo'),
   maxExecutors: z
     .number({
@@ -27,7 +25,6 @@ export const planSchema = z.object({
       invalid_type_error: 'Deve ser um número inteiro',
     })
     .int('Deve ser um número inteiro')
-    .positive('Deve ser um número positivo')
     .min(0, 'Não pode ser negativo'),
   maxConsultants: z
     .number({
@@ -35,7 +32,6 @@ export const planSchema = z.object({
       invalid_type_error: 'Deve ser um número inteiro',
     })
     .int('Deve ser um número inteiro')
-    .positive('Deve ser um número positivo')
     .min(0, 'Não pode ser negativo'),
   iaCallsLimit: z
     .number({
@@ -43,7 +39,6 @@ export const planSchema = z.object({
       invalid_type_error: 'Deve ser um número inteiro',
     })
     .int('Deve ser um número inteiro')
-    .positive('Deve ser um número positivo')
     .min(0, 'Não pode ser negativo'),
 })
 
