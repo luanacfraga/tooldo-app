@@ -8,7 +8,17 @@ type ActionDateDisplay = {
 
 function formatSafe(dateString: string | null | undefined, pattern = 'dd/MM'): string | null {
   if (!dateString) return null
-  const date = new Date(dateString)
+  const trimmed = dateString.trim()
+  // Extrai YYYY-MM-DD (datas da API vêm como ISO "2025-01-30T00:00:00.000Z" ou "2025-01-30")
+  const datePart = trimmed.slice(0, 10)
+  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart)
+  const date = dateOnlyMatch
+    ? new Date(
+        Number(dateOnlyMatch[1]),
+        Number(dateOnlyMatch[2]) - 1,
+        Number(dateOnlyMatch[3])
+      )
+    : new Date(trimmed)
   if (Number.isNaN(date.getTime())) return null
   return format(date, pattern)
 }
