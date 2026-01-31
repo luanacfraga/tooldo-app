@@ -39,7 +39,6 @@ export enum DateFilterType {
 
 export enum ActionScopeFilter {
   ENTIRE_COMPANY = 'entire-company',
-  NO_TEAM = 'no-team',
   ALL_MY_TEAMS = 'all-my-teams',
   SPECIFIC_TEAM = 'specific-team',
 }

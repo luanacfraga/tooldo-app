@@ -31,20 +31,17 @@ export function useScopeResponsibles({
 
   const isLoading =
     (scopeType === ActionScopeFilter.ENTIRE_COMPANY && isLoadingCompanyUsers) ||
-    (scopeType === ActionScopeFilter.NO_TEAM && isLoadingCompanyUsers) ||
     (scopeType === ActionScopeFilter.SPECIFIC_TEAM && isLoadingTeamResponsibles) ||
     (scopeType === ActionScopeFilter.ALL_MY_TEAMS && isLoadingTeamResponsibles)
 
   const responsibles =
     scopeType === ActionScopeFilter.ENTIRE_COMPANY
       ? companyUsers
-      : scopeType === ActionScopeFilter.NO_TEAM
-        ? companyUsers
-        : scopeType === ActionScopeFilter.SPECIFIC_TEAM
+      : scopeType === ActionScopeFilter.SPECIFIC_TEAM
+        ? teamResponsibles
+        : scopeType === ActionScopeFilter.ALL_MY_TEAMS
           ? teamResponsibles
-          : scopeType === ActionScopeFilter.ALL_MY_TEAMS
-            ? teamResponsibles
-            : []
+          : []
 
   return {
     responsibles: responsibles ?? [],

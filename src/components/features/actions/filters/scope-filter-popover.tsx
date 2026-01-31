@@ -40,9 +40,6 @@ export function ScopeFilterPopover() {
     if (filters.scopeType === ActionScopeFilter.ENTIRE_COMPANY) {
       return 'Toda a empresa'
     }
-    if (filters.scopeType === ActionScopeFilter.NO_TEAM) {
-      return 'Sem equipe'
-    }
     if (filters.scopeType === ActionScopeFilter.ALL_MY_TEAMS) {
       return 'Todas as minhas equipes'
     }
@@ -99,24 +96,6 @@ export function ScopeFilterPopover() {
                 >
                   Toda a empresa
                   {filters.scopeType === ActionScopeFilter.ENTIRE_COMPANY && (
-                    <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    'w-full justify-start text-xs font-normal',
-                    filters.scopeType === ActionScopeFilter.NO_TEAM && 'bg-primary/10 text-primary'
-                  )}
-                  onClick={() => {
-                    filters.setFilter('scopeType', ActionScopeFilter.NO_TEAM)
-                    filters.setFilter('selectedTeamId', null)
-                    setOpen(false)
-                  }}
-                >
-                  Ações sem equipe
-                  {filters.scopeType === ActionScopeFilter.NO_TEAM && (
                     <CheckCircle2 className="ml-auto h-3.5 w-3.5 opacity-50" />
                   )}
                 </Button>

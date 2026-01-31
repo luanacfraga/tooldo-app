@@ -402,7 +402,7 @@ export function ActionFilters() {
                   <span className="truncate">
                     {selectedResponsible?.user
                       ? `${selectedResponsible.user.firstName} ${selectedResponsible.user.lastName}`
-                      : filters.scopeType === ActionScopeFilter.ENTIRE_COMPANY || filters.scopeType === ActionScopeFilter.NO_TEAM
+                      : filters.scopeType === ActionScopeFilter.ENTIRE_COMPANY
                         ? 'Todos os responsáveis'
                         : 'Todos da equipe'}
                   </span>

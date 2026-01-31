@@ -90,10 +90,6 @@ export function buildActionsApiFilters({
       case ActionScopeFilter.ENTIRE_COMPANY:
         break
 
-      case ActionScopeFilter.NO_TEAM:
-        filters.noTeam = true
-        break
-
       case ActionScopeFilter.SPECIFIC_TEAM:
         if (state.selectedTeamId) {
           filters.teamId = state.selectedTeamId
