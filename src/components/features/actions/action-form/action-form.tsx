@@ -262,6 +262,19 @@ export function ActionForm({
 
   const { data: companyResponsibles = [] } = useCompanyResponsibles(selectedCompanyId || '')
 
+  useEffect(() => {
+    if (mode !== 'create') return
+    if (!selectedCompanyId) return
+    if (selectedTeamId) return
+    if (role !== 'admin') return
+    if (!authUser?.id) return
+
+    const currentResponsible = form.getValues('responsibleId')
+    if (!currentResponsible) {
+      form.setValue('responsibleId', authUser.id)
+    }
+  }, [selectedTeamId, selectedCompanyId, role, authUser, mode, form])
+
   const isAdminOrMaster = role === 'admin' || role === 'master'
   const isNoTeam = !selectedTeamId
   const isEditingNoTeamAction = isEditing && !!action && !action.teamId
@@ -299,7 +312,6 @@ export function ActionForm({
     if (selectedTeamId) return teamResponsibles
     if (isEditingNoTeamAction && creatorAsOptionWhenEditingNoTeam)
       return [creatorAsOptionWhenEditingNoTeam]
-    if (isAdminOrMaster && isNoTeam) return []
     return companyResponsibles
   })()
 
