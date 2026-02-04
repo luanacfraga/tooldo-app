@@ -68,6 +68,19 @@ export function ActionFilters() {
     managerTeamIds: availableTeams.map(t => t.id),
   })
 
+  useEffect(() => {
+    if (filters.scopeType === ActionScopeFilter.ENTIRE_COMPANY && scopeResponsibles.length > 0) {
+      console.log('🔍 DEBUG - Responsibles for ENTIRE_COMPANY:', {
+        count: scopeResponsibles.length,
+        responsibles: scopeResponsibles.map(r => ({
+          userId: r.userId,
+          role: r.role,
+          name: r.user ? `${r.user.firstName} ${r.user.lastName}` : 'No user',
+        })),
+      })
+    }
+  }, [filters.scopeType, scopeResponsibles])
+
   const [teamPopoverOpen, setTeamPopoverOpen] = useState(false)
   const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false)
 
