@@ -18,7 +18,7 @@ export interface UpdateCompanyRequest {
   description?: string
 }
 
-export type EmployeeRole = 'manager' | 'executor' | 'consultant'
+export type EmployeeRole = 'admin' | 'manager' | 'executor' | 'consultant'
 export type EmployeeStatus = 'INVITED' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED' | 'REMOVED'
 
 export interface Employee {
