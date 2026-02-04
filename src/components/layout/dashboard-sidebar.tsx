@@ -116,11 +116,19 @@ export function DashboardSidebar() {
     }
 
     if (isConsultant && companyId) {
-      items.push({
-        name: 'Dashboard',
-        href: `${basePath}/dashboard`,
-        icon: BarChart3,
-      })
+      items.push(
+        {
+          name: 'Dashboard',
+          href: `${basePath}/dashboard`,
+          icon: BarChart3,
+        },
+        {
+          name: 'Ações',
+          href: '/actions',
+          icon: ClipboardList,
+          subItems: [{ name: 'Lista de Ações', href: '/actions' }],
+        }
+      )
     }
 
     if (isMaster) {
