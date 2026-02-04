@@ -27,6 +27,17 @@ export function useScopeResponsibles({
     teamId || ''
   )
 
+  if (scopeType === ActionScopeFilter.ENTIRE_COMPANY && companyUsers && companyUsers.length > 0) {
+    console.log('🔍 DEBUG - companyUsers from API:', {
+      count: companyUsers.length,
+      users: companyUsers.map(u => ({
+        userId: u.userId,
+        role: u.role,
+        name: u.user ? `${u.user.firstName} ${u.user.lastName}` : 'No user',
+      })),
+    })
+  }
+
   const shouldLoadMultipleTeams = scopeType === ActionScopeFilter.ALL_MY_TEAMS && managerTeamIds.length > 1
 
   const isLoading =
