@@ -16,8 +16,8 @@ import { Suspense } from 'react'
 export default function ActionsPage() {
   const { user } = useAuth()
   const { openCreate } = useActionDialogStore()
-  const { isAdmin, isManager } = usePermissions()
-  const canCreate = isAdmin || isManager
+  const { isAdmin, isManager, isExecutor } = usePermissions()
+  const canCreate = isAdmin || isManager || isExecutor
 
   return (
     <PageContainer maxWidth="full">

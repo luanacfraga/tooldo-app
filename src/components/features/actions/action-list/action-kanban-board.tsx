@@ -205,7 +205,7 @@ export function ActionKanbanBoard() {
     setAnnouncement('')
   }
 
-  const canCreate = isAdmin || isManager
+  const canCreate = isAdmin || isManager || isExecutor
   const hasFilters =
     filtersState.statuses.length > 0 ||
     filtersState.priority !== 'all' ||
