@@ -56,7 +56,7 @@ const editEmployeeSchema = z.object({
     .string()
     .optional()
     .refine(
-      (val) => !val || val.trim() === '' || /^\+55[1-9]{2}[0-9]{8,9}$/.test(val),
+      (val) => !val || val.trim() === '' || /^\+55[1-9]{2}(9[0-9]{8}|[2-5][0-9]{7})$/.test(val),
       { message: 'Use o formato +55 (DDD) XXXXX-XXXX' }
     ),
   document: z
