@@ -41,10 +41,18 @@ interface UserProfileDialogProps {
 const profileFormSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   email: z.string().email('Email inválido'),
-  phone: z.string().optional(),
 })
 
 type ProfileFormData = z.infer<typeof profileFormSchema>
+
+const phoneFormSchema = z.object({
+  phone: z
+    .string()
+    .min(1, 'Telefone é obrigatório')
+    .regex(/^\+[1-9]\d{1,14}$/, 'Use o formato E.164, ex: +5531971986732'),
+})
+
+type PhoneFormData = z.infer<typeof phoneFormSchema>
 
 const DEFAULT_COLORS = [
   '#3B82F6',
@@ -110,6 +118,19 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
     },
   })
 
+  const updatePhone = useMutation({
+    mutationFn: (phone: string) => usersApi.updatePhone({ phone }),
+    onSuccess: (_updatedUser, phone) => {
+      if (authUser) {
+        setUser({ ...authUser, phone })
+      }
+      toast.success('Telefone atualizado com sucesso!')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao atualizar telefone')
+    },
+  })
+
   const availableColors = React.useMemo(() => {
     if (
       avatarColorsData?.colors &&
@@ -126,7 +147,13 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
     defaultValues: {
       name: user?.name || '',
       email: user?.email || '',
-      phone: user?.phone || '',
+    },
+  })
+
+  const phoneForm = useForm<PhoneFormData>({
+    resolver: zodResolver(phoneFormSchema),
+    defaultValues: {
+      phone: authUser?.phone || '',
     },
   })
 
@@ -135,10 +162,15 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
       form.reset({
         name: user.name || '',
         email: user.email || '',
-        phone: user.phone || '',
       })
     }
   }, [user, form])
+
+  React.useEffect(() => {
+    if (authUser?.phone) {
+      phoneForm.reset({ phone: authUser.phone })
+    }
+  }, [authUser?.phone, phoneForm])
 
   if (!user) return null
 
@@ -160,17 +192,12 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
       const [firstName, ...rest] = fullName.split(/\s+/)
       const lastName = rest.join(' ') || firstName
 
-      const updated = await usersApi.updateProfile({
-        firstName,
-        lastName,
-        phone: data.phone || undefined,
-      })
+      const updated = await usersApi.updateProfile({ firstName, lastName })
 
       if (authUser) {
         setUser({
           ...authUser,
           name: `${updated.firstName} ${updated.lastName}`.trim(),
-          phone: data.phone || authUser.phone || null,
         })
       }
 
@@ -178,6 +205,10 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
     } catch (error) {
       toast.error('Erro ao atualizar perfil')
     }
+  }
+
+  const handlePhoneSubmit = (data: PhoneFormData) => {
+    updatePhone.mutate(data.phone)
   }
 
   return (
@@ -302,6 +333,48 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
                 Salvar
               </Button>
             </div>
+          </form>
+        </Form>
+
+        <Separator />
+
+        <Form {...phoneForm}>
+          <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)} className="space-y-3">
+            <p className="text-sm font-medium">Telefone</p>
+            <FormField
+              control={phoneForm.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs text-muted-foreground">
+                    Formato E.164, ex: +5531971986732
+                  </FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="tel"
+                        placeholder="+5531971986732"
+                        className="h-9 text-sm"
+                      />
+                    </FormControl>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="shrink-0"
+                      disabled={updatePhone.isPending}
+                    >
+                      {updatePhone.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        'Salvar'
+                      )}
+                    </Button>
+                  </div>
+                  <FormMessage className="text-xs" />
+                </FormItem>
+              )}
+            />
           </form>
         </Form>
       </DialogContent>

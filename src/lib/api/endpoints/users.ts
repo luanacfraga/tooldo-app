@@ -33,9 +33,12 @@ export interface UpdateAvatarColorRequest {
 }
 
 export interface UpdateProfileRequest {
-  phone?: string
   firstName?: string
   lastName?: string
+}
+
+export interface UpdatePhoneRequest {
+  phone: string
 }
 
 export const usersApi = {
@@ -59,4 +62,7 @@ export const usersApi = {
 
   updateProfile: (data: UpdateProfileRequest) =>
     apiClient.patch<User>('/api/v1/users/me/profile', data),
+
+  updatePhone: (data: UpdatePhoneRequest) =>
+    apiClient.patch<User>('/api/v1/users/me/phone', data),
 }

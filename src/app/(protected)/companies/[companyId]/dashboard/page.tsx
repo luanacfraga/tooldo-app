@@ -20,7 +20,7 @@ import { useCompanyPerformance } from '@/lib/hooks/use-company-performance'
 import { useTeamsByCompany } from '@/lib/services/queries/use-teams'
 import { useActionDialogStore } from '@/lib/stores/action-dialog-store'
 import { useActionFiltersStore } from '@/lib/stores/action-filters-store'
-import { ActionStatus, DateFilterType, ViewMode } from '@/lib/types/action'
+import { ActionLateStatus, ActionStatus, DateFilterType, ViewMode } from '@/lib/types/action'
 import type { DatePreset } from '@/lib/utils/date-presets'
 import { createMetricComparison } from '@/lib/utils/metrics-calculator'
 import { getPresetRange } from '@/lib/utils/period-comparator'
@@ -523,7 +523,15 @@ function ManagerCompanyDashboard({ companyId }: { companyId: string }) {
     () => ({ companyId, status: ActionStatus.DONE, page: 1, limit: 1 }),
     [companyId]
   )
-  const lateFilters = useMemo(() => ({ companyId, isLate: true, page: 1, limit: 1 }), [companyId])
+  const lateFilters = useMemo(
+    () => ({
+      companyId,
+      lateStatus: [ActionLateStatus.LATE_TO_START, ActionLateStatus.LATE_TO_FINISH, ActionLateStatus.COMPLETED_LATE],
+      page: 1,
+      limit: 1,
+    }),
+    [companyId]
+  )
   const blockedFilters = useMemo(
     () => ({ companyId, isBlocked: true, page: 1, limit: 1 }),
     [companyId]
@@ -761,8 +769,8 @@ function ManagerCompanyDashboard({ companyId }: { companyId: string }) {
                       key={a.id}
                       icon={<CheckSquare className="h-5 w-5 flex-shrink-0 text-muted-foreground" />}
                       title={a.title}
-                      description={a.isLate ? 'Atrasada' : undefined}
-                      color={a.isLate ? 'orange' : 'purple'}
+                      description={a.lateStatus ? 'Atrasada' : undefined}
+                      color={a.lateStatus ? 'orange' : 'purple'}
                     />
                   ))}
                 </div>

@@ -62,7 +62,6 @@ export interface Action {
   estimatedEndDate: string
   actualStartDate: string | null
   actualEndDate: string | null
-  isLate: boolean
   isBlocked: boolean
   blockedReason: string | null
   companyId: string
@@ -134,7 +133,6 @@ export interface ActionFilters {
   companyId?: string
   teamId?: string
   noTeam?: boolean
-  isLate?: boolean
   isBlocked?: boolean
   lateStatus?: ActionLateStatus | ActionLateStatus[]
   q?: string

@@ -36,7 +36,7 @@ export function calculateTeamMemberMetrics(
     const inProgress = currentActions.filter(
       (a) => a.status === ActionStatus.IN_PROGRESS
     ).length
-    const late = currentActions.filter((a) => a.isLate).length
+    const late = currentActions.filter((a) => a.lateStatus !== null).length
 
     const previousTotalActions = previousActions.length
     const previousDeliveries = previousActions.filter(
@@ -83,7 +83,7 @@ export function calculateTeamMetrics(
     (a) => a.status === ActionStatus.DONE
   ).length
   const avgCompletionRate = totalActions > 0 ? (totalDeliveries / totalActions) * 100 : 0
-  const totalLate = currentPeriodActions.filter((a) => a.isLate).length
+  const totalLate = currentPeriodActions.filter((a) => a.lateStatus !== null).length
 
   const previousTotalActions = previousPeriodActions.length
   const previousDeliveries = previousPeriodActions.filter(
@@ -93,7 +93,7 @@ export function calculateTeamMetrics(
     previousTotalActions > 0
       ? (previousDeliveries / previousTotalActions) * 100
       : 0
-  const previousLate = previousPeriodActions.filter((a) => a.isLate).length
+  const previousLate = previousPeriodActions.filter((a) => a.lateStatus !== null).length
 
   const deliveriesChange = totalDeliveries - previousDeliveries
   const deliveriesChangePercent =
