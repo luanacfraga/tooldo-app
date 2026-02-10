@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/ui/phone-input'
 import {
   Select,
   SelectContent,
@@ -27,7 +28,7 @@ import { ApiError } from '@/lib/api/api-client'
 import { useUserContext } from '@/lib/contexts/user-context'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useInviteEmployee } from '@/lib/services/queries/use-employees'
-import { maskCPF, maskPhone, unmaskCPF, unmaskPhone } from '@/lib/utils/masks'
+import { maskCPF, unmaskCPF } from '@/lib/utils/masks'
 import { inviteEmployeeSchema, type InviteEmployeeFormData } from '@/lib/validators/employee'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, Send } from 'lucide-react'
@@ -92,7 +93,7 @@ export default function CompanyInvitePage() {
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone ? unmaskPhone(data.phone) : undefined,
+        phone: data.phone?.trim() || undefined,
         document: data.document ? unmaskCPF(data.document) : undefined,
         role: data.role,
         position: data.position || undefined,
@@ -249,18 +250,10 @@ export default function CompanyInvitePage() {
                       <FormItem>
                         <FormLabel className="text-sm">Telefone</FormLabel>
                         <FormControl>
-                          <Input
-                            type="tel"
-                            placeholder="(11) 98765-4321"
-                            value={maskPhone(field.value || '')}
-                            onChange={(e) => {
-                              const unmasked = unmaskPhone(e.target.value)
-                              field.onChange(unmasked)
-                            }}
-                            onBlur={() => {
-                              field.onBlur()
-                              form.trigger('phone')
-                            }}
+                          <PhoneInput
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
                             className="h-9 text-sm"
                           />
                         </FormControl>

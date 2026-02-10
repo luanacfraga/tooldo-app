@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/ui/phone-input'
 import {
   Select,
   SelectContent,
@@ -29,7 +30,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useUpdateEmployee } from '@/lib/services/queries/use-employees'
 import type { Employee } from '@/lib/types/api'
 import { getApiErrorMessage } from '@/lib/utils/error-handling'
-import { maskCPF, maskPhone, unmaskCPF, unmaskPhone } from '@/lib/utils/masks'
+import { maskCPF, toE164, unmaskCPF } from '@/lib/utils/masks'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -55,12 +56,8 @@ const editEmployeeSchema = z.object({
     .string()
     .optional()
     .refine(
-      (val) => {
-        if (!val || val.trim() === '') return true
-        const digits = val.replace(/\D/g, '')
-        return digits.length === 11 || digits.length === 10
-      },
-      { message: 'Digite o telefone completo (10 ou 11 dígitos)' }
+      (val) => !val || val.trim() === '' || /^\+55[1-9]{2}(9[0-9]{8}|[2-5][0-9]{7})$/.test(val),
+      { message: 'Use o formato +55 (DDD) XXXXX-XXXX' }
     ),
   document: z
     .string()
@@ -96,7 +93,7 @@ export function EditEmployeeModal({
   const getInitialPhone = useCallback(() => {
     const phone = employee.user?.phone
     if (!phone || phone.startsWith('temp_')) return ''
-    return phone
+    return /^\+\d+$/.test(phone) ? phone : toE164(phone)
   }, [employee.user?.phone])
 
   const getInitialDocument = useCallback(() => {
@@ -144,7 +141,7 @@ export function EditEmployeeModal({
           firstName: data.firstName,
           lastName: data.lastName,
           email: isActive ? undefined : data.email || undefined,
-          phone: isActive ? undefined : data.phone ? unmaskPhone(data.phone) : undefined,
+          phone: isActive ? undefined : data.phone?.trim() || undefined,
           document: isActive ? undefined : data.document ? unmaskCPF(data.document) : undefined,
           role: isActive ? undefined : data.role,
           position: data.position || undefined,
@@ -265,18 +262,10 @@ export function EditEmployeeModal({
                       <FormItem>
                         <FormLabel className="text-sm">Telefone</FormLabel>
                         <FormControl>
-                          <Input
-                            type="tel"
-                            placeholder="(11) 98765-4321"
-                            value={maskPhone(field.value || '')}
-                            onChange={(e) => {
-                              const unmasked = unmaskPhone(e.target.value)
-                              field.onChange(unmasked)
-                            }}
-                            onBlur={() => {
-                              field.onBlur()
-                              form.trigger('phone')
-                            }}
+                          <PhoneInput
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
                             className="h-9 text-sm"
                             disabled={isActive || isPending}
                           />

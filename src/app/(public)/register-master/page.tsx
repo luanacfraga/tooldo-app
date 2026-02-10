@@ -145,7 +145,6 @@ export default function RegisterMasterPage() {
             <FormFieldWrapper label="Telefone" htmlFor="phone" error={errors.phone?.message}>
               <PhoneInput
                 id="phone"
-                placeholder="(11) 98765-4321"
                 value={watch('phone') || ''}
                 onChange={(value) => setValue('phone', value)}
                 className={getInputClassName(!!errors.phone)}

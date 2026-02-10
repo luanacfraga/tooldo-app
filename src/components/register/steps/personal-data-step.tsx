@@ -2,24 +2,22 @@
 
 import { FormFieldWrapper } from '@/components/ui/form-field-wrapper'
 import { Input } from '@/components/ui/input'
-import { maskPhone, unmaskPhone } from '@/lib/utils/masks'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { type RegisterFormData } from '@/lib/validators/auth'
-import { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form'
+import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 
 interface PersonalDataStepProps {
   register: UseFormRegister<RegisterFormData>
   errors: FieldErrors<RegisterFormData>
   setValue: UseFormSetValue<RegisterFormData>
-  phoneValue: string
-  setPhoneValue: (value: string) => void
+  watch: UseFormWatch<RegisterFormData>
 }
 
 export function PersonalDataStep({
   register,
   errors,
   setValue,
-  phoneValue,
-  setPhoneValue,
+  watch,
 }: PersonalDataStepProps) {
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -78,17 +76,10 @@ export function PersonalDataStep({
       </FormFieldWrapper>
 
       <FormFieldWrapper label="Telefone" htmlFor="phone" error={errors.phone?.message} required>
-        <Input
+        <PhoneInput
           id="phone"
-          type="tel"
-          placeholder="(11) 98765-4321"
-          value={phoneValue}
-          onChange={(e) => {
-            const unmasked = unmaskPhone(e.target.value)
-            const masked = maskPhone(unmasked)
-            setPhoneValue(masked)
-            setValue('phone', unmasked, { shouldValidate: true })
-          }}
+          value={watch('phone') ?? ''}
+          onChange={(value) => setValue('phone', value, { shouldValidate: true })}
           onBlur={register('phone').onBlur}
           className={`h-12 text-base transition-all ${
             errors.phone
