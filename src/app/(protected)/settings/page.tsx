@@ -3,6 +3,7 @@
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useUserContext } from '@/lib/contexts/user-context'
 import {
@@ -14,16 +15,32 @@ import {
   formatPhone,
   formatRole,
 } from '@/lib/formatters'
+import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useCompanySettings } from '@/lib/services/queries/use-companies'
-import { AlertCircle, Database, Layers, Sparkles } from 'lucide-react'
+import { useSendTestTwilio } from '@/lib/services/queries/use-notifications'
+import { AlertCircle, Database, Layers, MessageSquare, RefreshCw, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function GlobalSettingsPage() {
   const { user, currentCompanyId } = useUserContext()
+  const { isAdmin, isMaster } = usePermissions()
+  const { mutate: sendTestTwilio, isPending } = useSendTestTwilio()
 
   const fallbackCompanyId = user?.companies[0]?.id ?? null
   const effectiveCompanyId = currentCompanyId ?? fallbackCompanyId
 
   const { data, isLoading, error } = useCompanySettings(effectiveCompanyId || '')
+
+  function handleTestTwilio() {
+    sendTestTwilio(undefined, {
+      onSuccess: (res) => toast.success(res.message),
+      onError: (err: unknown) => {
+        const msg =
+          err instanceof Error ? err.message : 'Erro ao enviar SMS de teste'
+        toast.error(msg)
+      },
+    })
+  }
 
   const companyName =
     user?.companies.find((c) => c.id === effectiveCompanyId)?.name ??
@@ -220,6 +237,27 @@ export default function GlobalSettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {(isAdmin || isMaster) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                    Notificações • Teste Twilio
+                  </CardTitle>
+                  <CardDescription>
+                    Envia um SMS de teste para o telefone cadastrado no seu perfil via Twilio.
+                    Use para verificar se a integração está funcionando.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={handleTestTwilio} disabled={isPending}>
+                    {isPending && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                    Enviar SMS de teste
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
       </div>

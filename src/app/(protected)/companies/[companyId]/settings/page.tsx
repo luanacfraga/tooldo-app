@@ -1,21 +1,42 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { formatCurrency, formatDate, formatNumber, formatCPF, formatCNPJ, formatPhone, formatRole } from '@/lib/formatters'
-import { useCompanySettings } from '@/lib/services/queries/use-companies'
+import { notificationsApi } from '@/lib/api/endpoints/notifications'
+import { USER_ROLES } from '@/lib/constants'
 import { useUserContext } from '@/lib/contexts/user-context'
-import { Badge } from '@/components/ui/badge'
-import { AlertCircle, Database, Layers, Sparkles } from 'lucide-react'
+import { formatCNPJ, formatCPF, formatCurrency, formatDate, formatNumber, formatPhone, formatRole } from '@/lib/formatters'
+import { useCompanySettings } from '@/lib/services/queries/use-companies'
+import { getApiErrorMessage } from '@/lib/utils/error-handling'
+import { AlertCircle, Database, Layers, Sparkles, TestTube } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function CompanySettingsPage() {
   const params = useParams()
   const companyId = params.companyId as string
   const { user } = useUserContext()
+  const [testTwilioLoading, setTestTwilioLoading] = useState(false)
 
   const { data, isLoading, error } = useCompanySettings(companyId)
+
+  const isAdmin = user?.role === USER_ROLES.ADMIN
+
+  async function handleSendTestTwilio() {
+    setTestTwilioLoading(true)
+    try {
+      const res = await notificationsApi.sendTestTwilio()
+      toast.success(res?.message ?? 'SMS de teste enviado.')
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'Erro ao enviar SMS de teste.'))
+    } finally {
+      setTestTwilioLoading(false)
+    }
+  }
 
   const companyNameFromContext =
     user?.companies.find((c) => c.id === companyId)?.name ?? data?.company.name
@@ -198,6 +219,34 @@ export default function CompanySettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {isAdmin && (
+            <Card className="border-amber-500/30 bg-amber-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TestTube className="h-5 w-5 text-amber-600" />
+                  Testes
+                </CardTitle>
+                <CardDescription>
+                  Ações apenas para validar integrações. Use com cuidado.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSendTestTwilio}
+                  disabled={testTwilioLoading}
+                  className="border-amber-500/50 text-amber-700 hover:bg-amber-500/10"
+                >
+                  {testTwilioLoading ? 'Enviando…' : 'Enviar notificação Twilio (teste)'}
+                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Envia um SMS de teste para o telefone cadastrado no seu perfil.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </PageContainer>

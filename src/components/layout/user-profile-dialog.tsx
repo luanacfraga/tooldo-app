@@ -24,6 +24,7 @@ import { Separator } from '@/components/ui/separator'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { usersApi } from '@/lib/api/endpoints/users'
 import { formatCNPJ, formatCPF } from '@/lib/formatters'
+import { getApiErrorMessage } from '@/lib/utils/error-handling'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -180,7 +181,8 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
 
       toast.success('Perfil atualizado com sucesso!')
     } catch (error) {
-      toast.error('Erro ao atualizar perfil')
+      const message = getApiErrorMessage(error, 'Erro ao atualizar perfil')
+      toast.error(message)
     }
   }
 
