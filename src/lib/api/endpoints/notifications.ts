@@ -1,13 +1,12 @@
 import { apiClient } from '../api-client'
 
-export interface TestTwilioResponse {
-  sent: boolean
+export interface TriggerOverdueResponse {
   message: string
-  sentAt: string
+  executedAt: string
 }
 
 export const notificationsApi = {
-  /** Envia um SMS de teste via Twilio para o telefone do admin. Apenas para testes. */
-  sendTestTwilio: () =>
-    apiClient.post<TestTwilioResponse>('/api/v1/notifications/test-twilio'),
+  /** Dispara o job real de notificações de ações atrasadas. Apenas MASTER e ADMIN. */
+  triggerOverdue: () =>
+    apiClient.post<TriggerOverdueResponse>('/api/v1/notifications/trigger-overdue'),
 }

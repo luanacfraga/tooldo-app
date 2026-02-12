@@ -17,26 +17,26 @@ import {
 } from '@/lib/formatters'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useCompanySettings } from '@/lib/services/queries/use-companies'
-import { useSendTestTwilio } from '@/lib/services/queries/use-notifications'
+import { useTriggerOverdueNotifications } from '@/lib/services/queries/use-notifications'
 import { AlertCircle, Database, Layers, MessageSquare, RefreshCw, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function GlobalSettingsPage() {
   const { user, currentCompanyId } = useUserContext()
   const { isAdmin, isMaster } = usePermissions()
-  const { mutate: sendTestTwilio, isPending } = useSendTestTwilio()
+  const { mutate: triggerOverdue, isPending } = useTriggerOverdueNotifications()
 
   const fallbackCompanyId = user?.companies[0]?.id ?? null
   const effectiveCompanyId = currentCompanyId ?? fallbackCompanyId
 
   const { data, isLoading, error } = useCompanySettings(effectiveCompanyId || '')
 
-  function handleTestTwilio() {
-    sendTestTwilio(undefined, {
-      onSuccess: (res) => toast.success(res.message),
+  function handleTriggerOverdue() {
+    triggerOverdue(undefined, {
+      onSuccess: () => toast.success('Job de notificações disparado com sucesso!'),
       onError: (err: unknown) => {
         const msg =
-          err instanceof Error ? err.message : 'Erro ao enviar SMS de teste'
+          err instanceof Error ? err.message : 'Erro ao disparar notificações'
         toast.error(msg)
       },
     })
@@ -243,17 +243,17 @@ export default function GlobalSettingsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="h-5 w-5 text-primary" />
-                    Notificações • Teste Twilio
+                    Notificações • Disparar job
                   </CardTitle>
                   <CardDescription>
-                    Envia um SMS de teste para o telefone cadastrado no seu perfil via Twilio.
-                    Use para verificar se a integração está funcionando.
+                    Dispara imediatamente o job de notificações de ações atrasadas (o mesmo que roda
+                    automaticamente às 9h). Envia SMS e WhatsApp para os responsáveis com tarefas em atraso.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button onClick={handleTestTwilio} disabled={isPending}>
+                  <Button onClick={handleTriggerOverdue} disabled={isPending}>
                     {isPending && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-                    Enviar SMS de teste
+                    Disparar notificações agora
                   </Button>
                 </CardContent>
               </Card>

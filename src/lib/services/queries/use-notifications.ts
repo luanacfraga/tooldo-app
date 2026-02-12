@@ -1,8 +1,8 @@
 import { notificationsApi } from '@/lib/api/endpoints/notifications'
 import { useMutation } from '@tanstack/react-query'
 
-export function useSendTestTwilio() {
+export function useTriggerOverdueNotifications() {
   return useMutation({
-    mutationFn: () => notificationsApi.sendTestTwilio(),
+    mutationFn: () => notificationsApi.triggerOverdue(),
   })
 }
