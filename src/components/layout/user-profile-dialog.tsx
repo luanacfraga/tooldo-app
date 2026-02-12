@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PhoneInput } from '@/components/ui/phone-input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { RoleBadge } from '@/components/ui/role-badge'
 import { Separator } from '@/components/ui/separator'
 import { UserAvatar } from '@/components/ui/user-avatar'
@@ -45,8 +46,11 @@ const profileFormSchema = z.object({
   email: z.string().email('Email inválido'),
   phone: z
     .string()
-    .min(1, 'Telefone é obrigatório')
-    .regex(/^\+55[1-9]{2}(9[0-9]{8}|[2-5][0-9]{7})$/, 'Use o formato +55 (DDD) XXXXX-XXXX'),
+    .refine(
+      (v) => v === '' || /^\+55[1-9]{2}(9[0-9]{8}|[2-9][0-9]{7})$/.test(v),
+      'Digite um número brasileiro válido com DDD',
+    ),
+  notificationPreference: z.enum(['sms_only', 'whatsapp_only', 'both']),
 })
 
 type ProfileFormData = z.infer<typeof profileFormSchema>
@@ -132,6 +136,7 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
       name: user?.name || '',
       email: user?.email || '',
       phone: authUser?.phone || '',
+      notificationPreference: authUser?.notificationPreference ?? 'both',
     },
   })
 
@@ -141,9 +146,10 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
         name: user?.name || '',
         email: user?.email || '',
         phone: authUser?.phone || '',
+        notificationPreference: authUser?.notificationPreference ?? 'both',
       })
     }
-  }, [user, authUser?.phone, form])
+  }, [user, authUser?.phone, authUser?.notificationPreference, form])
 
   if (!user) return null
 
@@ -169,6 +175,7 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
         firstName,
         lastName,
         phone: data.phone,
+        notificationPreference: data.notificationPreference,
       })
 
       if (authUser) {
@@ -176,6 +183,7 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
           ...authUser,
           name: `${updated.firstName} ${updated.lastName}`.trim(),
           phone: updated.phone ?? null,
+          notificationPreference: updated.notificationPreference ?? data.notificationPreference,
         })
       }
 
@@ -301,6 +309,37 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
                         onChange={field.onChange}
                         className="h-9 text-sm"
                       />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="notificationPreference"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">
+                      Receber notificações via
+                    </FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="flex gap-4"
+                      >
+                        {[
+                          { value: 'sms_only', label: 'SMS' },
+                          { value: 'whatsapp_only', label: 'WhatsApp' },
+                          { value: 'both', label: 'Ambos' },
+                        ].map((opt) => (
+                          <label key={opt.value} className="flex cursor-pointer items-center gap-1.5 text-sm">
+                            <RadioGroupItem value={opt.value} />
+                            {opt.label}
+                          </label>
+                        ))}
+                      </RadioGroup>
                     </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>

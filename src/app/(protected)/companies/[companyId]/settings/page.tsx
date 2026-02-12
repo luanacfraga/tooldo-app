@@ -29,10 +29,10 @@ export default function CompanySettingsPage() {
   async function handleSendTestTwilio() {
     setTestTwilioLoading(true)
     try {
-      const res = await notificationsApi.sendTestTwilio()
-      toast.success(res?.message ?? 'SMS de teste enviado.')
+      const res = await notificationsApi.triggerOverdue()
+      toast.success(res?.message ?? 'Job de notificações disparado.')
     } catch (e: unknown) {
-      toast.error(getApiErrorMessage(e, 'Erro ao enviar SMS de teste.'))
+      toast.error(getApiErrorMessage(e, 'Erro ao disparar notificações.'))
     } finally {
       setTestTwilioLoading(false)
     }

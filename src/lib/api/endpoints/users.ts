@@ -1,6 +1,8 @@
 import { apiClient } from '../api-client'
 import { PaginatedResponse, PaginationParams } from '../types'
 
+export type NotificationPreference = 'sms_only' | 'whatsapp_only' | 'both'
+
 export interface User {
   id: string
   email: string
@@ -9,6 +11,7 @@ export interface User {
   lastName: string
   role: 'master' | 'admin' | 'manager' | 'executor' | 'consultant'
   phone?: string | null
+  notificationPreference?: NotificationPreference
 }
 
 export interface CreateUserRequest {
@@ -37,6 +40,7 @@ export interface UpdateProfileRequest {
   firstName?: string
   lastName?: string
   phone?: string
+  notificationPreference?: NotificationPreference
 }
 
 export const usersApi = {

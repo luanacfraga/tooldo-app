@@ -26,7 +26,11 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     React.useEffect(() => {
       const digits = normalizeDigits(value)
       const next = formatDisplay(digits)
-      setDisplay((prev) => (prev === next ? prev : next))
+      setDisplay((prev) => {
+        if (prev === next) return prev
+        prevCaretRef.current = null
+        return next
+      })
     }, [value])
 
     React.useEffect(() => {

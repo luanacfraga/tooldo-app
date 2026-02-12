@@ -1,8 +1,18 @@
 import { notificationsApi } from '@/lib/api/endpoints/notifications'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 export function useTriggerOverdueNotifications() {
   return useMutation({
     mutationFn: () => notificationsApi.triggerOverdue(),
+  })
+}
+
+export const NOTIFICATION_HISTORY_KEY = ['notifications', 'my-history'] as const
+
+export function useMyNotificationHistory() {
+  return useQuery({
+    queryKey: NOTIFICATION_HISTORY_KEY,
+    queryFn: () => notificationsApi.getMyHistory(),
+    staleTime: 60_000, // 1 minute
   })
 }

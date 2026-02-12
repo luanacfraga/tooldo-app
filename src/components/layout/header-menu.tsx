@@ -5,7 +5,8 @@ import { RoleBadge } from '@/components/ui/role-badge'
 import { useIsMobile } from '@/lib/hooks/use-media-query'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useUIStore } from '@/lib/stores/ui-store'
-import { Bell, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
+import { NotificationBell } from './notification-bell'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -84,13 +85,7 @@ export function HeaderMenu({ onProfileClick }: HeaderMenuProps) {
           
           <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
             
-            <button
-              className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/20 sm:h-10 sm:w-10"
-              aria-label="Notificações"
-            >
-              <Bell className="h-5 w-5 text-muted-foreground transition-colors duration-200 hover:text-foreground" />
-              
-            </button>
+            <NotificationBell />
 
             
             <button
