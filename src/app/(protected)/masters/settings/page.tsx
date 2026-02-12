@@ -76,7 +76,7 @@ export default function MasterSettingsPage() {
                 Contato de suporte
               </CardTitle>
               <CardDescription>
-                Esses dados aparecem no card de plano de cada empresa como botões de "Fazer upgrade".
+                Esses dados aparecem no card de plano de cada empresa como botões de {'"'}Fazer upgrade{'"'}.
               </CardDescription>
             </CardHeader>
             <CardContent>
