@@ -22,7 +22,10 @@ const MASK_PATTERN = '+55 (000) 00000-0000'
 const NATIONAL_DIGITS_LENGTH = 12 // 3 (area) + 9 (number)
 
 export interface PhoneInputMaskedProps
-  extends Omit<ComponentProps<typeof IMaskInput>, 'mask' | 'unmask' | 'onAccept' | 'value'> {
+  extends Omit<
+    ComponentProps<typeof IMaskInput>,
+    'mask' | 'unmask' | 'onAccept' | 'value' | 'onChange'
+  > {
   /** E.164 value, e.g. "+5511999999999". Pass empty string to clear. */
   value?: string
   /** Called with E.164 string (e.g. "+5511999999999") or "" when empty. */
@@ -65,28 +68,28 @@ const PhoneInputMasked = ({
     onValueChange?.(e164)
   }
 
-  return (
-    <IMaskInput
-      mask={MASK_PATTERN}
-      unmask={true}
-      lazy={false}
-      value={nationalDigits}
-      onAccept={handleAccept}
-      type="text"
-      inputMode="tel"
-      autoComplete="tel"
-      placeholder={MASK_PATTERN}
-      aria-label="Telefone (formato: +55 (DDD) XXXXX-XXXX)"
-      className={cn(
-        'flex h-10 w-full rounded-md border border-input/60 bg-background px-3.5 py-2.5 text-sm ring-offset-background transition-all duration-200',
-        'placeholder:text-muted-foreground/60 hover:border-input',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:border-ring',
-        'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/30',
-        className
-      )}
-      {...props}
-    />
-  )
+  const inputProps = {
+    mask: MASK_PATTERN,
+    unmask: true,
+    lazy: false,
+    value: nationalDigits,
+    onAccept: handleAccept,
+    type: 'text' as const,
+    inputMode: 'tel' as const,
+    autoComplete: 'tel',
+    placeholder: MASK_PATTERN,
+    'aria-label': 'Telefone (formato: +55 (DDD) XXXXX-XXXX)',
+    className: cn(
+      'flex h-10 w-full rounded-md border border-input/60 bg-background px-3.5 py-2.5 text-sm ring-offset-background transition-all duration-200',
+      'placeholder:text-muted-foreground/60 hover:border-input',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:border-ring',
+      'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/30',
+      className
+    ),
+    ...props,
+  } as ComponentProps<typeof IMaskInput>
+
+  return <IMaskInput {...inputProps} />
 }
 
 PhoneInputMasked.displayName = 'PhoneInputMasked'
