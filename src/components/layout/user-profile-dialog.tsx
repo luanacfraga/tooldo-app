@@ -30,7 +30,7 @@ import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Mail, Shield, User } from 'lucide-react'
+import { KeyRound, Loader2, Mail, Shield, User } from 'lucide-react'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -51,6 +51,7 @@ const profileFormSchema = z.object({
       'Digite um número brasileiro válido com DDD',
     ),
   notificationPreference: z.enum(['sms_only', 'whatsapp_only', 'both']),
+  currentPassword: z.string().optional(),
 })
 
 type ProfileFormData = z.infer<typeof profileFormSchema>
@@ -137,6 +138,7 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
       email: user?.email || '',
       phone: authUser?.phone || '',
       notificationPreference: authUser?.notificationPreference ?? 'both',
+      currentPassword: '',
     },
   })
 
@@ -147,9 +149,14 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
         email: user?.email || '',
         phone: authUser?.phone || '',
         notificationPreference: authUser?.notificationPreference ?? 'both',
+        currentPassword: '',
       })
     }
-  }, [user, authUser?.phone, authUser?.notificationPreference, form])
+  }, [user, authUser?.phone, authUser?.notificationPreference, authUser?.email, form])
+
+  const emailValue = form.watch('email')
+  const emailChanged =
+    emailValue.trim().toLowerCase() !== (authUser?.email ?? '').toLowerCase()
 
   if (!user) return null
 
@@ -166,6 +173,15 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
   }
 
   const onSubmit = async (data: ProfileFormData) => {
+    const emailChanged = data.email.trim().toLowerCase() !== (authUser?.email ?? '').toLowerCase()
+
+    if (emailChanged && !data.currentPassword) {
+      form.setError('currentPassword', {
+        message: 'Senha obrigatória para alterar o email',
+      })
+      return
+    }
+
     try {
       const fullName = data.name.trim()
       const [firstName, ...rest] = fullName.split(/\s+/)
@@ -176,6 +192,10 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
         lastName,
         phone: data.phone,
         notificationPreference: data.notificationPreference,
+        ...(emailChanged && {
+          email: data.email.trim().toLowerCase(),
+          currentPassword: data.currentPassword,
+        }),
       })
 
       if (authUser) {
@@ -183,10 +203,13 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
           ...authUser,
           name: `${updated.firstName} ${updated.lastName}`.trim(),
           phone: updated.phone ?? null,
-          notificationPreference: updated.notificationPreference ?? data.notificationPreference,
+          notificationPreference:
+            updated.notificationPreference ?? data.notificationPreference,
+          email: updated.email ?? authUser.email,
         })
       }
 
+      form.setValue('currentPassword', '')
       toast.success('Perfil atualizado com sucesso!')
     } catch (error) {
       const message = getApiErrorMessage(error, 'Erro ao atualizar perfil')
@@ -287,12 +310,31 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
                       Email
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} type="email" className="h-9 text-sm" disabled readOnly />
+                      <Input {...field} type="email" className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
+
+              {emailChanged && (
+                <FormField
+                  control={form.control}
+                  name="currentPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <KeyRound className="h-3 w-3" />
+                        Senha atual (obrigatória para alterar o email)
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" className="h-9 text-sm" />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}

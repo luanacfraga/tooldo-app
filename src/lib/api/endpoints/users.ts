@@ -41,6 +41,8 @@ export interface UpdateProfileRequest {
   lastName?: string
   phone?: string
   notificationPreference?: NotificationPreference
+  email?: string
+  currentPassword?: string
 }
 
 export const usersApi = {
