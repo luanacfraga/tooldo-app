@@ -5,7 +5,7 @@ import { USER_ROLES } from '@/lib/constants'
 import { useUserContext } from '@/lib/contexts/user-context'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { usePermissions } from '@/lib/hooks/use-permissions'
-import { BarChart3, Building2, ClipboardList, Settings, Users, UsersRound } from 'lucide-react'
+import { BarChart3, Building2, ClipboardList, Settings, Settings2, Users, UsersRound } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useMemo } from 'react'
 import { Sidebar, type MenuItem } from './sidebar'
@@ -133,6 +133,11 @@ export function DashboardSidebar() {
 
     if (isMaster) {
       items.push(
+        {
+          name: 'Configurações',
+          href: '/masters/settings',
+          icon: Settings2,
+        },
         {
           name: 'Planos',
           href: '/plans',

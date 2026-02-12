@@ -10,8 +10,9 @@ import { USER_ROLES } from '@/lib/constants'
 import { useUserContext } from '@/lib/contexts/user-context'
 import { formatCNPJ, formatCPF, formatCurrency, formatDate, formatNumber, formatPhone, formatRole } from '@/lib/formatters'
 import { useCompanySettings } from '@/lib/services/queries/use-companies'
+import { usePlatformSettings } from '@/lib/services/queries/use-platform-settings'
 import { getApiErrorMessage } from '@/lib/utils/error-handling'
-import { AlertCircle, Database, Layers, Sparkles, TestTube } from 'lucide-react'
+import { AlertCircle, Database, Layers, Mail, MessageCircle, Sparkles, TestTube } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -23,8 +24,9 @@ export default function CompanySettingsPage() {
   const [testTwilioLoading, setTestTwilioLoading] = useState(false)
 
   const { data, isLoading, error } = useCompanySettings(companyId)
+  const { data: platformSettings } = usePlatformSettings()
 
-  const isAdmin = user?.role === USER_ROLES.ADMIN
+  const isAdmin = user?.globalRole === USER_ROLES.ADMIN
 
   async function handleSendTestTwilio() {
     setTestTwilioLoading(true)
@@ -217,6 +219,31 @@ export default function CompanySettingsPage() {
                   </p>
                 </div>
               </div>
+
+              {(platformSettings?.supportWhatsapp || platformSettings?.supportEmail) && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {platformSettings.supportWhatsapp && (
+                    <a
+                      href={`https://wa.me/${platformSettings.supportWhatsapp.replace('+', '')}?text=${encodeURIComponent('Olá! Gostaria de fazer um upgrade de plano no ToolDo.')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Fazer upgrade via WhatsApp
+                    </a>
+                  )}
+                  {platformSettings.supportEmail && (
+                    <a
+                      href={`mailto:${platformSettings.supportEmail}?subject=${encodeURIComponent('Upgrade de plano - ToolDo')}`}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted/50 transition-colors"
+                    >
+                      <Mail className="h-3.5 w-3.5" />
+                      Falar por email
+                    </a>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
