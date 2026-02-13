@@ -60,33 +60,33 @@ export default function GlobalSettingsPage() {
         description="Plano atual vinculado ao administrador e limites globais para todas as empresas."
       />
 
-      <div className="mt-6 space-y-6">
+      <div className="mt-4 space-y-4 sm:mt-6 sm:space-y-6">
         {!effectiveCompanyId ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-muted-foreground" />
+          <Card className="overflow-hidden">
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex flex-wrap items-center gap-2 text-lg sm:text-xl">
+                <AlertCircle className="h-5 w-5 shrink-0 text-muted-foreground" />
                 Nenhuma empresa selecionada
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 Selecione uma empresa no topo para visualizar as configurações de empresa, plano e
                 administrador.
               </CardDescription>
             </CardHeader>
           </Card>
         ) : isLoading ? (
-          <div className="space-y-4">
-            <div className="h-28 animate-pulse rounded-xl bg-muted/60" />
-            <div className="h-40 animate-pulse rounded-xl bg-muted/60" />
+          <div className="space-y-3 sm:space-y-4">
+            <div className="h-24 min-w-0 animate-pulse rounded-xl bg-muted/60 sm:h-28" />
+            <div className="h-32 min-w-0 animate-pulse rounded-xl bg-muted/60 sm:h-40" />
           </div>
         ) : error || !data ? (
-          <Card className="border-destructive/40 bg-destructive/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-5 w-5" />
+          <Card className="overflow-hidden border-destructive/40 bg-destructive/5">
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex flex-wrap items-center gap-2 text-destructive text-lg sm:text-xl">
+                <AlertCircle className="h-5 w-5 shrink-0" />
                 Não foi possível carregar as configurações
               </CardTitle>
-              <CardDescription className="text-destructive">
+              <CardDescription className="text-destructive text-sm sm:text-base">
                 Tente atualizar a página ou voltar mais tarde.
               </CardDescription>
             </CardHeader>
@@ -94,16 +94,16 @@ export default function GlobalSettingsPage() {
         ) : (
           <>
             <Card className="overflow-hidden border-2">
-              <CardHeader className="bg-gradient-to-br from-primary/5 via-primary/3 to-transparent pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <CardTitle className="flex items-center gap-3 text-2xl">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <Layers className="h-5 w-5 text-primary" />
+              <CardHeader className="bg-gradient-to-br from-primary/5 via-primary/3 to-transparent px-4 pb-4 pt-4 sm:px-6 sm:pb-4 sm:pt-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 space-y-2">
+                    <CardTitle className="flex flex-wrap items-center gap-2 text-xl sm:gap-3 sm:text-2xl">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:h-10 sm:w-10">
+                        <Layers className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
                       </div>
-                      Plano {data.plan.name}
+                      <span className="break-words">Plano {data.plan.name}</span>
                     </CardTitle>
-                    <CardDescription className="text-base">
+                    <CardDescription className="text-sm sm:text-base">
                       Informações sobre seu plano e limites disponíveis
                     </CardDescription>
                   </div>
@@ -111,16 +111,16 @@ export default function GlobalSettingsPage() {
                     variant={data.subscription.isActive ? 'default' : 'outline'}
                     className={
                       data.subscription.isActive
-                        ? 'bg-emerald-600 px-4 py-1.5 text-sm font-semibold hover:bg-emerald-700'
-                        : 'px-4 py-1.5 text-sm font-semibold'
+                        ? 'w-fit bg-emerald-600 px-3 py-1 text-xs font-semibold hover:bg-emerald-700 sm:px-4 sm:py-1.5 sm:text-sm'
+                        : 'w-fit px-3 py-1 text-xs font-semibold sm:px-4 sm:py-1.5 sm:text-sm'
                     }
                   >
                     {data.subscription.isActive ? 'Assinatura ativa' : 'Assinatura inativa'}
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6 pt-6">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <CardContent className="space-y-4 px-4 pt-4 sm:space-y-6 sm:px-6 sm:pt-6">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                   <PlanLimitItem
                     label="Empresas"
                     value={data.plan.maxCompanies}
@@ -154,79 +154,81 @@ export default function GlobalSettingsPage() {
                   />
                 </div>
 
-                <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent p-4">
+                <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent p-3 sm:flex-row sm:items-start sm:gap-3 sm:p-4">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <Sparkles className="h-4 w-4 text-primary" />
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="min-w-0 flex-1 space-y-1">
                     <p className="text-sm font-semibold text-foreground">Informações da assinatura</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="break-words text-sm text-muted-foreground">
                       Iniciada em <span className="font-medium">{formatDate(data.subscription.startedAt)}</span>
                     </p>
-                    <p className="text-xs font-mono text-muted-foreground">
+                    <p className="truncate text-xs font-mono text-muted-foreground sm:max-w-full">
                       ID: {data.subscription.id}
                     </p>
                   </div>
                 </div>
 
                 {(platformSettings?.supportWhatsapp || platformSettings?.supportEmail) && (
-                  <div className="flex flex-wrap gap-3 border-t border-border/50 pt-6">
-                    <p className="w-full text-sm font-medium text-muted-foreground">
+                  <div className="flex flex-col gap-3 border-t border-border/50 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:pt-6">
+                    <p className="text-sm font-medium text-muted-foreground">
                       Precisa de mais recursos?
                     </p>
-                    {platformSettings.supportWhatsapp && (
-                      <a
-                        href={`https://wa.me/${platformSettings.supportWhatsapp.replace('+', '')}?text=${encodeURIComponent('Olá! Gostaria de fazer um upgrade de plano no ToolDo.')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        Fazer upgrade via WhatsApp
-                      </a>
-                    )}
-                    {platformSettings.supportEmail && (
-                      <a
-                        href={`mailto:${platformSettings.supportEmail}?subject=${encodeURIComponent('Upgrade de plano - ToolDo')}`}
-                        className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-muted hover:shadow-sm"
-                      >
-                        <Mail className="h-4 w-4" />
-                        Falar por email
-                      </a>
-                    )}
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+                      {platformSettings.supportWhatsapp && (
+                        <a
+                          href={`https://wa.me/${platformSettings.supportWhatsapp.replace('+', '')}?text=${encodeURIComponent('Olá! Gostaria de fazer um upgrade de plano no ToolDo.')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md sm:inline-flex"
+                        >
+                          <MessageCircle className="h-4 w-4 shrink-0" />
+                          Fazer upgrade via WhatsApp
+                        </a>
+                      )}
+                      {platformSettings.supportEmail && (
+                        <a
+                          href={`mailto:${platformSettings.supportEmail}?subject=${encodeURIComponent('Upgrade de plano - ToolDo')}`}
+                          className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-muted hover:shadow-sm sm:inline-flex"
+                        >
+                          <Mail className="h-4 w-4 shrink-0" />
+                          Falar por email
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>
             </Card>
 
             {(isAdmin || isMaster) && (
-              <Card className="border-2">
-                <CardHeader className="bg-gradient-to-br from-blue-500/5 via-blue-500/3 to-transparent">
-                  <CardTitle className="flex items-center gap-3 text-xl">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                      <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Card className="border-2 overflow-hidden">
+                <CardHeader className="bg-gradient-to-br from-blue-500/5 via-blue-500/3 to-transparent px-4 sm:px-6">
+                  <CardTitle className="flex flex-wrap items-center gap-2 text-lg sm:gap-3 sm:text-xl">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 sm:h-10 sm:w-10">
+                      <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400 sm:h-5 sm:w-5" />
                     </div>
-                    Notificações • Disparar job
+                    <span className="break-words">Notificações • Disparar job</span>
                   </CardTitle>
-                  <CardDescription className="text-base">
+                  <CardDescription className="mt-1 text-sm leading-relaxed sm:text-base">
                     Dispara imediatamente o job de notificações de ações atrasadas (o mesmo que roda
                     automaticamente às 9h). Envia SMS e WhatsApp para os responsáveis com tarefas em
                     atraso.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="px-4 pt-4 sm:px-6 sm:pt-6">
                   <Button
                     onClick={handleTriggerOverdue}
                     disabled={isPending}
                     size="lg"
-                    className="gap-2"
+                    className="w-full gap-2 sm:w-auto"
                   >
                     {isPending ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <RefreshCw className="h-4 w-4 shrink-0 animate-spin" />
                     ) : (
-                      <MessageSquare className="h-4 w-4" />
+                      <MessageSquare className="h-4 w-4 shrink-0" />
                     )}
-                    {isPending ? 'Disparando...' : 'Disparar notificações agora'}
+                    <span className="truncate">{isPending ? 'Disparando...' : 'Disparar notificações agora'}</span>
                   </Button>
                 </CardContent>
               </Card>
@@ -250,20 +252,20 @@ function PlanLimitItem({ label, value, helper, format = 'number', icon: Icon }: 
   const display = format === 'currency' ? formatCurrency(value) : formatNumber(value)
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-card/80 to-card/40 p-4 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
+    <div className="group relative min-w-0 overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-card/80 to-card/40 p-3 shadow-sm transition-all hover:border-primary/30 hover:shadow-md sm:p-4">
       <div className="flex items-start justify-between">
-        <div className="flex-1 space-y-2">
+        <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-center gap-2">
             {Icon && (
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                <Icon className="h-4 w-4" />
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20 sm:h-8 sm:w-8">
+                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
             )}
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {label}
             </p>
           </div>
-          <p className="text-2xl font-bold text-foreground">{display}</p>
+          <p className="text-xl font-bold text-foreground sm:text-2xl">{display}</p>
           {helper && (
             <p className="text-xs leading-relaxed text-muted-foreground">{helper}</p>
           )}

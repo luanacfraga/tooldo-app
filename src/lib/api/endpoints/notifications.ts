@@ -20,6 +20,8 @@ export const notificationsApi = {
   /** Dispara o job real de notificações de ações atrasadas. Apenas MASTER e ADMIN. */
   triggerOverdue: () =>
     apiClient.post<TriggerOverdueResponse>('/api/v1/notifications/trigger-overdue'),
-  getMyHistory: () =>
-    apiClient.get<NotificationHistoryItem[]>('/api/v1/notifications/my-history'),
+  getMyHistory: (companyId: string) =>
+    apiClient.get<NotificationHistoryItem[]>(
+      `/api/v1/notifications/my-history?companyId=${companyId}`,
+    ),
 }

@@ -9,10 +9,11 @@ export function useTriggerOverdueNotifications() {
 
 export const NOTIFICATION_HISTORY_KEY = ['notifications', 'my-history'] as const
 
-export function useMyNotificationHistory() {
+export function useMyNotificationHistory(companyId: string | null | undefined) {
   return useQuery({
-    queryKey: NOTIFICATION_HISTORY_KEY,
-    queryFn: () => notificationsApi.getMyHistory(),
+    queryKey: [...NOTIFICATION_HISTORY_KEY, companyId],
+    queryFn: () => notificationsApi.getMyHistory(companyId!),
+    enabled: !!companyId,
     staleTime: 60_000, // 1 minute
   })
 }
