@@ -229,7 +229,11 @@ export function CreateMasterUserModal({
                       <FormItem>
                         <FormLabel>Senha</FormLabel>
                         <FormControl>
-                          <PasswordInput placeholder="••••••••" {...field} className="h-10 text-sm" />
+                          <PasswordInput
+                            placeholder="••••••••"
+                            {...field}
+                            className="h-10 text-sm"
+                          />
                         </FormControl>
                         <FormMessage className="text-xs" />
                       </FormItem>
@@ -242,7 +246,11 @@ export function CreateMasterUserModal({
                       <FormItem>
                         <FormLabel>Confirmar Senha</FormLabel>
                         <FormControl>
-                          <PasswordInput placeholder="••••••••" {...field} className="h-10 text-sm" />
+                          <PasswordInput
+                            placeholder="••••••••"
+                            {...field}
+                            className="h-10 text-sm"
+                          />
                         </FormControl>
                         <FormMessage className="text-xs" />
                       </FormItem>
@@ -264,12 +272,7 @@ export function CreateMasterUserModal({
           >
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            form="create-master-form"
-            disabled={isLoading}
-            size="sm"
-          >
+          <Button type="submit" form="create-master-form" disabled={isLoading} size="sm">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

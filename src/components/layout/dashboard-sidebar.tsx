@@ -46,7 +46,6 @@ export function DashboardSidebar() {
           name: 'Ações',
           href: '/actions',
           icon: ClipboardList,
-          subItems: [{ name: 'Lista de Ações', href: '/actions' }],
         },
         {
           name: 'Funcionários',
@@ -72,7 +71,6 @@ export function DashboardSidebar() {
           name: 'Ações',
           href: '/actions',
           icon: ClipboardList,
-          subItems: [{ name: 'Lista de Ações', href: '/actions' }],
         },
         {
           name: 'Equipe',
@@ -102,7 +100,6 @@ export function DashboardSidebar() {
           name: 'Ações',
           href: '/actions',
           icon: ClipboardList,
-          subItems: [{ name: 'Lista de Ações', href: '/actions' }],
         }
       )
     }
@@ -118,7 +115,6 @@ export function DashboardSidebar() {
           name: 'Ações',
           href: '/actions',
           icon: ClipboardList,
-          subItems: [{ name: 'Lista de Ações', href: '/actions' }],
         }
       )
     }
