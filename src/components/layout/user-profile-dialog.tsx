@@ -68,7 +68,7 @@ const DEFAULT_COLORS = [
 ] as const
 
 export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps) {
-  const { user, role } = usePermissions()
+  const { user, role, isMaster, isExecutor, isManager } = usePermissions()
   const authUser = useAuthStore((s) => s.user)
   const setUser = useAuthStore((s) => s.setUser)
   const queryClient = useQueryClient()
@@ -357,36 +357,38 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="notificationPreference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">
-                      Receber notificações via
-                    </FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className="flex gap-4"
-                      >
-                        {[
-                          { value: 'sms_only', label: 'SMS' },
-                          { value: 'whatsapp_only', label: 'WhatsApp' },
-                          { value: 'both', label: 'Ambos' },
-                        ].map((opt) => (
-                          <label key={opt.value} className="flex cursor-pointer items-center gap-1.5 text-sm">
-                            <RadioGroupItem value={opt.value} />
-                            {opt.label}
-                          </label>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
+              {!isMaster && !isExecutor && !isManager && (
+                <FormField
+                  control={form.control}
+                  name="notificationPreference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">
+                        Receber notificações via
+                      </FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="flex gap-4"
+                        >
+                          {[
+                            { value: 'sms_only', label: 'SMS' },
+                            { value: 'whatsapp_only', label: 'WhatsApp' },
+                            { value: 'both', label: 'Ambos' },
+                          ].map((opt) => (
+                            <label key={opt.value} className="flex cursor-pointer items-center gap-1.5 text-sm">
+                              <RadioGroupItem value={opt.value} />
+                              {opt.label}
+                            </label>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {formattedDocument && (
                 <div className="space-y-1">

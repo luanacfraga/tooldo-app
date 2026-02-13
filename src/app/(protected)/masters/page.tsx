@@ -1,18 +1,23 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 import { MasterOnly } from '@/components/features/auth/guards/master-only'
+import { CreateMasterUserModal } from '@/components/features/master/create-master-user-modal'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
 import { ResponsiveDataTable } from '@/components/shared/table/responsive-data-table'
 import { Button } from '@/components/ui/button'
 
 import { usersApi, type User } from '@/lib/api/endpoints/users'
-import Link from 'next/link'
 
 export default function MastersListPage() {
-  const { data, isLoading, isFetching } = useQuery({
+  const searchParams = useSearchParams()
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+
+  const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['masters'],
     queryFn: async () => {
       const response = await usersApi.getAll({ page: 1, limit: 50, role: 'master' })
@@ -24,6 +29,12 @@ export default function MastersListPage() {
     staleTime: 1000 * 60,
   })
 
+  useEffect(() => {
+    if (searchParams.get('create') === '1') {
+      setCreateModalOpen(true)
+    }
+  }, [searchParams])
+
   const masters = data ?? []
 
   return (
@@ -33,8 +44,8 @@ export default function MastersListPage() {
           title="Usuários Master"
           description="Veja quem já é Master na plataforma."
           action={
-            <Button asChild size="sm" className="font-medium">
-              <Link href="/masters/new">Novo usuário Master</Link>
+            <Button size="sm" className="font-medium" onClick={() => setCreateModalOpen(true)}>
+              Novo usuário Master
             </Button>
           }
         />
@@ -68,6 +79,12 @@ export default function MastersListPage() {
             isLoading={isLoading || isFetching}
           />
         </div>
+
+        <CreateMasterUserModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          onSuccess={() => refetch()}
+        />
       </PageContainer>
     </MasterOnly>
   )

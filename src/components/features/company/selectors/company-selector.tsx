@@ -1,16 +1,18 @@
 'use client'
 
+import { Building2 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { Building2, Settings } from 'lucide-react'
+import { useState } from 'react'
 
-import { LoadingSpinner } from '@/components/shared/feedback/loading-spinner'
+import { CreateCompanyModal } from '@/components/features/company/create-company-modal'
 import { ErrorState } from '@/components/shared/feedback/error-state'
+import { LoadingSpinner } from '@/components/shared/feedback/loading-spinner'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useCompanyData } from '@/lib/hooks/data/use-company-data'
+import { usePermissions } from '@/lib/hooks/use-permissions'
+import { cn } from '@/lib/utils'
 import { CompanySelectorView } from './company-selector-view'
 import { EmptyCompanyState } from './empty-company-state'
-import { cn } from '@/lib/utils'
 
 interface CompanySelectorProps {
   className?: string
@@ -28,7 +30,8 @@ export function CompanySelector({
   const router = useRouter()
   const pathname = usePathname()
   const { isAdmin } = usePermissions()
-  const { companies, selectedCompany, isLoading, error, selectCompany } = useCompanyData()
+  const { companies, selectedCompany, isLoading, error, selectCompany, refetch } = useCompanyData()
+  const [createModalOpen, setCreateModalOpen] = useState(false)
 
   if (!isAdmin) {
     return null
@@ -36,7 +39,7 @@ export function CompanySelector({
 
   const handleCompanyChange = (companyId: string) => {
     if (companyId === 'new') {
-      router.push('/companies/new')
+      setCreateModalOpen(true)
       return
     }
 
@@ -48,10 +51,10 @@ export function CompanySelector({
     const company = companies.find((c) => c.id === companyId)
     if (company) {
       selectCompany(company)
-      
+
       const companyRoutePattern = /^\/companies\/([^/]+)(\/.*)?$/
       const match = pathname.match(companyRoutePattern)
-      
+
       if (match) {
         const currentPath = match[2] || '/dashboard'
         router.push(`/companies/${companyId}${currentPath}`)
@@ -63,10 +66,16 @@ export function CompanySelector({
 
   if (isLoading) {
     return (
-      <div className={cn('flex items-center justify-center gap-2', isCollapsed ? 'px-0' : 'px-1', className)}>
+      <div
+        className={cn(
+          'flex items-center justify-center gap-2',
+          isCollapsed ? 'px-0' : 'px-1',
+          className
+        )}
+      >
         <LoadingSpinner size="sm" />
         {!isCollapsed && showLabel && variant === 'default' && (
-          <span className="text-xs text-muted-foreground truncate">Carregando...</span>
+          <span className="truncate text-xs text-muted-foreground">Carregando...</span>
         )}
       </div>
     )
@@ -94,28 +103,43 @@ export function CompanySelector({
       )
     }
     return (
-      <EmptyCompanyState
-        onCreateCompany={() => router.push('/companies/new')}
-        showLabel={showLabel}
-        variant={variant}
-        className={className}
-      />
+      <>
+        <EmptyCompanyState
+          onCreateCompany={() => setCreateModalOpen(true)}
+          showLabel={showLabel}
+          variant={variant}
+          className={className}
+        />
+        <CreateCompanyModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          onSuccess={() => {
+            refetch?.()
+            setCreateModalOpen(false)
+          }}
+        />
+      </>
     )
   }
 
   if (isCollapsed) {
     return (
-      <div className={cn('flex items-center justify-center w-full', className)}>
+      <div className={cn('flex w-full items-center justify-center', className)}>
         <Select value={selectedCompany?.id || ''} onValueChange={handleCompanyChange}>
-          <SelectTrigger className="h-10 w-10 rounded-lg border-0 bg-transparent p-0 hover:bg-muted/50 hover:border-0 hover:ring-0 focus:ring-0 focus:ring-offset-0 transition-all duration-200 [&>span]:!hidden [&_svg:last-child]:!hidden flex items-center justify-center [&>svg:first-child]:mx-auto">
-            <Building2 className={cn('h-5 w-5 transition-colors', selectedCompany ? 'text-primary' : 'text-muted-foreground')} />
+          <SelectTrigger className="flex h-10 w-10 items-center justify-center rounded-lg border-0 bg-transparent p-0 transition-all duration-200 hover:border-0 hover:bg-muted/50 hover:ring-0 focus:ring-0 focus:ring-offset-0 [&>span]:!hidden [&>svg:first-child]:mx-auto [&_svg:last-child]:!hidden">
+            <Building2
+              className={cn(
+                'h-5 w-5 transition-colors',
+                selectedCompany ? 'text-primary' : 'text-muted-foreground'
+              )}
+            />
           </SelectTrigger>
-          <SelectContent className="min-w-[220px] z-[100]">
+          <SelectContent className="z-[100] min-w-[220px]">
             {companies.map((company) => {
               const isSelected = selectedCompany?.id === company.id
               return (
                 <SelectItem key={company.id} value={company.id}>
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex min-w-0 items-center gap-2">
                     <Building2
                       className={cn(
                         'h-4 w-4 flex-shrink-0',
@@ -126,25 +150,12 @@ export function CompanySelector({
                       {company.name}
                     </span>
                     {isSelected && (
-                      <span className="ml-auto h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                      <span className="ml-auto h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
                     )}
                   </div>
                 </SelectItem>
               )
             })}
-            <div className="my-1 border-t border-border" />
-            <SelectItem value="new">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                <span>Nova Empresa</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="manage">
-              <div className="flex items-center gap-2">
-                <Settings className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                <span>Gerenciar Empresas</span>
-              </div>
-            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -152,14 +163,24 @@ export function CompanySelector({
   }
 
   return (
-    <CompanySelectorView
-      companies={companies}
-      selectedCompany={selectedCompany}
-      onCompanyChange={handleCompanyChange}
-      onManage={() => router.push('/companies')}
-      showLabel={showLabel}
-      variant={variant}
-      className={className}
-    />
+    <>
+      <CompanySelectorView
+        companies={companies}
+        selectedCompany={selectedCompany}
+        onCompanyChange={handleCompanyChange}
+        onManage={() => router.push('/companies')}
+        showLabel={showLabel}
+        variant={variant}
+        className={className}
+      />
+      <CreateCompanyModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSuccess={() => {
+          refetch?.()
+          setCreateModalOpen(false)
+        }}
+      />
+    </>
   )
 }

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
 import { MasterOnly } from '@/components/features/auth/guards/master-only'
@@ -20,8 +21,12 @@ const schema = z.object({
   supportWhatsapp: z
     .string()
     .refine(
-      (v) => v === '' || /^\+[1-9]\d{7,14}$/.test(v),
-      'Digite no formato E.164 (ex: +5531999999999)',
+      (v) => {
+        if (!v || v === '') return true
+        // Aceita E.164 (+55...), validação completa no backend
+        return /^\+55\d{10,11}$/.test(v)
+      },
+      'Digite um telefone válido',
     ),
   supportEmail: z
     .string()
@@ -81,49 +86,81 @@ export default function MasterSettingsPage() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="space-y-3">
-                  <div className="h-9 animate-pulse rounded-md bg-muted/60" />
-                  <div className="h-9 animate-pulse rounded-md bg-muted/60" />
+                <div className="space-y-4">
+                  <div className="h-12 animate-pulse rounded-md bg-muted/60" />
+                  <div className="h-12 animate-pulse rounded-md bg-muted/60" />
                 </div>
               ) : (
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                     <FormField
                       control={form.control}
                       name="supportWhatsapp"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-1 text-xs">
-                            <MessageCircle className="h-3 w-3" />
-                            WhatsApp (formato E.164)
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="+5531999999999" className="h-9 text-sm" />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const error = form.formState.errors.supportWhatsapp
+                        
+                        return (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-sm font-semibold">
+                              <MessageCircle className="h-4 w-4 text-primary" />
+                              WhatsApp
+                            </FormLabel>
+                            <FormControl>
+                              <PhoneInput
+                                value={field.value || ''}
+                                onChange={(e164Value) => {
+                                  field.onChange(e164Value)
+                                }}
+                                onBlur={field.onBlur}
+                                className={`h-12 text-base transition-all ${
+                                  error
+                                    ? 'border-destructive focus-visible:ring-destructive'
+                                    : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
+                                }`}
+                              />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                            {!error && (
+                              <p className="text-xs text-muted-foreground">
+                                Digite o número com DDD. Ex: (11) 91234-5678
+                              </p>
+                            )}
+                          </FormItem>
+                        )
+                      }}
                     />
 
                     <FormField
                       control={form.control}
                       name="supportEmail"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-1 text-xs">
-                            <Mail className="h-3 w-3" />
-                            Email de suporte
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} type="email" placeholder="suporte@tooldo.com" className="h-9 text-sm" />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const error = form.formState.errors.supportEmail
+                        return (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-sm font-semibold">
+                              <Mail className="h-4 w-4 text-primary" />
+                              Email de suporte
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="email"
+                                placeholder="suporte@tooldo.com"
+                                className={`h-12 text-base transition-all ${
+                                  error
+                                    ? 'border-destructive focus-visible:ring-destructive'
+                                    : 'border-input focus-visible:border-primary focus-visible:ring-primary/20'
+                                }`}
+                              />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )
+                      }}
                     />
 
-                    <div className="flex justify-end pt-2">
-                      <Button type="submit" size="sm" disabled={isPending}>
+                    <div className="flex justify-end pt-4">
+                      <Button type="submit" disabled={isPending}>
                         {isPending ? 'Salvando…' : 'Salvar'}
                       </Button>
                     </div>

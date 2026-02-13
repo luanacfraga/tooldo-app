@@ -15,6 +15,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { ApiError } from '@/lib/api/api-client'
 import { useCreateCompany } from '@/lib/services/queries/use-companies'
@@ -24,6 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   AlertCircle,
   ArrowLeft,
+  Bell,
   Building2,
   CheckCircle2,
   FileText,
@@ -49,6 +57,7 @@ export default function NewCompanyPage() {
     defaultValues: {
       name: '',
       description: '',
+      notificationPreference: 'both' as const,
     },
   })
 
@@ -66,6 +75,7 @@ export default function NewCompanyPage() {
         description:
           data.description && data.description.trim() !== '' ? data.description.trim() : undefined,
         adminId: user.id,
+        notificationPreference: data.notificationPreference,
       })
 
       setSuccess(true)
@@ -198,6 +208,37 @@ export default function NewCompanyPage() {
                     </FormControl>
                     <FormDescription className="text-xs">
                       Adicione uma descrição sobre sua empresa (máximo 500 caracteres)
+                    </FormDescription>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="notificationPreference"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">
+                      Canal de Notificações <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-9 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Bell className="h-4 w-4 text-muted-foreground" />
+                            <SelectValue placeholder="Selecione o canal" />
+                          </div>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="both">SMS e WhatsApp</SelectItem>
+                        <SelectItem value="sms_only">Apenas SMS</SelectItem>
+                        <SelectItem value="whatsapp_only">Apenas WhatsApp</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="text-xs">
+                      Define como as notificações de ações atrasadas serão enviadas para esta empresa.
                     </FormDescription>
                     <FormMessage className="text-xs" />
                   </FormItem>

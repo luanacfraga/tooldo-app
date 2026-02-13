@@ -4,6 +4,7 @@ import { ChangeRoleModal } from '@/components/features/company/company-members/c
 import { EditEmployeeModal } from '@/components/features/company/company-members/edit-employee-modal'
 import { EmployeeFilters } from '@/components/features/company/company-members/employee-filters'
 import { RemoveEmployeeWithTransferModal } from '@/components/features/company/company-members/remove-employee-with-transfer-modal'
+import { InviteEmployeeModal } from '@/components/features/company/invite-employee-modal'
 import { Pagination } from '@/components/shared/data/pagination'
 import { StatusBadge } from '@/components/shared/data/status-badge'
 import { EmptyState } from '@/components/shared/feedback/empty-state'
@@ -59,7 +60,6 @@ import {
   UserPlus,
   UserX,
 } from 'lucide-react'
-import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -78,6 +78,7 @@ export default function CompanyMembersPage() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState<number>(config.table.defaultPageSize)
   const [sortBy, setSortBy] = useState<string>('createdAt')
+  const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [employeeToChangeRole, setEmployeeToChangeRole] = useState<Employee | null>(null)
   const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null)
@@ -466,12 +467,13 @@ export default function CompanyMembersPage() {
         description="Gerencie os funcionários"
         action={
           canInviteEmployee && (
-            <Link href={`/companies/${companyId}/invite`}>
-              <Button className="gap-1.5 font-medium sm:gap-2">
-                <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span>Convidar Funcionário</span>
-              </Button>
-            </Link>
+            <Button
+              onClick={() => setInviteModalOpen(true)}
+              className="gap-1.5 font-medium sm:gap-2"
+            >
+              <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>Convidar Funcionário</span>
+            </Button>
           )
         }
       />
@@ -504,7 +506,7 @@ export default function CompanyMembersPage() {
             canInviteEmployee
               ? {
                   label: 'Convidar Funcionário',
-                  onClick: () => router.push(`/companies/${companyId}/invite`),
+                  onClick: () => setInviteModalOpen(true),
                 }
               : undefined
           }
@@ -604,6 +606,17 @@ export default function CompanyMembersPage() {
           onSuccess={() => refetch()}
         />
       )}
+
+      <InviteEmployeeModal
+        companyId={companyId}
+        companyName={company?.name}
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+        onSuccess={() => {
+          refetch()
+          setInviteModalOpen(false)
+        }}
+      />
     </PageContainer>
   )
 }

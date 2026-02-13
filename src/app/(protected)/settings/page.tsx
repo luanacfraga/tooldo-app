@@ -6,25 +6,32 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useUserContext } from '@/lib/contexts/user-context'
-import {
-  formatCNPJ,
-  formatCPF,
-  formatCurrency,
-  formatDate,
-  formatNumber,
-  formatPhone,
-  formatRole,
-} from '@/lib/formatters'
+import { formatCurrency, formatDate, formatNumber } from '@/lib/formatters'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useCompanySettings } from '@/lib/services/queries/use-companies'
 import { useTriggerOverdueNotifications } from '@/lib/services/queries/use-notifications'
-import { AlertCircle, Database, Layers, MessageSquare, RefreshCw, Sparkles } from 'lucide-react'
+import { usePlatformSettings } from '@/lib/services/queries/use-platform-settings'
+import {
+  AlertCircle,
+  Building2,
+  Layers,
+  Mail,
+  MessageCircle,
+  MessageSquare,
+  RefreshCw,
+  Sparkles,
+  Users,
+  UserCog,
+  UserCheck,
+  Zap,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function GlobalSettingsPage() {
   const { user, currentCompanyId } = useUserContext()
   const { isAdmin, isMaster } = usePermissions()
   const { mutate: triggerOverdue, isPending } = useTriggerOverdueNotifications()
+  const { data: platformSettings } = usePlatformSettings()
 
   const fallbackCompanyId = user?.companies[0]?.id ?? null
   const effectiveCompanyId = currentCompanyId ?? fallbackCompanyId
@@ -35,8 +42,7 @@ export default function GlobalSettingsPage() {
     triggerOverdue(undefined, {
       onSuccess: () => toast.success('Job de notificações disparado com sucesso!'),
       onError: (err: unknown) => {
-        const msg =
-          err instanceof Error ? err.message : 'Erro ao disparar notificações'
+        const msg = err instanceof Error ? err.message : 'Erro ao disparar notificações'
         toast.error(msg)
       },
     })
@@ -50,8 +56,8 @@ export default function GlobalSettingsPage() {
   return (
     <PageContainer maxWidth="5xl">
       <PageHeader
-        title="Configurações"
-        description="Veja detalhes do grupo (admin, plano) e da empresa selecionada."
+        title="Plano e limites do grupo"
+        description="Plano atual vinculado ao administrador e limites globais para todas as empresas."
       />
 
       <div className="mt-6 space-y-6">
@@ -87,173 +93,140 @@ export default function GlobalSettingsPage() {
           </Card>
         ) : (
           <>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Database className="h-5 w-5 text-primary" />
-                  {companyName ? `Empresa • ${companyName}` : 'Dados da empresa'}
-                </CardTitle>
-                <CardDescription>Informações cadastrais da empresa selecionada.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Nome</p>
-                  <p className="text-sm font-semibold">{data.company.name}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">ID da empresa</p>
-                  <p className="break-all font-mono text-[11px] text-muted-foreground">
-                    {data.company.id}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">CNPJ</p>
-                  <p className="font-mono text-[11px] text-muted-foreground">
-                    {data.company.document
-                      ? data.company.documentType === 'CNPJ'
-                        ? formatCNPJ(data.company.document.replace(/\D/g, ''))
-                        : formatCPF(data.company.document.replace(/\D/g, ''))
-                      : '-'}
-                  </p>
-                </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <p className="text-xs font-medium text-muted-foreground">Descrição</p>
-                  <p className="text-sm text-foreground">
-                    {data.company.description || 'Nenhuma descrição cadastrada.'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Database className="h-5 w-5 text-primary" />
-                  Administrador do grupo
-                </CardTitle>
-                <CardDescription>
-                  Dados do administrador dono das empresas e responsável pela assinatura.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Nome</p>
-                  <p className="text-sm font-semibold">
-                    {data.admin.firstName} {data.admin.lastName}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Email</p>
-                  <p className="break-all text-sm text-muted-foreground">{data.admin.email}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Telefone</p>
-                  <p className="text-sm text-muted-foreground">{formatPhone(data.admin.phone)}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Documento</p>
-                  <p className="font-mono text-[11px] text-muted-foreground">
-                    {data.admin.documentType === 'CNPJ'
-                      ? formatCNPJ(data.admin.document.replace(/\D/g, ''))
-                      : formatCPF(data.admin.document.replace(/\D/g, ''))}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Papel</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatRole(data.admin.role as any)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-primary" />
-                  Plano e limites do grupo
-                </CardTitle>
-                <CardDescription>
-                  Plano atual vinculado ao administrador e limites globais para todas as empresas.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Plano atual</p>
-                    <p className="text-base font-semibold">{data.plan.name}</p>
+            <Card className="overflow-hidden border-2">
+              <CardHeader className="bg-gradient-to-br from-primary/5 via-primary/3 to-transparent pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <CardTitle className="flex items-center gap-3 text-2xl">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                        <Layers className="h-5 w-5 text-primary" />
+                      </div>
+                      Plano {data.plan.name}
+                    </CardTitle>
+                    <CardDescription className="text-base">
+                      Informações sobre seu plano e limites disponíveis
+                    </CardDescription>
                   </div>
                   <Badge
                     variant={data.subscription.isActive ? 'default' : 'outline'}
                     className={
-                      data.subscription.isActive ? 'bg-emerald-600 hover:bg-emerald-700' : ''
+                      data.subscription.isActive
+                        ? 'bg-emerald-600 px-4 py-1.5 text-sm font-semibold hover:bg-emerald-700'
+                        : 'px-4 py-1.5 text-sm font-semibold'
                     }
                   >
                     {data.subscription.isActive ? 'Assinatura ativa' : 'Assinatura inativa'}
                   </Badge>
                 </div>
-
+              </CardHeader>
+              <CardContent className="space-y-6 pt-6">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <PlanLimitItem
                     label="Empresas"
                     value={data.plan.maxCompanies}
                     helper="Máximo de empresas que este admin pode criar."
+                    icon={Building2}
                   />
                   <PlanLimitItem
                     label="Gestores"
                     value={data.plan.maxManagers}
                     helper="Total de gestores somando todas as empresas."
+                    icon={UserCog}
                   />
                   <PlanLimitItem
                     label="Executores"
                     value={data.plan.maxExecutors}
                     helper="Total de executores somando todas as empresas."
+                    icon={Users}
                   />
                   <PlanLimitItem
                     label="Consultores"
                     value={data.plan.maxConsultants}
                     helper="Total de consultores somando todas as empresas."
+                    icon={UserCheck}
                   />
                   <PlanLimitItem
                     label="Limite de IA"
                     value={data.plan.iaCallsLimit}
                     helper="Tokens / chamadas de IA disponíveis na assinatura."
                     format="number"
+                    icon={Zap}
                   />
                 </div>
 
-                <div className="flex items-start gap-2 rounded-lg border border-border/50 bg-muted/40 p-3 text-xs text-muted-foreground">
-                  <Sparkles className="mt-0.5 h-3.5 w-3.5 text-primary" />
-                  <div>
-                    <p className="font-medium">Assinatura</p>
-                    <p>
-                      Iniciada em {formatDate(data.subscription.startedAt)} · ID:{' '}
-                      <span className="font-mono">{data.subscription.id}</span>
+                <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent p-4">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-semibold text-foreground">Informações da assinatura</p>
+                    <p className="text-sm text-muted-foreground">
+                      Iniciada em <span className="font-medium">{formatDate(data.subscription.startedAt)}</span>
+                    </p>
+                    <p className="text-xs font-mono text-muted-foreground">
+                      ID: {data.subscription.id}
                     </p>
                   </div>
                 </div>
+
+                {(platformSettings?.supportWhatsapp || platformSettings?.supportEmail) && (
+                  <div className="flex flex-wrap gap-3 border-t border-border/50 pt-6">
+                    <p className="w-full text-sm font-medium text-muted-foreground">
+                      Precisa de mais recursos?
+                    </p>
+                    {platformSettings.supportWhatsapp && (
+                      <a
+                        href={`https://wa.me/${platformSettings.supportWhatsapp.replace('+', '')}?text=${encodeURIComponent('Olá! Gostaria de fazer um upgrade de plano no ToolDo.')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        Fazer upgrade via WhatsApp
+                      </a>
+                    )}
+                    {platformSettings.supportEmail && (
+                      <a
+                        href={`mailto:${platformSettings.supportEmail}?subject=${encodeURIComponent('Upgrade de plano - ToolDo')}`}
+                        className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-muted hover:shadow-sm"
+                      >
+                        <Mail className="h-4 w-4" />
+                        Falar por email
+                      </a>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {(isAdmin || isMaster) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-primary" />
+              <Card className="border-2">
+                <CardHeader className="bg-gradient-to-br from-blue-500/5 via-blue-500/3 to-transparent">
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+                      <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
                     Notificações • Disparar job
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-base">
                     Dispara imediatamente o job de notificações de ações atrasadas (o mesmo que roda
-                    automaticamente às 9h). Envia SMS e WhatsApp para os responsáveis com tarefas em atraso.
+                    automaticamente às 9h). Envia SMS e WhatsApp para os responsáveis com tarefas em
+                    atraso.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Button onClick={handleTriggerOverdue} disabled={isPending}>
-                    {isPending && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-                    Disparar notificações agora
+                <CardContent className="pt-6">
+                  <Button
+                    onClick={handleTriggerOverdue}
+                    disabled={isPending}
+                    size="lg"
+                    className="gap-2"
+                  >
+                    {isPending ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <MessageSquare className="h-4 w-4" />
+                    )}
+                    {isPending ? 'Disparando...' : 'Disparar notificações agora'}
                   </Button>
                 </CardContent>
               </Card>
@@ -270,16 +243,32 @@ interface PlanLimitItemProps {
   value: number
   helper?: string
   format?: 'number' | 'currency'
+  icon?: React.ComponentType<{ className?: string }>
 }
 
-function PlanLimitItem({ label, value, helper, format = 'number' }: PlanLimitItemProps) {
+function PlanLimitItem({ label, value, helper, format = 'number', icon: Icon }: PlanLimitItemProps) {
   const display = format === 'currency' ? formatCurrency(value) : formatNumber(value)
 
   return (
-    <div className="space-y-1 rounded-md border border-border/50 bg-card/60 p-3">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="text-lg font-semibold">{display}</p>
-      {helper && <p className="text-[11px] text-muted-foreground">{helper}</p>}
+    <div className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-card/80 to-card/40 p-4 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
+      <div className="flex items-start justify-between">
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-2">
+            {Icon && (
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                <Icon className="h-4 w-4" />
+              </div>
+            )}
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {label}
+            </p>
+          </div>
+          <p className="text-2xl font-bold text-foreground">{display}</p>
+          {helper && (
+            <p className="text-xs leading-relaxed text-muted-foreground">{helper}</p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

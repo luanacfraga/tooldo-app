@@ -5,7 +5,15 @@ import { USER_ROLES } from '@/lib/constants'
 import { useUserContext } from '@/lib/contexts/user-context'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { usePermissions } from '@/lib/hooks/use-permissions'
-import { BarChart3, Building2, ClipboardList, Settings, Users, UsersRound } from 'lucide-react'
+import {
+  BarChart3,
+  Building2,
+  ClipboardList,
+  Settings,
+  Settings2,
+  Users,
+  UsersRound,
+} from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useMemo } from 'react'
 import { Sidebar, type MenuItem } from './sidebar'
@@ -44,16 +52,6 @@ export function DashboardSidebar() {
           name: 'Funcionários',
           href: `${basePath}/members`,
           icon: UsersRound,
-          subItems: [
-            {
-              name: 'Lista de Funcionários',
-              href: `${basePath}/members`,
-            },
-            {
-              name: 'Convidar Funcionário',
-              href: `${basePath}/invite`,
-            },
-          ],
         },
         {
           name: 'Equipes',
@@ -87,12 +85,6 @@ export function DashboardSidebar() {
                 name: 'Funcionários',
                 href: `${basePath}/members`,
                 icon: UsersRound,
-                subItems: [
-                  {
-                    name: 'Convidar Funcionário',
-                    href: `${basePath}/invite`,
-                  },
-                ],
               },
             ]
           : [])
@@ -133,11 +125,11 @@ export function DashboardSidebar() {
 
     if (isMaster) {
       items.push(
-        // {
-        //   name: 'Configurações',
-        //   href: '/masters/settings',
-        //   icon: Settings2,
-        // },
+        {
+          name: 'Configurações',
+          href: '/masters/settings',
+          icon: Settings2,
+        },
         {
           name: 'Planos',
           href: '/plans',
@@ -152,16 +144,6 @@ export function DashboardSidebar() {
           name: 'Usuários Master',
           href: '/masters',
           icon: UsersRound,
-          subItems: [
-            {
-              name: 'Lista de Usuários Master',
-              href: '/masters',
-            },
-            {
-              name: 'Novo Usuário Master',
-              href: '/masters/new',
-            },
-          ],
         }
       )
     }
@@ -171,22 +153,12 @@ export function DashboardSidebar() {
         name: 'Empresas',
         href: '/companies',
         icon: Building2,
-        subItems: [
-          {
-            name: 'Lista de Empresas',
-            href: '/companies',
-          },
-          {
-            name: 'Nova Empresa',
-            href: '/companies/new',
-          },
-        ],
       })
     }
 
     if (isAdmin) {
       items.push({
-        name: 'Configurações',
+        name: 'Plano',
         href: '/settings',
         icon: Settings,
       })

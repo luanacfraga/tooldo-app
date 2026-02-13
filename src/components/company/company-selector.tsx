@@ -13,6 +13,7 @@ import {
 import { companiesApi } from '@/lib/api/endpoints/companies'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useCompanyStore } from '@/lib/stores/company-store'
+import { CreateCompanyModal } from '@/components/features/company/create-company-modal'
 import { Building2, Plus, Settings, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -38,6 +39,7 @@ export function CompanySelector({
     setLoading,
   } = useCompanyStore()
   const [loadError, setLoadError] = useState(false)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -66,7 +68,7 @@ export function CompanySelector({
 
   const handleCompanyChange = (companyId: string) => {
     if (companyId === 'new') {
-      router.push('/companies/new')
+      setCreateModalOpen(true)
       return
     }
 
@@ -110,69 +112,113 @@ export function CompanySelector({
 
   if (companies.length === 0) {
     return (
-      <div className={cn('space-y-2', className)}>
-        {showLabel && variant === 'default' && (
-          <label className="text-xs font-medium text-muted-foreground">
-            Empresa
-          </label>
-        )}
-        <Button
-          variant="outline"
-          size={variant === 'compact' ? 'sm' : 'default'}
-          onClick={() => router.push('/companies/new')}
-          className="w-full justify-start"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Criar Primeira Empresa
-        </Button>
-      </div>
+      <>
+        <div className={cn('space-y-2', className)}>
+          {showLabel && variant === 'default' && (
+            <label className="text-xs font-medium text-muted-foreground">
+              Empresa
+            </label>
+          )}
+          <Button
+            variant="outline"
+            size={variant === 'compact' ? 'sm' : 'default'}
+            onClick={() => setCreateModalOpen(true)}
+            className="w-full justify-start"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Criar Primeira Empresa
+          </Button>
+        </div>
+        <CreateCompanyModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          onSuccess={() => {
+            // Recarrega as empresas
+            const loadCompanies = async () => {
+              try {
+                setLoading(true)
+                const data = await companiesApi.getMyCompanies()
+                setCompanies(data || [])
+              } catch (err) {
+                setLoadError(true)
+              } finally {
+                setLoading(false)
+              }
+            }
+            loadCompanies()
+            setCreateModalOpen(false)
+          }}
+        />
+      </>
     )
   }
 
   return (
-    <div className={cn('space-y-2', className)}>
-      {showLabel && variant === 'default' && (
-        <label className="text-xs font-medium text-muted-foreground">
-          Empresa Atual
-        </label>
-      )}
-      <div className="flex gap-2">
-        <Select
-          value={selectedCompany?.id || ''}
-          onValueChange={handleCompanyChange}
-        >
-          <SelectTrigger
-            className={cn(
-              'h-11 w-full',
-              variant === 'compact' && 'h-9 text-sm'
-            )}
-          >
-            <SelectValue placeholder="Selecione uma empresa">
-              {selectedCompany?.name || 'Selecione uma empresa'}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {companies.map((company) => (
-              <SelectItem key={company.id} value={company.id}>
-                {company.name}
-              </SelectItem>
-            ))}
-            <div className="my-1 border-t" />
-            <SelectItem value="new">Nova Empresa</SelectItem>
-            <SelectItem value="manage">Gerenciar Empresas</SelectItem>
-          </SelectContent>
-        </Select>
-        {variant === 'default' && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => router.push('/companies')}
-            title="Gerenciar empresas"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
+    <>
+      <div className={cn('space-y-2', className)}>
+        {showLabel && variant === 'default' && (
+          <label className="text-xs font-medium text-muted-foreground">
+            Empresa Atual
+          </label>
         )}
+        <div className="flex gap-2">
+          <Select
+            value={selectedCompany?.id || ''}
+            onValueChange={handleCompanyChange}
+          >
+            <SelectTrigger
+              className={cn(
+                'h-11 w-full',
+                variant === 'compact' && 'h-9 text-sm'
+              )}
+            >
+              <SelectValue placeholder="Selecione uma empresa">
+                {selectedCompany?.name || 'Selecione uma empresa'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {companies.map((company) => (
+                <SelectItem key={company.id} value={company.id}>
+                  {company.name}
+                </SelectItem>
+              ))}
+              <div className="my-1 border-t" />
+              <SelectItem value="new">Nova Empresa</SelectItem>
+              <SelectItem value="manage">Gerenciar Empresas</SelectItem>
+            </SelectContent>
+          </Select>
+          {variant === 'default' && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.push('/companies')}
+              title="Gerenciar empresas"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
+      <CreateCompanyModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSuccess={() => {
+          // Recarrega as empresas
+          const loadCompanies = async () => {
+            try {
+              setLoading(true)
+              const data = await companiesApi.getMyCompanies()
+              setCompanies(data || [])
+            } catch (err) {
+              setLoadError(true)
+            } finally {
+              setLoading(false)
+            }
+          }
+          loadCompanies()
+          setCreateModalOpen(false)
+        }}
+      />
+    </>
   )
 }
