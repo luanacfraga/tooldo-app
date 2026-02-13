@@ -6,7 +6,6 @@ import { useIsMobile } from '@/lib/hooks/use-media-query'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useUIStore } from '@/lib/stores/ui-store'
 import { Menu, X } from 'lucide-react'
-import { NotificationBell } from './notification-bell'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -84,10 +83,6 @@ export function HeaderMenu({ onProfileClick }: HeaderMenuProps) {
 
           
           <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
-            
-            <NotificationBell />
-
-            
             <button
               className="group flex items-center gap-2 rounded-lg px-2 py-1.5 transition-all duration-200 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/20 sm:gap-3 sm:px-3 sm:py-2"
               onClick={onProfileClick}
