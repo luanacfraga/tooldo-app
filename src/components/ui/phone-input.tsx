@@ -3,59 +3,62 @@
 import * as React from 'react'
 import { Input } from './input'
 import { cn } from '@/lib/utils'
+import {
+  PHONE_PLACEHOLDER,
+  processPhoneInput,
+  formatDisplay,
+  normalizeDigits,
+  caretAfterDigitCount,
+} from '@/lib/utils/phone-mask'
 
-export interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+export interface PhoneInputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
+  value?: string
   onChange?: (value: string) => void
-  onValueChange?: (value: string) => void
 }
 
 const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
-  ({ className, onChange, onValueChange, value, ...props }, ref) => {
-    const [displayValue, setDisplayValue] = React.useState('')
-
-    const formatPhone = (input: string): string => {
-      const numbers = input.replace(/\D/g, '')
-      const limited = numbers.slice(0, 11)
-
-      if (limited.length === 0) return ''
-
-      if (limited.length <= 2) {
-        return `(${limited}`
-      }
-
-      if (limited.length <= 6) {
-        return `(${limited.slice(0, 2)}) ${limited.slice(2)}`
-      }
-
-      if (limited.length <= 10) {
-        return `(${limited.slice(0, 2)}) ${limited.slice(2, 6)}-${limited.slice(6)}`
-      }
-
-      return `(${limited.slice(0, 2)}) ${limited.slice(2, 7)}-${limited.slice(7, 11)}`
-    }
+  ({ className, value = '', onChange, placeholder: _placeholder, ...props }, ref) => {
+    const [display, setDisplay] = React.useState('')
+    const prevDisplayRef = React.useRef('')
+    const prevCaretRef = React.useRef<number | null>(null)
 
     React.useEffect(() => {
-      if (value !== undefined) {
-        const formatted = formatPhone(String(value))
-        setDisplayValue(formatted)
-      }
+      const digits = normalizeDigits(value)
+      const next = formatDisplay(digits)
+      setDisplay((prev) => {
+        if (prev === next) return prev
+        prevCaretRef.current = null
+        return next
+      })
     }, [value])
 
+    React.useEffect(() => {
+      prevDisplayRef.current = display
+    }, [display])
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value
-      const formatted = formatPhone(inputValue)
+      const input = e.target
+      const rawValue = input.value
+      const caret = input.selectionStart ?? rawValue.length
+      const prevDisplay = prevDisplayRef.current
+      const prevCaret = prevCaretRef.current ?? caret
 
-      setDisplayValue(formatted)
+      const { formatted, e164, targetDigitCount } = processPhoneInput(
+        prevDisplay,
+        prevCaret,
+        rawValue,
+        caret
+      )
 
-      const numbers = formatted.replace(/\D/g, '')
+      setDisplay(formatted)
+      onChange?.(e164)
 
-      if (onChange) {
-        onChange(numbers)
-      }
-
-      if (onValueChange) {
-        onValueChange(numbers)
-      }
+      requestAnimationFrame(() => {
+        const pos = caretAfterDigitCount(formatted, targetDigitCount)
+        input.setSelectionRange(pos, pos)
+        prevCaretRef.current = pos
+      })
     }
 
     return (
@@ -63,8 +66,10 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
         ref={ref}
         type="tel"
         inputMode="numeric"
-        value={displayValue}
+        autoComplete="tel"
+        value={display}
         onChange={handleChange}
+        placeholder={PHONE_PLACEHOLDER}
         className={cn(className)}
         {...props}
       />

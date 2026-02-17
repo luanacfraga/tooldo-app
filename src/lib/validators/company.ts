@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+const notificationPreferenceSchema = z.enum(['sms_only', 'whatsapp_only', 'both'])
+
 export const companySchema = z.object({
   name: z
     .string()
@@ -20,6 +22,7 @@ export const createCompanySchema = z.object({
     .string()
     .max(500, 'Descrição deve ter no máximo 500 caracteres')
     .optional(),
+  notificationPreference: notificationPreferenceSchema.optional(),
 })
 
 export const updateCompanySchema = z.object({
@@ -32,6 +35,7 @@ export const updateCompanySchema = z.object({
     .string()
     .max(500, 'Descrição deve ter no máximo 500 caracteres')
     .optional(),
+  notificationPreference: notificationPreferenceSchema.optional(),
 })
 
 export type CompanyFormData = z.infer<typeof companySchema>

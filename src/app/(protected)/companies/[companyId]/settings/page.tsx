@@ -1,21 +1,44 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageContainer } from '@/components/shared/layout/page-container'
 import { PageHeader } from '@/components/shared/layout/page-header'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { formatCurrency, formatDate, formatNumber, formatCPF, formatCNPJ, formatPhone, formatRole } from '@/lib/formatters'
-import { useCompanySettings } from '@/lib/services/queries/use-companies'
+import { notificationsApi } from '@/lib/api/endpoints/notifications'
+import { USER_ROLES } from '@/lib/constants'
 import { useUserContext } from '@/lib/contexts/user-context'
-import { Badge } from '@/components/ui/badge'
-import { AlertCircle, Database, Layers, Sparkles } from 'lucide-react'
+import { formatCNPJ, formatCPF, formatCurrency, formatDate, formatNumber, formatPhone, formatRole } from '@/lib/formatters'
+import { useCompanySettings } from '@/lib/services/queries/use-companies'
+import { usePlatformSettings } from '@/lib/services/queries/use-platform-settings'
+import { getApiErrorMessage } from '@/lib/utils/error-handling'
+import { AlertCircle, Database, Layers, Mail, MessageCircle, Sparkles, TestTube } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function CompanySettingsPage() {
   const params = useParams()
   const companyId = params.companyId as string
   const { user } = useUserContext()
+  const [testTwilioLoading, setTestTwilioLoading] = useState(false)
 
   const { data, isLoading, error } = useCompanySettings(companyId)
+  const { data: platformSettings } = usePlatformSettings()
+
+  const isAdmin = user?.globalRole === USER_ROLES.ADMIN
+
+  async function handleSendTestTwilio() {
+    setTestTwilioLoading(true)
+    try {
+      const res = await notificationsApi.triggerOverdue()
+      toast.success(res?.message ?? 'Job de notificações disparado.')
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'Erro ao disparar notificações.'))
+    } finally {
+      setTestTwilioLoading(false)
+    }
+  }
 
   const companyNameFromContext =
     user?.companies.find((c) => c.id === companyId)?.name ?? data?.company.name
@@ -196,8 +219,61 @@ export default function CompanySettingsPage() {
                   </p>
                 </div>
               </div>
+
+              {(platformSettings?.supportWhatsapp || platformSettings?.supportEmail) && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {platformSettings.supportWhatsapp && (
+                    <a
+                      href={`https://wa.me/${platformSettings.supportWhatsapp.replace('+', '')}?text=${encodeURIComponent('Olá! Gostaria de fazer um upgrade de plano no ToolDo.')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Fazer upgrade via WhatsApp
+                    </a>
+                  )}
+                  {platformSettings.supportEmail && (
+                    <a
+                      href={`mailto:${platformSettings.supportEmail}?subject=${encodeURIComponent('Upgrade de plano - ToolDo')}`}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted/50 transition-colors"
+                    >
+                      <Mail className="h-3.5 w-3.5" />
+                      Falar por email
+                    </a>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {isAdmin && (
+            <Card className="border-amber-500/30 bg-amber-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TestTube className="h-5 w-5 text-amber-600" />
+                  Testes
+                </CardTitle>
+                <CardDescription>
+                  Ações apenas para validar integrações. Use com cuidado.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSendTestTwilio}
+                  disabled={testTwilioLoading}
+                  className="border-amber-500/50 text-amber-700 hover:bg-amber-500/10"
+                >
+                  {testTwilioLoading ? 'Enviando…' : 'Enviar notificação Twilio (teste)'}
+                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Envia um SMS de teste para o telefone cadastrado no seu perfil.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </PageContainer>

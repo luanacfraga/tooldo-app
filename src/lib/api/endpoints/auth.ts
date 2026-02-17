@@ -17,6 +17,7 @@ export interface LoginResponse {
     initials?: string | null
     avatarColor?: string | null
     phone?: string | null
+    notificationPreference?: 'sms_only' | 'whatsapp_only' | 'both' | null
   }
 }
 

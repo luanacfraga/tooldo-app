@@ -12,12 +12,8 @@ export const inviteEmployeeSchema = z.object({
     .string()
     .optional()
     .refine(
-      (val) => {
-        if (!val || val.trim() === '') return true
-        const digits = val.replace(/\D/g, '')
-        return digits.length === 11 || digits.length === 10
-      },
-      { message: 'Digite o telefone completo (10 ou 11 dígitos)' }
+      (val) => !val || val.trim() === '' || /^\+55[1-9]{2}(9[0-9]{8}|[2-5][0-9]{7})$/.test(val),
+      { message: 'Use o formato E.164: +55 (DDD) XXXXX-XXXX' }
     ),
   document: z
     .string()

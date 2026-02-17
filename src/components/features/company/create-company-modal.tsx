@@ -26,70 +26,73 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useUpdateCompany } from '@/lib/services/queries/use-companies'
-import type { Company } from '@/lib/types/api'
+import { useCreateCompany } from '@/lib/services/queries/use-companies'
+import { useAuthStore } from '@/lib/stores/auth-store'
 import { getApiErrorMessage } from '@/lib/utils/error-handling'
-import { updateCompanySchema, type UpdateCompanyFormData } from '@/lib/validators/company'
+import { createCompanySchema, type CreateCompanyFormData } from '@/lib/validators/company'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertCircle, Bell, Loader2 } from 'lucide-react'
+import { AlertCircle, Bell, Building2, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-interface EditCompanyModalProps {
-  company: Company
+interface CreateCompanyModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
 }
 
-export function EditCompanyModal({
-  company,
+export function CreateCompanyModal({
   open,
   onOpenChange,
   onSuccess,
-}: EditCompanyModalProps) {
+}: CreateCompanyModalProps) {
   const [error, setError] = useState<string | null>(null)
+  const user = useAuthStore((state) => state.user)
+  const { mutateAsync: createCompany, isPending } = useCreateCompany()
 
-  const { mutateAsync: updateCompany, isPending } = useUpdateCompany()
-
-  const form = useForm<UpdateCompanyFormData>({
-    resolver: zodResolver(updateCompanySchema),
+  const form = useForm<CreateCompanyFormData>({
+    resolver: zodResolver(createCompanySchema),
     defaultValues: {
-      name: company.name || '',
-      description: company.description || '',
-      notificationPreference: company.notificationPreference || 'both',
+      name: '',
+      description: '',
+      notificationPreference: 'both' as const,
     },
   })
 
   useEffect(() => {
-    if (open && company) {
+    if (open) {
       form.reset({
-        name: company.name || '',
-        description: company.description || '',
-        notificationPreference: company.notificationPreference || 'both',
+        name: '',
+        description: '',
+        notificationPreference: 'both' as const,
       })
       setError(null)
     }
-  }, [open, company, form])
+  }, [open, form])
 
-  const handleSubmit = async (data: UpdateCompanyFormData) => {
+  const handleSubmit = async (data: CreateCompanyFormData) => {
     try {
       setError(null)
-      await updateCompany({
-        id: company.id,
-        data: {
-          name: data.name,
-          description: data.description || undefined,
-          notificationPreference: data.notificationPreference,
-        },
+
+      if (!user?.id) {
+        setError('Usuário não autenticado')
+        return
+      }
+
+      await createCompany({
+        name: data.name,
+        description:
+          data.description && data.description.trim() !== '' ? data.description.trim() : undefined,
+        adminId: user.id,
+        notificationPreference: data.notificationPreference,
       })
 
-      toast.success('Empresa atualizada com sucesso')
+      toast.success('Empresa criada com sucesso')
       onOpenChange(false)
       onSuccess?.()
     } catch (err) {
-      const message = getApiErrorMessage(err, 'Erro ao atualizar empresa')
+      const message = getApiErrorMessage(err, 'Erro ao criar empresa')
       setError(message)
       toast.error(message)
     }
@@ -99,21 +102,23 @@ export function EditCompanyModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-[600px]">
         <DialogHeader className="border-b px-6 pb-4 pt-6">
-          <DialogTitle>Editar Empresa</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-primary" />
+            Nova Empresa
+          </DialogTitle>
           <DialogDescription>
-            Atualize as informações de{' '}
-            <span className="font-medium text-foreground">{company.name}</span>
+            Cadastre uma nova empresa para gerenciar sua equipe e projetos
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {error && (
-            <div className="mb-4 animate-fade-in rounded-lg border border-danger-light bg-danger-lightest p-4">
+            <div className="mb-4 animate-fade-in rounded-lg border border-destructive/40 bg-destructive/5 p-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 flex-shrink-0 text-danger-base" />
+                <AlertCircle className="h-5 w-5 flex-shrink-0 text-destructive" />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-danger-dark">Erro ao atualizar</h3>
-                  <p className="mt-1 text-sm text-danger-base">{error}</p>
+                  <h3 className="font-semibold text-destructive">Erro ao criar empresa</h3>
+                  <p className="mt-1 text-sm text-destructive">{error}</p>
                 </div>
               </div>
             </div>
@@ -121,7 +126,7 @@ export function EditCompanyModal({
 
           <Form {...form}>
             <form
-              id="edit-company-form"
+              id="create-company-form"
               onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-4"
             >
@@ -131,10 +136,20 @@ export function EditCompanyModal({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">Nome da Empresa</FormLabel>
+                      <FormLabel className="text-sm">
+                        Nome da Empresa <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Tooldo Tecnologia" {...field} className="h-9 text-sm" />
+                        <Input
+                          placeholder="Ex: Minha Empresa LTDA"
+                          {...field}
+                          autoFocus
+                          className="h-9 text-sm"
+                        />
                       </FormControl>
+                      <FormDescription className="text-xs">
+                        Nome oficial ou razão social da empresa
+                      </FormDescription>
                       <FormMessage className="text-xs" />
                     </FormItem>
                   )}
@@ -148,13 +163,13 @@ export function EditCompanyModal({
                       <FormLabel className="text-sm">Descrição</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Descreva a empresa (opcional)"
+                          placeholder="Descreva sua empresa (opcional)"
                           className="min-h-[100px] text-sm"
                           {...field}
                         />
                       </FormControl>
                       <FormDescription className="text-xs">
-                        Informações adicionais sobre a empresa.
+                        Adicione uma descrição sobre sua empresa (máximo 500 caracteres)
                       </FormDescription>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -166,7 +181,9 @@ export function EditCompanyModal({
                   name="notificationPreference"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm">Canal de Notificações</FormLabel>
+                      <FormLabel className="text-sm">
+                        Canal de Notificações <span className="text-destructive">*</span>
+                      </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-9 text-sm">
@@ -183,7 +200,8 @@ export function EditCompanyModal({
                         </SelectContent>
                       </Select>
                       <FormDescription className="text-xs">
-                        Define como as notificações de ações atrasadas serão enviadas para esta empresa.
+                        Define como as notificações de ações atrasadas serão enviadas para esta
+                        empresa.
                       </FormDescription>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -204,14 +222,14 @@ export function EditCompanyModal({
           >
             Cancelar
           </Button>
-          <Button type="submit" form="edit-company-form" disabled={isPending} size="sm">
+          <Button type="submit" form="create-company-form" disabled={isPending} size="sm">
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Salvando...
+                Criando...
               </>
             ) : (
-              'Salvar alterações'
+              'Criar Empresa'
             )}
           </Button>
         </div>
@@ -219,4 +237,3 @@ export function EditCompanyModal({
     </Dialog>
   )
 }
-
