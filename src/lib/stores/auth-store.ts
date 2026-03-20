@@ -15,6 +15,7 @@ export interface User {
   phone?: string | null
   document?: string | null
   documentType?: 'CPF' | 'CNPJ' | null
+  notificationPreference?: 'sms_only' | 'whatsapp_only' | 'both'
 }
 
 interface AuthState {

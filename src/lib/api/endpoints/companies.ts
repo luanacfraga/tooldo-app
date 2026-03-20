@@ -2,6 +2,7 @@ import { apiClient } from '../api-client'
 import { PaginatedResponse, PaginationParams } from '../types'
 import type { Company, CreateCompanyRequest, UpdateCompanyRequest, Employee } from '@/lib/types/api'
 import type { ExecutorDashboardResponse } from '@/lib/types/executor-dashboard'
+import type { ManagerDashboardResponse } from '@/lib/types/manager-dashboard'
 
 export interface CompanySettings {
   company: {
@@ -119,6 +120,15 @@ export const companiesApi = {
     apiClient.get<ExecutorDashboardResponse>(`/api/v1/companies/${companyId}/executor-dashboard`, {
       params: params as Record<string, string | number | boolean | undefined>,
     }),
+
+  getManagerDashboard: (
+    companyId: string,
+    params?: { dateFrom?: string; dateTo?: string },
+  ) =>
+    apiClient.get<ManagerDashboardResponse>(
+      `/api/v1/companies/${companyId}/manager-dashboard`,
+      params ? { params: params as Record<string, string | number | boolean | undefined> } : undefined,
+    ),
 }
 
 export type { Company, CreateCompanyRequest, UpdateCompanyRequest }

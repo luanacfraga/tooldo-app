@@ -40,7 +40,10 @@ export function Sidebar({
   const shouldShowText = !isWebMenuCollapsed || isMobile
 
   const settingsItem = items.find((item) => item.href === '/settings')
-  const menuItems = settingsItem ? items.filter((item) => item.href !== '/settings') : items
+  const companiesItem = items.find((item) => item.href === '/companies')
+  const menuItems = items.filter(
+    (item) => item.href !== '/settings' && item.href !== '/companies'
+  )
 
   const sidebarClasses = useMemo(
     () =>
@@ -188,22 +191,79 @@ export function Sidebar({
               isWebMenuCollapsed ? 'lg:p-2' : 'p-4'
             )}
           >
-            {settingsItem && (
-              <Link
-                href={settingsItem.href}
-                onClick={closeMobileMenu}
-                className={cn(
-                  'mb-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground',
-                  !shouldShowText && 'lg:justify-center lg:px-2'
-                )}
-                title={isWebMenuCollapsed ? settingsItem.name : ''}
-              >
-                {settingsItem.icon && (
-                  <settingsItem.icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                )}
-                {shouldShowText && <span className="truncate">{settingsItem.name}</span>}
-              </Link>
-            )}
+            {settingsItem && (() => {
+              const isSettingsActive =
+                pathname === settingsItem.href ||
+                (settingsItem.subItems &&
+                  settingsItem.subItems.some((subItem) => pathname === subItem.href))
+              return (
+                <Link
+                  href={settingsItem.href}
+                  onClick={closeMobileMenu}
+                  className={cn(
+                    'mb-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                    !shouldShowText && 'lg:justify-center lg:px-2',
+                    isSettingsActive
+                      ? isWebMenuCollapsed && !isMobile
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-primary/10 text-primary font-semibold'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                  title={isWebMenuCollapsed ? settingsItem.name : ''}
+                >
+                  {settingsItem.icon && (
+                    <settingsItem.icon
+                      className={cn(
+                        'h-5 w-5 flex-shrink-0 transition-colors',
+                        isSettingsActive
+                          ? isWebMenuCollapsed && !isMobile
+                            ? 'text-primary-foreground'
+                            : 'text-primary'
+                          : 'text-muted-foreground'
+                      )}
+                    />
+                  )}
+                  {shouldShowText && <span className="truncate">{settingsItem.name}</span>}
+                </Link>
+              )
+            })()}
+            {companiesItem && (() => {
+              const isCompaniesActive =
+                pathname === companiesItem.href ||
+                pathname.startsWith('/companies') ||
+                (companiesItem.subItems &&
+                  companiesItem.subItems.some((subItem) => pathname === subItem.href))
+              return (
+                <Link
+                  href={companiesItem.href}
+                  onClick={closeMobileMenu}
+                  className={cn(
+                    'mb-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                    !shouldShowText && 'lg:justify-center lg:px-2',
+                    isCompaniesActive
+                      ? isWebMenuCollapsed && !isMobile
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-primary/10 text-primary font-semibold'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                  title={isWebMenuCollapsed ? companiesItem.name : ''}
+                >
+                  {companiesItem.icon && (
+                    <companiesItem.icon
+                      className={cn(
+                        'h-5 w-5 flex-shrink-0 transition-colors',
+                        isCompaniesActive
+                          ? isWebMenuCollapsed && !isMobile
+                            ? 'text-primary-foreground'
+                            : 'text-primary'
+                          : 'text-muted-foreground'
+                      )}
+                    />
+                  )}
+                  {shouldShowText && <span className="truncate">{companiesItem.name}</span>}
+                </Link>
+              )
+            })()}
             <button
               onClick={() => {
                 onLogout()

@@ -85,8 +85,8 @@ function buildDoneNotes(input: { impact?: ImpactCategory; note?: string }) {
   return lines.join('\n')
 }
 
-function priorityToColor(priority: ActionPriority, isLate: boolean) {
-  if (isLate) return 'red' as const
+function priorityToColor(priority: ActionPriority, lateStatus: ActionLateStatus | null) {
+  if (lateStatus !== null) return 'red' as const
   switch (priority) {
     case ActionPriority.URGENT:
       return 'orange' as const
@@ -380,11 +380,11 @@ export function ExecutorDashboard(props: { companyId: string; className?: string
                         description={
                           a.isBlocked
                             ? `Bloqueada${a.blockedReason ? ` — ${a.blockedReason}` : ''}`
-                            : a.isLate
-                              ? getLateStatusLabel(a.lateStatus ?? null, 'Em atraso')
+                            : a.lateStatus !== null
+                              ? getLateStatusLabel(a.lateStatus, 'Em atraso')
                               : a.priority.toLowerCase()
                         }
-                        color={priorityToColor(a.priority, a.isLate)}
+                        color={priorityToColor(a.priority, a.lateStatus)}
                       />
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-2">
@@ -662,11 +662,11 @@ export function ExecutorDashboard(props: { companyId: string; className?: string
                       description={
                         a.isBlocked
                           ? `Bloqueada${a.blockedReason ? ` — ${a.blockedReason}` : ''}`
-                          : a.isLate
-                            ? getLateStatusLabel(a.lateStatus ?? null, 'Em atraso')
+                          : a.lateStatus !== null
+                            ? getLateStatusLabel(a.lateStatus, 'Em atraso')
                             : a.priority.toLowerCase()
                       }
-                      color={priorityToColor(a.priority, a.isLate)}
+                      color={priorityToColor(a.priority, a.lateStatus)}
                     />
                   ))}
                 </div>

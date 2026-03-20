@@ -55,6 +55,27 @@ export function unmaskPhone(value: string): string {
   return value.replace(/\D/g, '')
 }
 
+/** Brazilian E.164: +55 + DDD + number. Accepts digits or E.164 string. */
+export function toE164(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (digits.length === 0) return ''
+  const withCode = digits.startsWith('55') ? digits : `55${digits}`
+  const limited = withCode.slice(0, 13) // 55 + 11
+  return limited.length >= 12 ? `+${limited}` : `+${limited}`
+}
+
+/** Display format for E.164 BR: +55 (DDD) XXXXX-XXXX */
+export function maskPhoneE164(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (digits.length === 0) return ''
+  const withCode = digits.startsWith('55') ? digits : `55${digits}`
+  const rest = withCode.slice(2)
+  if (rest.length <= 2) return rest.length === 0 ? '+55' : `+55 (${rest})`
+  if (rest.length <= 6) return `+55 (${rest.slice(0, 2)}) ${rest.slice(2)}`
+  if (rest.length <= 10) return `+55 (${rest.slice(0, 2)}) ${rest.slice(2, 6)}-${rest.slice(6)}`
+  return `+55 (${rest.slice(0, 2)}) ${rest.slice(2, 7)}-${rest.slice(7, 11)}`
+}
+
 export function maskCPF(value: string): string {
   const numbers = value.replace(/\D/g, '').slice(0, 11)
   

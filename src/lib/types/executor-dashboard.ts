@@ -24,7 +24,6 @@ export type ExecutorDashboardNextAction = {
   title: string
   status: ActionStatus
   priority: ActionPriority
-  isLate: boolean
   lateStatus: ActionLateStatus | null
   isBlocked: boolean
   blockedReason?: string | null

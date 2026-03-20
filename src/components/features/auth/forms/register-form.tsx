@@ -17,7 +17,7 @@ import { useRegisterForm } from '@/components/register/hooks/use-register-form'
 import { useStepNavigation } from '@/lib/hooks/ui/use-step-navigation'
 import { useFormMask } from '@/lib/hooks/ui/use-form-mask'
 import { ApiError } from '@/lib/api/api-client'
-import { maskCNPJ, maskPhone, unmaskCNPJ, unmaskPhone } from '@/lib/utils/masks'
+import { maskCNPJ, unmaskCNPJ } from '@/lib/utils/masks'
 import { registerSchema, type RegisterFormData } from '@/lib/validators/auth'
 
 const STEPS = [
@@ -63,14 +63,6 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
     onStepChange,
   })
 
-  const phoneInput = useFormMask({
-    fieldName: 'phone',
-    mask: maskPhone,
-    unmask: unmaskPhone,
-    watch,
-    setValue,
-  })
-
   const cnpjInput = useFormMask({
     fieldName: 'document',
     mask: maskCNPJ,
@@ -112,7 +104,7 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        phone: unmaskPhone(data.phone),
+        phone: data.phone,
         document: unmaskCNPJ(data.document),
         documentType: 'CNPJ',
         company: {
@@ -136,8 +128,7 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
       register,
       errors,
       setValue,
-      phoneValue: phoneInput.maskedValue,
-      setPhoneValue: phoneInput.setMaskedValue,
+      watch,
       cnpjValue: cnpjInput.maskedValue,
       setCnpjValue: cnpjInput.setMaskedValue,
     }

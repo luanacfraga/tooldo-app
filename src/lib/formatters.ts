@@ -73,13 +73,19 @@ export function formatCNPJ(cnpj: string): string {
   return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
 }
 
+/** Display format: E.164 as +55 (DDD) XXXXX-XXXX, or legacy (DDD) XXXXX-XXXX */
 export function formatPhone(phone: string): string {
+  if (!phone) return ''
   const cleaned = phone.replace(/\D/g, '')
-  if (cleaned.length === 11) {
-    return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+  const withCode = cleaned.startsWith('55') ? cleaned : `55${cleaned}`
+  if (withCode.length >= 12) {
+    const rest = withCode.slice(2, 13)
+    if (rest.length <= 2) return rest.length === 0 ? '+55' : `+55 (${rest})`
+    if (rest.length <= 6) return `+55 (${rest.slice(0, 2)}) ${rest.slice(2)}`
+    if (rest.length <= 10) return `+55 (${rest.slice(0, 2)}) ${rest.slice(2, 6)}-${rest.slice(6)}`
+    return `+55 (${rest.slice(0, 2)}) ${rest.slice(2, 7)}-${rest.slice(7, 11)}`
   }
-  if (cleaned.length === 10) {
-    return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
-  }
+  if (cleaned.length === 11) return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
+  if (cleaned.length === 10) return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
   return phone
 }

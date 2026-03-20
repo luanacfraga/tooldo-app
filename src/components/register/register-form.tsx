@@ -7,7 +7,7 @@ import { StepHeader } from '@/components/auth/register/step-header'
 import { StepNavigationButtons } from '@/components/auth/register/step-navigation-buttons'
 import { Steps } from '@/components/ui/steps'
 import { ApiError } from '@/lib/api/api-client'
-import { maskCNPJ, maskPhone, unmaskCNPJ, unmaskPhone } from '@/lib/utils/masks'
+import { maskCNPJ, unmaskCNPJ } from '@/lib/utils/masks'
 import { registerSchema, type RegisterFormData } from '@/lib/validators/auth'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
@@ -62,19 +62,8 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
     },
   })
 
-  const phoneField = watch('phone')
   const documentField = watch('document')
-  const [phoneValue, setPhoneValue] = useState('')
   const [cnpjValue, setCnpjValue] = useState('')
-
-  useEffect(() => {
-    if (phoneField) {
-      const unmaskedPhone = unmaskPhone(phoneValue)
-      if (phoneField !== unmaskedPhone) {
-        setPhoneValue(maskPhone(phoneField))
-      }
-    }
-  }, [phoneField, phoneValue])
 
   useEffect(() => {
     if (documentField) {
@@ -134,7 +123,7 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        phone: unmaskPhone(data.phone),
+        phone: data.phone,
         document: unmaskCNPJ(data.document),
         documentType: 'CNPJ',
         company: {
@@ -158,8 +147,7 @@ export function RegisterForm({ onStepChange }: RegisterFormProps) {
       register,
       errors,
       setValue,
-      phoneValue,
-      setPhoneValue,
+      watch,
       cnpjValue,
       setCnpjValue,
     }

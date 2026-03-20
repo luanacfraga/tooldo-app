@@ -1,6 +1,6 @@
+import { ActionLateStatus } from '@/lib/types/action'
 import type {
   ActionFilters,
-  ActionLateStatus,
   ActionPriority,
   ActionStatus,
 } from '@/lib/types/action'
@@ -52,13 +52,14 @@ export function buildActionsApiFilters({
 
   if (state.priority !== 'all') filters.priority = state.priority
   if (state.showBlockedOnly) filters.isBlocked = true
-  if (state.showLateOnly) {
-    filters.isLate = true
-  }
-
   if (state.lateStatusFilter && state.lateStatusFilter !== 'all') {
     filters.lateStatus = [state.lateStatusFilter]
-    delete filters.isLate
+  } else if (state.showLateOnly) {
+    filters.lateStatus = [
+      ActionLateStatus.LATE_TO_START,
+      ActionLateStatus.LATE_TO_FINISH,
+      ActionLateStatus.COMPLETED_LATE,
+    ]
   }
 
   if (state.assignment === AssignmentFilter.ASSIGNED_TO_ME) {

@@ -27,26 +27,7 @@ export const registerSchema = z
     phone: z
       .string()
       .min(1, 'Telefone é obrigatório')
-      .refine(
-        (val) => {
-          const digits = val.replace(/\D/g, '')
-          return digits.length === 11 || digits.length === 10
-        },
-        { message: 'Digite o telefone completo (10 ou 11 dígitos)' }
-      )
-      .refine(
-        (val) => {
-          const digits = val.replace(/\D/g, '')
-          if (digits.length === 11) {
-            return /^[1-9]{2}9[0-9]{8}$/.test(digits)
-          }
-          if (digits.length === 10) {
-            return /^[1-9]{2}[2-5][0-9]{7}$/.test(digits)
-          }
-          return false
-        },
-        { message: 'Número de telefone inválido' }
-      ),
+      .regex(/^\+55[1-9]{2}(9[0-9]{8}|[2-5][0-9]{7})$/, 'Use o formato E.164: +55 (DDD) XXXXX-XXXX'),
     document: z
       .string()
       .min(1, 'CNPJ é obrigatório')

@@ -1,6 +1,7 @@
 'use client'
 
 import { AdminOnly } from '@/components/features/auth/guards/admin-only'
+import { CreateCompanyModal } from '@/components/features/company/create-company-modal'
 import { EditCompanyModal } from '@/components/features/company/edit-company-modal'
 import { EmptyState } from '@/components/shared/feedback/empty-state'
 import { ErrorState } from '@/components/shared/feedback/error-state'
@@ -24,6 +25,7 @@ export default function CompaniesPage() {
   const { data: companies = [], isLoading, error, refetch } = useCompanies()
   const { query, setFilter, resetFilters } = useCompanyFiltersStore()
   const [companyToEdit, setCompanyToEdit] = useState<Company | null>(null)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
 
   const filteredCompanies = useMemo(() => {
     let filtered = companies
@@ -125,7 +127,7 @@ export default function CompaniesPage() {
           description="Gerencie suas empresas"
           action={
             <Button
-              onClick={() => router.push('/companies/new')}
+              onClick={() => setCreateModalOpen(true)}
               className="gap-1.5 font-medium sm:gap-2"
             >
               <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -147,7 +149,7 @@ export default function CompaniesPage() {
             description="Você ainda não possui empresas cadastradas. Crie sua primeira empresa para gerenciar."
             action={{
               label: 'Criar Primeira Empresa',
-              onClick: () => router.push('/companies/new'),
+              onClick: () => setCreateModalOpen(true),
             }}
           />
         )}
@@ -175,6 +177,15 @@ export default function CompaniesPage() {
             />
           </>
         )}
+
+        <CreateCompanyModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          onSuccess={() => {
+            refetch()
+            setCreateModalOpen(false)
+          }}
+        />
 
         {companyToEdit && (
           <EditCompanyModal

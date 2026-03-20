@@ -1,8 +1,11 @@
+export type NotificationPreference = 'sms_only' | 'whatsapp_only' | 'both'
+
 export interface Company {
   id: string
   name: string
   description?: string
   adminId: string
+  notificationPreference: NotificationPreference
   createdAt: string
   updatedAt: string
 }
@@ -11,11 +14,13 @@ export interface CreateCompanyRequest {
   name: string
   description?: string
   adminId: string
+  notificationPreference?: NotificationPreference
 }
 
 export interface UpdateCompanyRequest {
   name?: string
   description?: string
+  notificationPreference?: NotificationPreference
 }
 
 export type EmployeeRole = 'admin' | 'manager' | 'executor' | 'consultant'

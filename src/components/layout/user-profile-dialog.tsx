@@ -18,16 +18,19 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/ui/phone-input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { RoleBadge } from '@/components/ui/role-badge'
 import { Separator } from '@/components/ui/separator'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { usersApi } from '@/lib/api/endpoints/users'
 import { formatCNPJ, formatCPF } from '@/lib/formatters'
+import { getApiErrorMessage } from '@/lib/utils/error-handling'
 import { usePermissions } from '@/lib/hooks/use-permissions'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Mail, Shield, User } from 'lucide-react'
+import { KeyRound, Loader2, Mail, Shield, User } from 'lucide-react'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -41,7 +44,14 @@ interface UserProfileDialogProps {
 const profileFormSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   email: z.string().email('Email inválido'),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .refine(
+      (v) => v === '' || /^\+55[1-9]{2}(9[0-9]{8}|[2-9][0-9]{7})$/.test(v),
+      'Digite um número brasileiro válido com DDD',
+    ),
+  notificationPreference: z.enum(['sms_only', 'whatsapp_only', 'both']),
+  currentPassword: z.string().optional(),
 })
 
 type ProfileFormData = z.infer<typeof profileFormSchema>
@@ -58,7 +68,7 @@ const DEFAULT_COLORS = [
 ] as const
 
 export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps) {
-  const { user, role } = usePermissions()
+  const { user, role, isMaster, isExecutor, isManager } = usePermissions()
   const authUser = useAuthStore((s) => s.user)
   const setUser = useAuthStore((s) => s.setUser)
   const queryClient = useQueryClient()
@@ -126,19 +136,27 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
     defaultValues: {
       name: user?.name || '',
       email: user?.email || '',
-      phone: user?.phone || '',
+      phone: authUser?.phone || '',
+      notificationPreference: authUser?.notificationPreference ?? 'both',
+      currentPassword: '',
     },
   })
 
   React.useEffect(() => {
-    if (user) {
+    if (user || authUser) {
       form.reset({
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: authUser?.phone || '',
+        notificationPreference: authUser?.notificationPreference ?? 'both',
+        currentPassword: '',
       })
     }
-  }, [user, form])
+  }, [user, authUser?.phone, authUser?.notificationPreference, authUser?.email, form])
+
+  const emailValue = form.watch('email')
+  const emailChanged =
+    emailValue.trim().toLowerCase() !== (authUser?.email ?? '').toLowerCase()
 
   if (!user) return null
 
@@ -155,6 +173,15 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
   }
 
   const onSubmit = async (data: ProfileFormData) => {
+    const emailChanged = data.email.trim().toLowerCase() !== (authUser?.email ?? '').toLowerCase()
+
+    if (emailChanged && !data.currentPassword) {
+      form.setError('currentPassword', {
+        message: 'Senha obrigatória para alterar o email',
+      })
+      return
+    }
+
     try {
       const fullName = data.name.trim()
       const [firstName, ...rest] = fullName.split(/\s+/)
@@ -163,20 +190,30 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
       const updated = await usersApi.updateProfile({
         firstName,
         lastName,
-        phone: data.phone || undefined,
+        phone: data.phone,
+        notificationPreference: data.notificationPreference,
+        ...(emailChanged && {
+          email: data.email.trim().toLowerCase(),
+          currentPassword: data.currentPassword,
+        }),
       })
 
       if (authUser) {
         setUser({
           ...authUser,
           name: `${updated.firstName} ${updated.lastName}`.trim(),
-          phone: data.phone || authUser.phone || null,
+          phone: updated.phone ?? null,
+          notificationPreference:
+            updated.notificationPreference ?? data.notificationPreference,
+          email: updated.email ?? authUser.email,
         })
       }
 
+      form.setValue('currentPassword', '')
       toast.success('Perfil atualizado com sucesso!')
     } catch (error) {
-      toast.error('Erro ao atualizar perfil')
+      const message = getApiErrorMessage(error, 'Erro ao atualizar perfil')
+      toast.error(message)
     }
   }
 
@@ -273,12 +310,85 @@ export function UserProfileDialog({ open, onOpenChange }: UserProfileDialogProps
                       Email
                     </FormLabel>
                     <FormControl>
-                      <Input {...field} type="email" className="h-9 text-sm" disabled readOnly />
+                      <Input {...field} type="email" className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
+
+              {emailChanged && (
+                <FormField
+                  control={form.control}
+                  name="currentPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <KeyRound className="h-3 w-3" />
+                        Senha atual (obrigatória para alterar o email)
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" className="h-9 text-sm" />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">
+                      Telefone
+                    </FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        {...field}
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        className="h-9 text-sm"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              {!isMaster && !isExecutor && !isManager && (
+                <FormField
+                  control={form.control}
+                  name="notificationPreference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">
+                        Receber notificações via
+                      </FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="flex gap-4"
+                        >
+                          {[
+                            { value: 'sms_only', label: 'SMS' },
+                            { value: 'whatsapp_only', label: 'WhatsApp' },
+                            { value: 'both', label: 'Ambos' },
+                          ].map((opt) => (
+                            <label key={opt.value} className="flex cursor-pointer items-center gap-1.5 text-sm">
+                              <RadioGroupItem value={opt.value} />
+                              {opt.label}
+                            </label>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {formattedDocument && (
                 <div className="space-y-1">

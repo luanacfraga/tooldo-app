@@ -25,7 +25,6 @@ function buildQueryString(filters: ActionFilters): string {
     'status',
     'statuses',
     'priority',
-    'isLate',
     'isBlocked',
     'lateStatus',
     'q',
